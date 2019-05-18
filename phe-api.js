@@ -1,31 +1,34 @@
 const Tournament = require("./poker-holdem-engine/tournament");
 
-const tournamentID = "slackParty";
+const tournamentID = 'tester';
+const mongoUri = "mongodb://localhost:8000/store"
+
+const chalk = require('chalk');
+
+const error = chalk.bold.red;
+const warning = chalk.keyword('orange');
+
+const preflop = chalk.black.bgWhite;
 
 const players = [
     {
-        id: "001",
-        name: "Stephanie",
-        serviceUrl: "https://e20c063e.ngrok.io"
+        "id": "pA",
+        "name": "Person A",
+        "serviceUrl": "sample-url-1"
     },
     {
-        id: "002",
-        name: "Noah",
-        serviceUrl: "https://e20c063e.ngrok.io"
+        "id": "pC",
+        "name": "Person C",
+        "serviceUrl": "sample-url-1"
     },
     {
-        id: "003",
-        name: "Brian",
-        serviceUrl: "https://e20c063e.ngrok.io"
-    },
-    {
-        id: "004",
-        name: "Angry Poker Dude",
-        serviceUrl: "https://e20c063e.ngrok.io"
-    },
-];
+        "id": "pB",
+        "name": "Person B",
+        "serviceUrl": "sample-url-1"
+    }
 
-tournamentSettings = {
+];
+const tournamentSettings = {
     "BUYIN": 100,
     "WARMUP": false,
     "WARMUP_GAME": 10,
@@ -38,27 +41,40 @@ tournamentSettings = {
     "POINTS": [
         [10, 2, 0, 0]
     ]
-    // Read docs/game-settings.md for the available configuration options.
 };
 
-
+let t;
 process.on("message", (msg) => {
-
+    console.log(chalk.cyan('Tournament.js | Checking msg topic: ', msg.topic))
     switch (msg.topic) {
         case "create":
             console.log("Got 'create'! ,, creating...")
-            //const startGame = () => {
-            const t = new Tournament(tournamentID, players, tournamentSettings, { autoStart: true, });
-            //console.log('In create, ', bot);
+            t = new Tournament(tournamentID, players, tournamentSettings, { autoStart: true });
             t.on("TOURNAMENT:updated", (data, done) => {
+                console.log(chalk.bgCyan('Tournament | Updated!'));
+                t.pause();
 
-                done();
-                process.send({ topic: data });
-                process.send({ topic: "exit" });
+                process.send({ topic: "updates", data });
 
             });
             break;
+        case "go-preflop":
+            console.log(chalk.cyan(" Tournament.js | PRE-FLOP |case restart |  Restarting!  "));
+            t.restart();
+            break;
+        case "go-flop": {
+            console.log(chalk.cyan("Tournament.js | FLOP | Restarting "));
+            t.restart();
+            break;
+        }
+        case "debug pause":
+            t.pause();
+            console.log(chalk.bgMagenta("PAUSED"));
+            break;
         default:
-            console.log(`Logging! [${msg.topic}] ----- ${msg.message}...`)
+            console.log(`Index.js | [${msg.topic}] ----- ${msg.message}...`)
     }
-});
+})
+
+
+

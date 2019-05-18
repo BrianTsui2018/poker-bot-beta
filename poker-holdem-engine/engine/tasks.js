@@ -76,6 +76,23 @@ const announceCurrentHand = require("./tasks/announce-hand");
 const incrementHandId = require("./tasks/next-hand");
 const announceTournamentEnd = require("./tasks/announce-end");
 
+//Goes up to SET UP.
+const Tasks01 = [
+  warmup,
+  onGameCompleted,
+  waitOnPause,
+  waitBeforeHand,
+  announceCurrentHand,
+  ...setupTable
+]
+
+//Game rounds.
+const Tasks02 = [
+  // It's a collection of tasks
+  // focused on the dynamics of a hand.
+  ...playHand,
+]
+
 const Tasks = [
   warmup,
 
@@ -115,4 +132,8 @@ const Tasks = [
   announceTournamentEnd,
 ];
 
-module.exports = Tasks;
+module.exports = {
+  Tasks,
+  Tasks01,
+  Tasks02
+}

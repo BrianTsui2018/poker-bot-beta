@@ -29,7 +29,7 @@ const startT = () => {
 
             if (!preflop_done) {
                 thread.send({ topic: "go-preflop" });
-                setup_done = true;
+                preflop_done = true;
             }
 
             else if (players_contacted < num_players) {

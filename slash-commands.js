@@ -225,64 +225,15 @@ const handleSlash = async (bot, message) => {
             // #debug ------------------------------------------------
             console.log('\n... slash-commands/js : Start tournament---------------\n');
             //--------------------------------------------------------        
-            const childProcess = require("child_process");
-            let setup;
-            const startT = async () => {
-                const thread = childProcess.fork("phe-api.js");
-                console.log("Thread created!");
-                thread.on("message", async (msg) => {
-                    if (msg.topic === "exit") {
-                        //console.log("thread killed");
-                        //thread.kill();
-                    }
-                    else {
-                        console.log('\n------------ Testing dummy fetch ----------------\n');
+            bot.reply(message, "This is the beginning of the tournament thread.", function (err, response) {
+                // #debug-----
+                // console.log("\n---------- /start -------\n");
+                // console.log(message);
+                //--------------
+                response.message.channel = message.channel_id;
+                startTournament(bot, response.message);
+            });
 
-                        try {
-                            const dummyLobbyID = await getLobbyIdByName("Test_Lobby_777");
-
-                            const player_lobby_data = await getAllPlayerInLobby(dummyLobbyID);
-
-                            let players = [];
-                            let N = player_lobby_data.length;
-                            for (let i = 0; i < N; i++) {
-                                let player = player_lobby_data[i];
-                                let P = {
-                                    id: player.slack_id,
-                                    name: player.name,
-                                    serviceUrl: "https://e20c063e.ngrok.io"
-                                };
-                                players.push(P);
-                            }
-                            // console.log('\n------------ Testing dummy result ----------------\n');
-                            // console.log(players);
-                            // console.log('Back at index!', msg.topic);
-                            setup = msg.topic;
-                            const blockmsg = require('./configSetupMsg')(players, setup);
-
-                            bot.sendWebhook({
-                                blocks: blockmsg,
-                                channel: message.channel_id,
-                            }, function (err, res) {
-                                if (err) {
-                                    console.log(err);
-                                }
-                            });
-                        } catch (error) {
-                            console.log(error);
-                        }
-
-                    }
-                })
-                // Listening for the thread's death
-                thread.on("exit", (code) => {
-                    if (code > 0) {
-                        console.error("Exit with code", code);
-                    }
-                });
-                thread.send({ topic: "create" });
-            }
-            startT();
             break;
         default:
             bot.reply(message, 'What command is that');
@@ -292,3 +243,90 @@ const handleSlash = async (bot, message) => {
 module.exports = {
     handleSlash
 };
+
+function startTournament(bot, thread_message_head) {
+    /*          Chalk           */
+    const chalk = require('chalk');
+    const error = chalk.bold.red;
+    const warning = chalk.keyword('orange');
+    const preflop = chalk.black.bgWhite;
+
+    /*        Requirement         */
+    const childProcess = require("child_process");
+    const configSetupMsg = require("./configSetupMsg");
+
+    /*         Variables          */
+    let preflop_done = false;
+    let num_players = 3;
+    let players_contacted = 0;
+
+    // #debug ------
+    // console.log(chalk.blue.bgWhite("\nBefore starting the tournament...\n"));
+    // console.log("->", thread_message_head);
+    // -------------   
+
+    bot.replyInThread(thread_message_head, "This is a thread reply.");
+    //bot.reply(thread_message_head, "This is a thread reply.");
+
+    /*     Start Tounarment      */
+    const startT = () => {
+        /*      Thread      */
+        const thread = childProcess.fork("phe-api.js");
+        // #debug ------
+        console.log(chalk.blue.bgWhite("Thread created!"));
+        // bot.sendWebhook({
+        //     text: 'This is an incoming webhook',
+        //     channel: message.channel_id,
+        // }, function (err, res) {
+        //     if (err) {
+        //         console.log(err);
+        //     }
+        // });
+
+
+
+
+        // -------------
+
+        thread.on("message", (msg) => {
+            if (msg.topic === "exit") {
+                thread.kill();
+            }
+            else if (msg.topic == "updates") {
+                console.log(preflop('Index.js | out of set up.| '));
+                //msg.data.ante = 25;
+                //t.pause();
+                //configSetupMsg(,msg.data);
+
+
+                if (!preflop_done) {
+                    thread.send({ topic: "go-preflop" });
+                    preflop_done = true;
+                }
+                else if (players_contacted < num_players) {
+                    players_contacted++;
+                    console.log(warning("Index.js | msg players ... Currently : " + (players_contacted) + "/3"))
+                    if (players_contacted < num_players - 1) {
+                        thread.send({ topic: "go-preflop" });
+                    }
+                    else {
+                        //enter FLOP.
+                        //thread.send({ topic: "go-flop" });
+                        thread.send({ topic: "debug pause" });
+                    }
+                }
+                else {
+                    console.log(warning("Index.js | pausing..."));
+                    thread.send({ topic: "debug pause" });
+                }
+            }
+            else {
+                setup = msg.topic;
+                //console.log(setup);
+                thread.send({ topic: "debug pause" });
+            }
+        })
+        thread.send({ topic: "create" });
+    }
+    startT();
+}

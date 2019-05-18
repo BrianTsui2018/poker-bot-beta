@@ -1,17 +1,14 @@
 //----------------------------------------
 /*              Import                  */
 const Botkit = require('botkit');
-
 const {
     handleSlash
 } = require('./slash-commands')
-
 const joinPokerEventListener = require('./bot-skills/poker-commands.js');
 
 //----------------------------------------
 /*      Authentication checkpoint       */
-//          // online deployment doesn't need to check for PORT env var
-if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET || !process.env.VERIFICATION_TOKEN || !process.env.PORT) {
+if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET || !process.env.VERIFICATION_TOKEN || !process.env.PORT) {                   // online deployment doesn't need to check for PORT env var
     console.log('Error: Specify CLIENT_ID, CLIENT_SECRET, VERIFICATION_TOKEN in environment');
     process.exit(1);
 } else {
