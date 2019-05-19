@@ -279,25 +279,17 @@ async function startTournament(bot, thread_message_head) {
     /*     Start Tounarment      */
     const startT = () => {
         /*      Thread      */
-        const thread = childProcess.fork("phe-api.js");
-        // #debug ------
-        console.log(chalk.blue.bgWhite("Thread created!"));
-        // bot.sendWebhook({
-        //     text: 'This is an incoming webhook',
-        //     channel: message.channel_id,
-        // }, function (err, res) {
-        //     if (err) {
-        //         console.log(err);
-        //     }
-        // });
+        const thread = childProcess.fork("tournament2.js");         //Immediately fork a child process to start to run tournament
 
-        // -------------
-
-        thread.on("message", async (msg) => {
+        thread.on("message", async (msg) => {                       //Each time child process passes a msg back, this thread listener catches it.
             if (msg.topic === "exit") {
                 thread.kill();
             }
             else if (msg.topic === "updates") {
+                console.log(chalk.bgMagenta('------------Tournament UPDATES------------'));
+                console.log(msg);
+                console.log(chalk.bgMagenta('------------------------------------------'));
+
                 let this_block_message = [];
                 if (msg.data.type === "state") {
                     let this_player = await getOnePlayer({ slack_id: msg.data.playerId, team_id: this_team_id })
@@ -331,7 +323,7 @@ async function startTournament(bot, thread_message_head) {
                 /*      Not used debug function     */
                 //await testConfigSetupMsg(msg, bot);
 
-                console.log(preflop('Index.js | out of set up.| '));
+                //console.log(preflop('Index.js | out of set up.| '));
                 //msg.data.ante = 25;
                 //t.pause();
                 // #debug-----------------
@@ -354,35 +346,46 @@ async function startTournament(bot, thread_message_head) {
 
                 });
 
-                if (!preflop_done) {
-                    thread.send({ topic: "go-preflop" });
-                    preflop_done = true;
-                }
-                else if (players_contacted < num_players) {
-                    players_contacted++;
-                    console.log(warning("Index.js | msg players ... Currently : " + (players_contacted) + "/3"))
-                    if (players_contacted < num_players - 1) {
-                        thread.send({ topic: "go-preflop" });
-                    }
-                    else {
-                        //enter FLOP.
-                        //thread.send({ topic: "go-flop" });
-                        thread.send({ topic: "debug pause" });
-                    }
-                }
-                else {
-                    console.log(warning("Index.js | pausing..."));
-                    thread.send({ topic: "debug pause" });
-                }
+                // #debug
+                // if (!preflop_done) {
+                //     thread.send({ topic: "go-preflop" });
+                //     preflop_done = true;
+                // }
+                // else if (players_contacted < num_players) {
+                //     players_contacted++;
+                //     console.log(warning("Index.js | msg players ... Currently : " + (players_contacted) + "/3"))
+                //     if (players_contacted < num_players - 1) {
+                //         thread.send({ topic: "go-preflop" });
+                //     }
+                //     else {
+                //         //enter FLOP.
+                //         //thread.send({ topic: "go-flop" });
+                //         thread.send({ topic: "debug pause" });
+                //     }
+                // }
+                // else {
+                //     console.log(warning("Index.js | pausing..."));
+                //     thread.send({ topic: "debug pause" });
+                // }
+
+
+                //Replace with actions for this state!
+                setTimeout(() => {
+                    console.log(chalk.bold("Attemting to end wait"));
+                    thread.send({ topic: "reply" });
+                }, 5000);
+                //----------------end replacement.
             }
             else {
-                setup = msg.topic;
-                //console.log(setup);
-                thread.send({ topic: "debug pause" });
+                console.log(chalk.red("DEBUG: Uncaught message from child! ", msg.topic));
             }
         })
-        thread.send({ topic: "create" });
+
+        /*        Start the game           */
+        thread.send({ topic: "start-game" });
     }
+
+    /*     Run the game script      */
     startT();
 }
 
