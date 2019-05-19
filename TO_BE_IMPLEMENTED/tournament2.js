@@ -7,8 +7,6 @@ const chalk = require('chalk');
 const error = chalk.bold.red;
 const warning = chalk.keyword('orange');
 
-const preflop = chalk.black.bgWhite;
-
 // DUMMY DATA REMOVE IF NOT NEEDED
 const tournamentID = 'tester';
 const players = [
@@ -54,7 +52,7 @@ const em = new events.EventEmitter();
 
 
 //Each time when PHE/Tournament.js has an update, this will catch it.
-t.on("TOURNAMENT:updated", async (data, done) => {
+t.on("TOURNAMENT:updated", (data, done) => {
     console.log(chalk.bgCyan('Tournament | Updated!'));
 
     //Sends data to parent.

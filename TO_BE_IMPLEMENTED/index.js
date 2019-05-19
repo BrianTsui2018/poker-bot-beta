@@ -3,7 +3,7 @@ const chalk = require('chalk');
 
 const childProcess = require("child_process");
 
-const startT = () => {
+const startTournament = () => {
     //Immediately fork a child process to start to run tournament
     const thread = childProcess.fork("tournament2.js");
 
@@ -35,4 +35,4 @@ const startT = () => {
     thread.send({ topic: "start-game" });
 }
 
-startT();
+startTournament();
