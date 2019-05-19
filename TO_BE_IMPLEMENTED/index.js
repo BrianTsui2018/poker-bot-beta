@@ -1,38 +1,67 @@
 const chalk = require('chalk');
 
+const error = chalk.bold.red;
+const warning = chalk.keyword('orange');
+
+const preflop = chalk.black.bgWhite;
 
 const childProcess = require("child_process");
 
-const startT = () => {
-    //Immediately fork a child process to start to run tournament
-    const thread = childProcess.fork("tournament2.js");
+let preflop_done = false;
+let num_players = 3;
+let players_contacted = 0;
 
-    //Each time child process passes a msg back, this thread listener catches it.
+const startT = () => {
+    const thread = childProcess.fork("tournament.js");
+
+    console.log(chalk.blue.bgWhite("Thread created!"));
     thread.on("message", (msg) => {
         if (msg.topic === "exit") {
             thread.kill();
         }
         else if (msg.topic == "updates") {
-            console.log(chalk.bgMagenta('------------Tournament UPDATES------------'));
-            console.log(msg.data);
+            console.log(preflop('Index.js | out of set up.| '));
+
+            //msg.data.ante = 25;
+            //t.pause();
+            console.log('->', msg.data);
             console.log(chalk.bgMagenta('------------------------------------------'));
 
+            if (!preflop_done) {
+                thread.send({ topic: "go-preflop" });
+                setup_done = true;
+            }
 
-            //Replace with actions for this state!
-            setTimeout(() => {
-                console.log(chalk.bold("Attemting to end wait"));
-                thread.send({ topic: "reply" });
-            }, 5000);
-            //----------------end replacement.
+            else if (players_contacted < num_players) {
+
+                players_contacted++;
+                console.log(warning("Index.js | msg players ... Currently : " + (players_contacted) + "/3"))
+                if (players_contacted < num_players - 1) {
+                    thread.send({ topic: "go-preflop" });
+                }
+                else {
+                    //enter FLOP.
+                    thread.send({ topic: "go-flop" });
+                }
+            }
+            else {
+                console.log(warning("Index.js | pausing..."));
+                thread.send({ topic: "debug pause" });
+            }
+
+            console.log("Here");
 
         }
         else {
-            console.log(chalk.red("DEBUG: Uncaught message from child! ", msg.topic));
+            setup = msg.topic;
+            //console.log(setup);
+            thread.send({ topic: "debug pause" });
+
         }
     })
 
-    //Start the game
-    thread.send({ topic: "start-game" });
+    thread.send({ topic: "create" });
+
 }
 
 startT();
