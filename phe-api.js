@@ -12,22 +12,28 @@ const preflop = chalk.black.bgWhite;
 
 const players = [
     {
-        "id": "pA",
-        "name": "Person A",
-        "serviceUrl": "sample-url-1"
+        id: "000001",
+        name: "Stephanie",
+        serviceUrl: "https://e20c063e.ngrok.io"
     },
     {
-        "id": "pC",
-        "name": "Person C",
-        "serviceUrl": "sample-url-1"
+        id: "000002",
+        name: "Noah",
+        serviceUrl: "https://e20c063e.ngrok.io"
     },
     {
-        "id": "pB",
-        "name": "Person B",
-        "serviceUrl": "sample-url-1"
-    }
-
+        id: "000003",
+        name: "Brian",
+        serviceUrl: "https://e20c063e.ngrok.io"
+    },
+    {
+        id: "000004",
+        name: "Angry Poker Dude",
+        serviceUrl: "https://e20c063e.ngrok.io"
+    },
 ];
+
+
 const tournamentSettings = {
     "BUYIN": 100,
     "WARMUP": false,

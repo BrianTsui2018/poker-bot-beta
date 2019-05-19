@@ -1,4 +1,7 @@
-const message_blocks = require('../message-blocks/poker-messages');
+const {
+    showdown_mockup
+} = require('../message-blocks/poker-messages');
+
 const {
     registerPlayer,
     registerLobby,
@@ -243,12 +246,9 @@ const create_lobby_callback = async (convo, message) => {
 }
 
 
-// ------- Assign selected message blocks to local const ----------- //
-const showdown = message_blocks.showdown_mockup;
-//-------------------------------------------------------------------//
 const testShowCards = (message, bot) => {
     bot.sendWebhook({
-        blocks: showdown,
+        blocks: showdown_mockup(),
         channel: message.channel_id,
     }, function (err, res) {
         if (err) {

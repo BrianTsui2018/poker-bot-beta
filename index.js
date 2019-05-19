@@ -23,7 +23,7 @@ const mongodbStorage = require('./phe-storage-mongoose/index.js')({
 /*      Controller, the Slackbot        */
 const controller = Botkit.slackbot({
     storage: mongodbStorage,
-    debug: true,
+    debug: false,
     clientSigningSecret: process.env.CLIENT_SIGNING_SECRET,
 });
 //----------------------------------------
