@@ -253,11 +253,10 @@ function startTournament(bot, thread_message_head) {
 
     /*        Requirement         */
     const childProcess = require("child_process");
-    const configSetupMsg = require("./configSetupMsg");
 
     /*         Variables          */
     let preflop_done = false;
-    let num_players = 3;
+    let num_players = 4;
     let players_contacted = 0;
 
     // #debug ------
@@ -283,22 +282,58 @@ function startTournament(bot, thread_message_head) {
         //     }
         // });
 
-
-
-
         // -------------
 
-        thread.on("message", (msg) => {
+        thread.on("message", async (msg) => {
             if (msg.topic === "exit") {
                 thread.kill();
             }
             else if (msg.topic == "updates") {
+
+                console.log('\n------------ Testing dummy fetch ----------------\n');
+
+                try {
+
+                    /*      Retrieve players data       */
+                    const dummyLobbyID = await getLobbyIdByName("Test_Lobby_777");
+                    const player_lobby_data = await getAllPlayerInLobby(dummyLobbyID);
+
+                    /*      Convert DB JSON data into a suitable structure      */
+                    let players = [];
+                    let N = player_lobby_data.length;
+                    for (let i = 0; i < N; i++) {
+                        let player = player_lobby_data[i];
+                        let P = {
+                            id: player.slack_id,
+                            name: player.name,
+                            serviceUrl: "https://e20c063e.ngrok.io"
+                        };
+                        players.push(P);
+                    }
+
+                    console.log('\n------------ msg from tournament instance ----------------\n');
+                    // console.log(players);
+                    console.log(msg);
+                    console.log('-------------------------------------------\n');
+
+                    /*      Build the block message with the player data and topic      */
+                    const blockmsg = require('./configSetupMsg')(players, msg.topic);
+                    /*      Bot send block message to slack        */
+                    bot.sendWebhook({
+                        blocks: blockmsg,
+                        channel: message.channel_id,
+                    }, function (err, res) {
+                        if (err) {
+                            console.log(err);
+                        }
+                    });
+                } catch (error) {
+                    console.log(error);
+                }
+
                 console.log(preflop('Index.js | out of set up.| '));
                 //msg.data.ante = 25;
                 //t.pause();
-                //configSetupMsg(,msg.data);
-
-
                 if (!preflop_done) {
                     thread.send({ topic: "go-preflop" });
                     preflop_done = true;

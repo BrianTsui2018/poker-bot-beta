@@ -58,8 +58,8 @@ const getLobbyIdByName = async (lobbyName) => {
 	try {
 		const lobs = await lobby.findOne({ name: lobbyName });
 		// #debug
-		console.log('/n--------------- lobby-router.js -> getLobbyIdByName()-----------\n');
-		console.log(lobs);
+		// console.log('/n--------------- lobby-router.js -> getLobbyIdByName()-----------\n');
+		// console.log(lobs);
 		return lobs._id;
 	} catch (e) {
 		// error statement
