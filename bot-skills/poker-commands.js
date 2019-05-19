@@ -1,4 +1,7 @@
-const message_blocks = require('../message-blocks/poker-messages');
+const {
+    showdown_mockup
+} = require('../message-blocks/poker-messages');
+
 const {
     registerPlayer,
     registerLobby,
@@ -243,12 +246,9 @@ const create_lobby_callback = async (convo, message) => {
 }
 
 
-// ------- Assign selected message blocks to local const ----------- //
-const showdown = message_blocks.showdown_mockup;
-//-------------------------------------------------------------------//
 const testShowCards = (message, bot) => {
     bot.sendWebhook({
-        blocks: showdown,
+        blocks: showdown_mockup(),
         channel: message.channel_id,
     }, function (err, res) {
         if (err) {
@@ -259,32 +259,71 @@ const testShowCards = (message, bot) => {
 
 module.exports = async (controller) => {
     controller.hears(['poker'], 'direct_message,direct_mention', function (bot, message) {
-        bot.startConversation(message, function (err, convo) {
-            convo.say('Shall we start a game?');
-            convo.ask(
-                { attachments: create_or_join },                    // buttons available
-                [
-                    {
-                        pattern: "create",                                 // if response is yes
-                        callback: async (reply, convo) => {             // do this procedure as callback
-                            let res = await create_lobby_callback(convo, reply.raw_message);        // the actual callback function
-                            convo.next();
+        // bot.reply(message, {
+        //     attachments: [
+        //         {
+        //             title: 'Do you want to interact with my buttons?',
+        //             callback_id: '123',
+        //             attachment_type: 'default',
+        //             actions: [
+        //                 {
+        //                     "name": "yes",
+        //                     "text": "Yes",
+        //                     "value": "yes",
+        //                     "type": "button",
+        //                 },
+        //                 {
+        //                     "name": "no",
+        //                     "text": "No",
+        //                     "value": "no",
+        //                     "type": "button",
+        //                 }
+        //             ]
+        //         }
+        //     ]
+        // });
+
+        bot.startRTM(function (err, bot, payload) {
+            if (err) {
+                throw new Error('Could not connect to Slack');
+            }
+
+
+            bot.startConversation(message, function (err, convo) {
+                if (err) {
+                    console.log(err);
+                }
+
+                // convo.say('Shall we start a game?');
+                // #debug ---------------
+                console.log('\n\n---------------- poker-commands.js -> "poker" event ----------------\n');
+
+                // -----------------------            
+                convo.ask(
+                    { attachments: create_or_join },                    // buttons available
+                    [
+                        {
+                            pattern: "create",                                 // if response is yes
+                            callback: async (reply, convo) => {             // do this procedure as callback
+                                let res = await create_lobby_callback(convo, reply.raw_message);        // the actual callback function
+                                convo.next();
+                            }
+                        },
+                        {
+                            pattern: "no",
+                            callback: function (reply, convo) {
+                                convo.say('Maybe next time.');
+                                convo.next();
+                            }
+                        },
+                        {
+                            default: true,
+                            callback: function (reply, convo) {
+                                convo.say('\(... did not get a response...\)');
+                            }
                         }
-                    },
-                    {
-                        pattern: "no",
-                        callback: function (reply, convo) {
-                            convo.say('Maybe next time.');
-                            convo.next();
-                        }
-                    },
-                    {
-                        default: true,
-                        callback: function (reply, convo) {
-                            convo.say('\(... did not get a response...\)');
-                        }
-                    }
-                ]);
+                    ]);
+            });
         });
     });
     controller.hears(['test cards'], 'direct_message,direct_mention', function (bot, message) {

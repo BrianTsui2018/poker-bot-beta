@@ -13,7 +13,6 @@ async function loop1(LOGGER) {
   // current tournament isn't complete.
   while (this.state !== States.get("completed")) {
     for (const task of Tasks02) {
-
       if (task.shouldRun(this)) {
         LOGGER.debug("[TASK]: " + task.name);
         await task.run(LOGGER, this);

@@ -216,8 +216,8 @@ const getAllPlayerInLobby = async (lobby_id) => {
     try {
         const playerList = await player.find({ lastLobby: lobby_id, isInLobby: true });
         // #debug ---------------------------------
-        console.log('--- player-router.js -> getAllPlayerInLobby() --- ');
-        console.log(playerList);
+        // console.log('--- player-router.js -> getAllPlayerInLobby() --- ');
+        // console.log(playerList);
         //------------------------------------------
         return playerList;
     } catch (error) {

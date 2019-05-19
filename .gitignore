@@ -85,3 +85,7 @@ typings/
 .dynamodb/
 
 db_slackbutton_slash_command/
+
+
+# Custom things
+TO_BE_IMPLEMENTED/

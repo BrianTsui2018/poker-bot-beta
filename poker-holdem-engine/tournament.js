@@ -14,6 +14,7 @@ const withState = require("./domain/player/filter-by-state");
 const getPlayerFactory = require("./domain/player/create");
 
 const loop = require("./engine/loop");
+const loop1 = require("./engine/loop1");
 
 /**
  * @class Tournament
@@ -23,7 +24,7 @@ const loop = require("./engine/loop");
  * @param {Boolean} autoStart
  */
 class Tournament extends EventEmitter {
-  constructor (tournamentId, players, tournamentSettings, opts = { autoStart: false, recoveryId: 1 }) {
+  constructor(tournamentId, players, tournamentSettings, opts = { autoStart: false, recoveryId: 1 }) {
     super();
 
     tournamentId = this.id = tournamentId || randomId();
@@ -46,33 +47,33 @@ class Tournament extends EventEmitter {
 
     Object.defineProperties(gamestate, {
       handUniqueId: {
-        get () {
+        get() {
           return `[${processId}] ${tournamentId}: ${this.gameProgressiveId}/${this.handProgressiveId}`;
         },
       },
       activePlayers: {
-        get () {
+        get() {
           return withState(this.players, PlayerStates.get("active"));
         },
       },
       foldPlayers: {
-        get () {
+        get() {
           return withState(this.players, PlayerStates.get("fold"));
         },
       },
       outPlayers: {
-        get () {
+        get() {
           return withState(this.players, PlayerStates.get("out"));
         },
       },
       dealerPosition: {
-        get () {
+        get() {
           return this.players
             .findIndex((player) => player[Symbol.for("Dealer")]);
         },
       },
       bigBlindPosition: {
-        get () {
+        get() {
           return this.players
             .findIndex((player) => player[Symbol.for("Big blind")]);
         },
@@ -98,7 +99,7 @@ class Tournament extends EventEmitter {
     }
   }
 
-  async start () {
+  async start() {
     if (this.state !== States.get("created")) {
       return;
     }
@@ -110,7 +111,7 @@ class Tournament extends EventEmitter {
     return loop.call(this, LOGGER);
   }
 
-  pause () {
+  pause() {
     if (this.state === States.get("active")) {
       LOGGER.info(`Tournament ${this.id} is going to be paused.`, { tag: this.id });
 
@@ -118,15 +119,17 @@ class Tournament extends EventEmitter {
     }
   }
 
-  restart () {
-    if (this.state === States.get("pause")) {
+  async restart() {
+    if (this.state === States.get("paused")) {
       LOGGER.info(`Tournament ${this.id} is going to restart.`, { tag: this.id });
 
       this.state = States.get("active");
     }
+
+    return loop1.call(this, LOGGER);
   }
 
-  quit () {
+  quit() {
     if (this.state === States.get("active")) {
       LOGGER.info(`Tournament ${this.id} is going to finish soon.`, { tag: this.id });
 
@@ -137,7 +140,7 @@ class Tournament extends EventEmitter {
   /**
    * @name update
    */
-  update (msg) {
+  update(msg) {
     // The capability to resolve the returned Promise
     // is delegated to the watcher.
     return new Promise((resolve) => {
