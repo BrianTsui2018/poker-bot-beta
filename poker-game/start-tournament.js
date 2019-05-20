@@ -41,7 +41,9 @@ const startTournament = async (bot, thread_message_head) => {
     const childProcess = require("child_process");
 
     /*      Retrieve players data       */
-    const dummyLobbyID = await getLobbyIdByName("Test_Lobby_777");
+    // DUMMY DATA REMOVE IF NOT NEEDED
+    const dummyData = require('../player/dummy-players.json');
+    const dummyLobbyID = await getLobbyIdByName(dummyData.lobbyName);
     const player_lobby_data = await getAllPlayerInLobby(dummyLobbyID);
 
     /*         Variables          */
@@ -66,7 +68,10 @@ const startTournament = async (bot, thread_message_head) => {
 
                 let this_block_message = [];
                 if (msg.data.type === "state") {
-                    let this_player = await getOnePlayer({ slack_id: msg.data.playerId, team_id: this_team_id })
+                    let this_player = await getOnePlayer({ slack_id: msg.data.playerId, team_id: this_team_id });
+                    if (!this_player) {
+                        console.log("------------------------ !!!this_player is null");
+                    }
                     // #debug ---------------
                     // console.log('\n------------- "state" This Player : -----------------\n');
                     // console.log('Searching for this player = \{ slack_id: ', msg.data.playerId, ', team_id: ', this_team_id, '...\n');

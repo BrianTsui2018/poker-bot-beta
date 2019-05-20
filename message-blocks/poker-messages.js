@@ -301,7 +301,7 @@ const update_win = (msg) => {
             },
             "accessory": {
                 "type": "image",
-                "image_url": getiamgeurl(type, rank),
+                "image_url": "https://api.slack.com/img/blocks/bkb_template_images/approvalsNewDevice.png",
                 "alt_text": " "
             }
         },
