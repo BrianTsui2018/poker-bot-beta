@@ -5,7 +5,9 @@ const {
     update_setup_msg_data_players_debug,
     update_state,
     update_setup,
-    update_endgame
+    update_bet,
+    update_win,
+    update_cards
 } = require('../message-blocks/poker-messages');
 
 const {
@@ -81,11 +83,19 @@ const startTournament = async (bot, thread_message_head) => {
                     // console.log(msg);
                     // console.log(msg.data.players);
                     // console.log(msg.data.players[0].cards);
-
                     this_block_message = update_setup(msg);
                     /*      Debug printing of player info       */
                     //this_block_message = this_block_message.concat(update_setup_msg_data_players_debug(msg));                
                     // ----------------------
+                } else if (msg.data.type === "bet") {
+                    this_block_message = update_bet(msg);
+
+                } else if (msg.data.type === "cards") {
+                    this_block_message = update_cards(msg);
+
+                } else if (msg.data.type === "win") {
+                    this_block_message = update_win(msg);
+
                 }
 
                 /*      Not used debug function     */
