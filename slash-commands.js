@@ -49,10 +49,10 @@ const handleSlash = async (bot, message) => {
         case '/populate':
             bot.reply(message, 'Making a new lobby to put all the bots in...');
             const dummyLobby = await createLobby({
-                name: dummyData.lobby_name
+                name: dummyData.lobbyName
             });
-            bot.reply(message, `New lobby [${dummyLobby.name}] created! Currently has [${dummyLobby.currentPlayers}] players...`);
-            bot.reply(message, 'Creating dummy players on Database...');
+
+            bot.reply(message, `New lobby [${dummyLobby.name}] created! Currently has [${dummyData.playerList.length}] players...`);
             const playerList = dummyData.playerList;
 
             /*      For each dummy player     */

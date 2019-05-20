@@ -5,7 +5,9 @@ const {
     update_setup_msg_data_players_debug,
     update_state,
     update_setup,
-    update_endgame
+    update_bet,
+    update_win,
+    update_cards
 } = require('../message-blocks/poker-messages');
 
 const {
@@ -39,7 +41,9 @@ const startTournament = async (bot, thread_message_head) => {
     const childProcess = require("child_process");
 
     /*      Retrieve players data       */
-    const dummyLobbyID = await getLobbyIdByName("Test_Lobby_777");
+    // DUMMY DATA REMOVE IF NOT NEEDED
+    const dummyData = require('../player/dummy-players.json');
+    const dummyLobbyID = await getLobbyIdByName(dummyData.lobbyName);
     const player_lobby_data = await getAllPlayerInLobby(dummyLobbyID);
 
     /*         Variables          */
@@ -64,7 +68,10 @@ const startTournament = async (bot, thread_message_head) => {
 
                 let this_block_message = [];
                 if (msg.data.type === "state") {
-                    let this_player = await getOnePlayer({ slack_id: msg.data.playerId, team_id: this_team_id })
+                    let this_player = await getOnePlayer({ slack_id: msg.data.playerId, team_id: this_team_id });
+                    if (!this_player) {
+                        console.log("------------------------ !!!this_player is null");
+                    }
                     // #debug ---------------
                     // console.log('\n------------- "state" This Player : -----------------\n');
                     // console.log('Searching for this player = \{ slack_id: ', msg.data.playerId, ', team_id: ', this_team_id, '...\n');
@@ -81,11 +88,19 @@ const startTournament = async (bot, thread_message_head) => {
                     // console.log(msg);
                     // console.log(msg.data.players);
                     // console.log(msg.data.players[0].cards);
-
                     this_block_message = update_setup(msg);
                     /*      Debug printing of player info       */
                     //this_block_message = this_block_message.concat(update_setup_msg_data_players_debug(msg));                
                     // ----------------------
+                } else if (msg.data.type === "bet") {
+                    this_block_message = update_bet(msg);
+
+                } else if (msg.data.type === "cards") {
+                    this_block_message = update_cards(msg);
+
+                } else if (msg.data.type === "win") {
+                    this_block_message = update_win(msg);
+
                 }
 
                 /*      Not used debug function     */

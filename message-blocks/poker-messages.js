@@ -282,8 +282,15 @@ const update_setup = (msg) => {
     return message_block;
 }
 
+const update_bet = (msg) => {
 
-const update_endgame = (msg) => {
+}
+
+const update_cards = (msg) => {
+
+}
+
+const update_win = (msg) => {
 
     let message_block = [
         {
@@ -341,5 +348,8 @@ module.exports = {
     update_setup_msg_data_players_debug,
     update_state,
     update_setup,
-    update_endgame
+    update_bet,
+    update_win,
+    update_cards
+
 }
