@@ -5,7 +5,6 @@ const {
     update_setup_msg_data_players_debug,
     update_state,
     update_setup,
-    update_bet,
     update_win,
     update_cards
 } = require('../message-blocks/poker-messages');
@@ -67,11 +66,8 @@ const startTournament = async (bot, thread_message_head) => {
                 console.log(chalk.bgMagenta('------------------------------------------'));
 
                 let this_block_message = [];
-                if (msg.data.type === "state") {
+                if (msg.data.type === "state" || msg.data.type === "bet") {
                     let this_player = await getOnePlayer({ slack_id: msg.data.playerId, team_id: this_team_id });
-                    if (!this_player) {
-                        console.log("------------------------ !!!this_player is null");
-                    }
                     // #debug ---------------
                     // console.log('\n------------- "state" This Player : -----------------\n');
                     // console.log('Searching for this player = \{ slack_id: ', msg.data.playerId, ', team_id: ', this_team_id, '...\n');
@@ -92,9 +88,6 @@ const startTournament = async (bot, thread_message_head) => {
                     /*      Debug printing of player info       */
                     //this_block_message = this_block_message.concat(update_setup_msg_data_players_debug(msg));                
                     // ----------------------
-                } else if (msg.data.type === "bet") {
-                    this_block_message = update_bet(msg);
-
                 } else if (msg.data.type === "cards") {
                     this_block_message = update_cards(msg);
 

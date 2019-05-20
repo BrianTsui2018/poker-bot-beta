@@ -204,6 +204,17 @@ const update_setup_msg_data_players_debug = (msg) => {
 
 const update_state = (msg) => {
 
+    let update;
+    if (msg.data.state) {
+        update = `:spades: *${msg.data.player.name}* has decided to *${msg.data.state}* ...`;
+    }
+    else if (msg.data.session) {
+        update = `:moneybag: *${msg.data.player.name} has decided to bet :heavy_dollar_sign:*${msg.data.amount}* !`;
+    }
+    else {
+        throw new Error(" poker-message.js | data is neither STATE nor BET. Please check files.");
+    }
+
     let message_block = [
         {
             "type": "section",
@@ -216,8 +227,11 @@ const update_state = (msg) => {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": `:spades: *${msg.data.player.name}* has decided to *${msg.data.state}* ...`
+                "text": update
             }
+        },
+        {
+            "type": "divider"
         }
     ]
     return message_block;
@@ -282,13 +296,13 @@ const update_setup = (msg) => {
     return message_block;
 }
 
-const update_bet = (msg) => {
 
-}
 
 const update_cards = (msg) => {
 
 }
+
+
 
 const update_win = (msg) => {
 
@@ -297,40 +311,40 @@ const update_win = (msg) => {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": ":medal:*Winner: [Username here]* :medal: \n [Username here] has won *[amount]* from the pot!"
+                "text": `:medal:*Winner: ${msg.data.winners[0].playerName}* :medal: \n ${msg.data.winners[0].playerName} has won *${msg.data.winners[0].amount}* from the pot!`
             },
             "accessory": {
                 "type": "image",
-                "image_url": "https://api.slack.com/img/blocks/bkb_template_images/approvalsNewDevice.png",
+                "image_url": "https://i.imgur.com/BlRGh5q.png",
                 "alt_text": " "
             }
         },
 
-        {
-            "type": "actions",
-            "elements": [
-                {
-                    "type": "button",
-                    "text": {
-                        "type": "plain_text",
-                        "emoji": true,
-                        "text": "Rematch"
-                    },
-                    "style": "primary",
-                    "value": "click_me_123"
-                },
-                {
-                    "type": "button",
-                    "text": {
-                        "type": "plain_text",
-                        "emoji": true,
-                        "text": "Leave"
-                    },
-                    "style": "danger",
-                    "value": "click_me_123"
-                }
-            ]
-        },
+        // {
+        //     "type": "actions",
+        //     "elements": [
+        //         {
+        //             "type": "button",
+        //             "text": {
+        //                 "type": "plain_text",
+        //                 "emoji": true,
+        //                 "text": "Rematch"
+        //             },
+        //             "style": "primary",
+        //             "value": "click_me_123"
+        //         },
+        //         {
+        //             "type": "button",
+        //             "text": {
+        //                 "type": "plain_text",
+        //                 "emoji": true,
+        //                 "text": "Leave"
+        //             },
+        //             "style": "danger",
+        //             "value": "click_me_123"
+        //         }
+        //     ]
+        // },
         {
             "type": "divider"
         }
@@ -339,7 +353,51 @@ const update_win = (msg) => {
 }
 
 
+const start_game = (data) => {
+    let message_block = [
+        {
+            "type": "divider"
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:"
+            },
+            "accessory": {
+                "type": "image",
+                "image_url": "https://i.imgur.com/uDmkaxZ.png",
+                "alt_text": "Starting A Game!"
+            }
+        },
+        {
+            "type": "context",
+            "elements": []
+        }
+    ]
 
+    let player = {
+        "type": "image",
+        "image_url": "https://api.slack.com/img/blocks/bkb_template_images/profile_3.png",
+        "alt_text": "Pam Beasely"
+    }
+
+    let count = {
+        "type": "plain_text",
+        "emoji": true,
+        "text": `${data.players.length} Players`
+    }
+
+    for (let i = 0; i < data.players.length; i++) {
+
+        message_block[2].elements.push(player);
+    }
+
+    message_block[2].elements.push(count);
+
+    return message_block;
+
+}
 
 module.exports = {
     showdown_mockup,
@@ -348,8 +406,8 @@ module.exports = {
     update_setup_msg_data_players_debug,
     update_state,
     update_setup,
-    update_bet,
     update_win,
-    update_cards
+    update_cards,
+    start_game
 
 }

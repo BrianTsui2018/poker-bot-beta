@@ -24,6 +24,7 @@ const {
 
 const {
     showdown_mockup,
+    start_game
 } = require('./message-blocks/poker-messages');
 
 /*      Dummy Data      */
@@ -208,7 +209,25 @@ const handleSlash = async (bot, message) => {
             // #debug ------------------------------------------------
             console.log('\n... slash-commands/js : Start tournament---------------\n');
             //--------------------------------------------------------        
-            bot.reply(message, "This is the beginning of the tournament thread.", function (err, response) {
+
+            /*      Tried to start with webhook, doesn't work. webhook is the only way to display message blocks        */
+            // bot.sendWebhook({
+            //     blocks: start_game({ "players": ['NOAH345 name', 'BRIAN123 name', 'STEPH533 name'] }),
+            //     channel: message.channel_id,
+            // }, function (err, res) {
+            //     if (err) {
+            //         console.log(err);
+            //     }
+
+            //     // #debug-----
+            //     // console.log("\n---------- /start -------\n");
+            //     // console.log(message);
+            //     //--------------
+            //     startTournament(bot, message);
+            // });
+
+
+            bot.reply(message, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:", function (err, response) {
                 // #debug-----
                 // console.log("\n---------- /start -------\n");
                 // console.log(message);
