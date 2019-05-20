@@ -13,22 +13,22 @@ const players = [
     {
         id: "000001",
         name: "Stephanie",
-        serviceUrl: "https://e20c063e.ngrok.io"
+        serviceUrl: "https://mangrove-weather.glitch.me"
     },
     {
         id: "000002",
         name: "Noah",
-        serviceUrl: "https://e20c063e.ngrok.io"
+        serviceUrl: "https://mangrove-weather.glitch.me"
     },
     {
         id: "000003",
         name: "Brian",
-        serviceUrl: "https://e20c063e.ngrok.io"
+        serviceUrl: "https://mangrove-weather.glitch.me"
     },
     {
         id: "000004",
         name: "Angry Poker Dude",
-        serviceUrl: "https://e20c063e.ngrok.io"
+        serviceUrl: "https://mangrove-weather.glitch.me"
     },
 ];
 
