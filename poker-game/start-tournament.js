@@ -1,3 +1,32 @@
+const {
+    showdown_mockup,
+    update_state_msg_data_debug,
+    update_setup_msg_data_debug,
+    update_setup_msg_data_players_debug,
+    update_state,
+    update_setup,
+    update_endgame
+} = require('../message-blocks/poker-messages');
+
+const {
+    getlobbies,
+    getOneLobby,
+    createLobby,
+    addPlayer,
+    deleteLobbyAll,
+    getLobbyIdByName
+} = require('../lobby/lobby-router');
+
+const {
+    createPlayer,
+    checkIn,
+    checkOut,
+    withdraw,
+    deposit,
+    getOnePlayer,
+    getAllPlayerInLobby,
+    deletePlayerAll,
+} = require('../player/player-router');
 
 const startTournament = async (bot, thread_message_head) => {
     /*          Chalk           */
@@ -110,7 +139,7 @@ const testConfigSetupMsg = async (msg, bot) => {
             let P = {
                 id: player.slack_id,
                 name: player.name,
-                serviceUrl: "https://mangrove-weather.glitch.me"
+                serviceUrl: "(missing)"
             };
             players.push(P);
         }

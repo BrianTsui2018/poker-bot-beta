@@ -8,47 +8,9 @@ const error = chalk.bold.red;
 const warning = chalk.keyword('orange');
 
 // DUMMY DATA REMOVE IF NOT NEEDED
-const tournamentID = 'tester';
-const players = [
-    {
-        id: "000001",
-        name: "Stephanie",
-        serviceUrl: "https://mangrove-weather.glitch.me"
-    },
-    {
-        id: "000002",
-        name: "Noah",
-        serviceUrl: "https://mangrove-weather.glitch.me"
-    },
-    {
-        id: "000003",
-        name: "Brian",
-        serviceUrl: "https://mangrove-weather.glitch.me"
-    },
-    {
-        id: "000004",
-        name: "Angry Poker Dude",
-        serviceUrl: "https://mangrove-weather.glitch.me"
-    },
-];
+const dummyData = require('./player/dummy-players.json');
 
-const tournamentSettings = {
-    "BUYIN": 100,
-    "WARMUP": false,
-    "WARMUP_GAME": 10,
-    "WARMUP_TIME": 10,
-    "HAND_THROTTLE_TIME": 1,
-    "SMALL_BLINDS": [50, 100, 200, 250],
-    "SMALL_BLINDS_PERIOD": 1,
-    "PAY_ANTE_AT_HAND": 1,
-    "MAX_GAMES": 1,
-    "POINTS": [
-        [10, 2, 0, 0]
-    ]
-};
-////////////// END DUMMY DATA ////////////////
-
-const t = new Tournament(tournamentID, players, tournamentSettings);
+const t = new Tournament(dummyData.tournamentID, dummyData.playerList, dummyData.tournamentSettings);
 
 //One additional listener to track acknowledgement from parent
 const events = require('events');

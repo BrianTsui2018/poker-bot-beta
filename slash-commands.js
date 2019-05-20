@@ -24,13 +24,10 @@ const {
 
 const {
     showdown_mockup,
-    update_state_msg_data_debug,
-    update_setup_msg_data_debug,
-    update_setup_msg_data_players_debug,
-    update_state,
-    update_setup,
-    update_endgame
 } = require('./message-blocks/poker-messages');
+
+/*      Dummy Data      */
+const dummyData = require('./player/dummy-players.json');
 
 
 const handleSlash = async (bot, message) => {
@@ -52,33 +49,11 @@ const handleSlash = async (bot, message) => {
         case '/populate':
             bot.reply(message, 'Making a new lobby to put all the bots in...');
             const dummyLobby = await createLobby({
-                name: 'Test_Lobby_777'
+                name: dummyData.lobby_name
             });
             bot.reply(message, `New lobby [${dummyLobby.name}] created! Currently has [${dummyLobby.currentPlayers}] players...`);
-
             bot.reply(message, 'Creating dummy players on Database...');
-            const playerList = [
-                {
-                    id: "000001",
-                    name: "Stephanie",
-                    serviceUrl: "https://mangrove-weather.glitch.me"
-                },
-                {
-                    id: "000002",
-                    name: "Noah",
-                    serviceUrl: "https://mangrove-weather.glitch.me"
-                },
-                {
-                    id: "000003",
-                    name: "Brian",
-                    serviceUrl: "https://mangrove-weather.glitch.me"
-                },
-                {
-                    id: "000004",
-                    name: "Angry Poker Dude",
-                    serviceUrl: "https://mangrove-weather.glitch.me"
-                },
-            ];
+            const playerList = dummyData.playerList;
 
             /*      For each dummy player     */
             // playerList.forEach(player => {
