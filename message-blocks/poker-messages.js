@@ -54,7 +54,7 @@ const showdown_mockup = () => {
 }
 
 
-const update_setup_msg_data = (msg) => {
+const update_setup_msg_data_debug = (msg) => {
 
     let message_block = [
         {
@@ -97,7 +97,7 @@ const update_setup_msg_data = (msg) => {
 }
 
 
-const update_state_msg_data = (msg) => {
+const update_state_msg_data_debug = (msg) => {
 
     let message_block = [
         {
@@ -160,7 +160,7 @@ const update_state_msg_data = (msg) => {
 }
 
 
-const update_setup_msg_data_players = (msg) => {
+const update_setup_msg_data_players_debug = (msg) => {
     const num_players = msg.data.players.length;
     let message_block = [];
 
@@ -197,16 +197,149 @@ const update_setup_msg_data_players = (msg) => {
         }
         message_block.push(P);
         message_block.push({ "type": "divider" });
-
     }
-
     return message_block;
 }
 
 
+const update_state = (msg) => {
+
+    let message_block = [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": `:arrow_right: Session : *${msg.data.session}* `
+            }
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": `:spades: *${msg.data.player.name}* has decided to *${msg.data.state}* ...`
+            }
+        }
+    ]
+    return message_block;
+}
+
+const update_setup = (msg) => {
+    /*          Build Players Name List           */
+    const num_players = msg.data.players.length;
+    let playerNameList = msg.data.players[0].name;
+    for (let i = 1; i < num_players; i++) {
+        playerNameList = playerNameList.concat(', ', msg.data.players[i].name);
+    }
+    // #debug -----------
+    console.log('\n--------- poker-messages.js -> update_setup() ----------');
+    console.log(msg.data.players);
+    console.log(playerNameList, ' / ', num_players);
+    console.log('\n\n');
+    //---------------------
+
+    let message_block = [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": ":spades: :hearts: *Starting Poker Holdem Engine!*:clubs::diamonds: "
+            }
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "plain_text",
+                "text": `:star: ${playerNameList} :star:`,
+                "emoji": true
+            }
+        },
+        {
+            "type": "section",
+            "fields": [
+                {
+                    "type": "mrkdwn",
+                    "text": `*Big Blind:*\n${msg.data.players[msg.data.bigBlindPosition].name}`
+                },
+                {
+                    "type": "mrkdwn",
+                    "text": `*Small Blind:*\n${msg.data.players[msg.data.smallBlindPosition].name}`
+                },
+                {
+                    "type": "mrkdwn",
+                    "text": `*Pot:*\n :moneybag: ${msg.data.pot}`
+                },
+                {
+                    "type": "mrkdwn",
+                    "text": `*Ante:*\n :heavy_dollar_sign: ${msg.data.ante}`
+                },
+                {
+                    "type": "mrkdwn",
+                    "text": "_  Beginning the game shortly ..._"
+                }
+            ]
+        }
+    ]
+    return message_block;
+}
+
+
+const update_endgame = (msg) => {
+
+    let message_block = [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": ":medal:*Winner: [Username here]* :medal: \n [Username here] has won *[amount]* from the pot!"
+            },
+            "accessory": {
+                "type": "image",
+                "image_url": "https://api.slack.com/img/blocks/bkb_template_images/approvalsNewDevice.png",
+                "alt_text": " "
+            }
+        },
+
+        {
+            "type": "actions",
+            "elements": [
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "emoji": true,
+                        "text": "Rematch"
+                    },
+                    "style": "primary",
+                    "value": "click_me_123"
+                },
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "emoji": true,
+                        "text": "Leave"
+                    },
+                    "style": "danger",
+                    "value": "click_me_123"
+                }
+            ]
+        },
+        {
+            "type": "divider"
+        }
+    ]
+    return message_block;
+}
+
+
+
+
 module.exports = {
     showdown_mockup,
-    update_state_msg_data,
-    update_setup_msg_data,
-    update_setup_msg_data_players
+    update_state_msg_data_debug,
+    update_setup_msg_data_debug,
+    update_setup_msg_data_players_debug,
+    update_state,
+    update_setup,
+    update_endgame
 }

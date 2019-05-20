@@ -8,47 +8,9 @@ const error = chalk.bold.red;
 const warning = chalk.keyword('orange');
 
 // DUMMY DATA REMOVE IF NOT NEEDED
-const tournamentID = 'tester';
-const players = [
-    {
-        id: "000001",
-        name: "Stephanie",
-        serviceUrl: "https://e20c063e.ngrok.io"
-    },
-    {
-        id: "000002",
-        name: "Noah",
-        serviceUrl: "https://e20c063e.ngrok.io"
-    },
-    {
-        id: "000003",
-        name: "Brian",
-        serviceUrl: "https://e20c063e.ngrok.io"
-    },
-    {
-        id: "000004",
-        name: "Angry Poker Dude",
-        serviceUrl: "https://e20c063e.ngrok.io"
-    },
-];
+const dummyData = require('./player/dummy-players.json');
 
-const tournamentSettings = {
-    "BUYIN": 100,
-    "WARMUP": false,
-    "WARMUP_GAME": 10,
-    "WARMUP_TIME": 10,
-    "HAND_THROTTLE_TIME": 1,
-    "SMALL_BLINDS": [50, 100, 200, 250],
-    "SMALL_BLINDS_PERIOD": 1,
-    "PAY_ANTE_AT_HAND": 1,
-    "MAX_GAMES": 1,
-    "POINTS": [
-        [10, 2, 0, 0]
-    ]
-};
-////////////// END DUMMY DATA ////////////////
-
-const t = new Tournament(tournamentID, players, tournamentSettings);
+const t = new Tournament(dummyData.tournamentID, dummyData.playerList, dummyData.tournamentSettings);
 
 //One additional listener to track acknowledgement from parent
 const events = require('events');
@@ -58,6 +20,18 @@ const em = new events.EventEmitter();
 //Each time when PHE/Tournament.js has an update, this will catch it.
 t.on("TOURNAMENT:updated", (data, done) => {
     console.log(chalk.bgCyan('Tournament | Updated!'));
+
+    /*          Patch extra data here          */
+    // console.log(chalk.bgCyan('Tournament | Patching data here...'));
+    // console.log('\nWhat data has now: --------------');
+    // console.log(data);
+    // console.log('\n\n');
+    // console.log('\nWhat gamestate has now: --------------');
+    // console.log(t.gamestate);
+    // console.log('\n\n');
+    data.bigBlindPosition = t.gamestate.bigBlindPosition;
+    data.smallBlindPosition = data.bigBlindPosition - 1 >= 0 ? data.bigBlindPosition - 1 : data.players.length - 1;
+    data.dealerPosition = data.smallBlindPosition - 1 >= 0 ? data.smallBlindPosition - 1 : data.players.length - 1;
 
     //Sends data to parent.
     process.send({ topic: "updates", data }, () => {
@@ -93,7 +67,7 @@ process.on("message", async (msg) => {
             console.log(warning('-----------------------------------------'))
             break;
         case "quit-game":
-            console.log(warning("tournament | Msg = restart-game | Attempting to restart"));
+            console.log(warning("tournament | Msg = restart-game | Attempting to quit"));
             t.quit();
             process.send({ topic: "exit" });
             console.log(warning("-----------------------------------------"))
@@ -107,3 +81,5 @@ process.on("message", async (msg) => {
             console.log(error(`Uncaught msg topic found : ${msg.topic}`));
     }
 })
+
+
