@@ -2,29 +2,25 @@
     "tournamentID": "tester",
     "playerList" : [
         {
-            "id": "000001",
-            "name": "Stephanie",
-            "serviceUrl": "https://mangrove-weather.glitch.me"
+            "id": "NOAH345",
+            "name": "NOAH345 name",
+            "serviceUrl": "https://5a11acaa.ngrok.io/NOAH345/"
         },
         {
-            "id": "000002",
-            "name": "Noah",
-            "serviceUrl": "https://mangrove-weather.glitch.me"
+            "id": "BRIAN123",
+            "name": "BRIAN123 name",
+            "serviceUrl": "https://5a11acaa.ngrok.io/BRIAN123/"
         },
         {
-            "id": "000003",
-            "name": "Brian",
-            "serviceUrl": "https://mangrove-weather.glitch.me"
-        },
-        {
-            "id": "000004",
-            "name": "Angry Poker Dude",
-            "serviceUrl": "https://mangrove-weather.glitch.me"
+            "id": "STEPH533",
+            "name": "STEPH533 name",
+            "serviceUrl": "https://5a11acaa.ngrok.io/STEPH533/"
         }
+    
     ],
     "lobbyName": "Test_Lobby_777",
     "tournamentSettings" : {
-        "BUYIN": 100,
+        "BUYIN": 10000,
         "WARMUP": false,
         "WARMUP_GAME": 10,
         "WARMUP_TIME": 10,

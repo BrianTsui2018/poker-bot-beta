@@ -102,12 +102,21 @@ const startTournament = async (bot, thread_message_head) => {
                     }
                 });
 
-                //Replace with actions for this state!
-                setTimeout(() => {
-                    console.log(chalk.bold("Attemting to end wait"));
-                    thread.send({ topic: "reply" });
-                }, 5000);
-                //----------------end replacement.
+                if (msg.data.type === 'win') {
+                    /*      One game ended, kill thread       */
+                    thread.send({ topic: "quit-game" });
+                    thread.kill();
+                }
+                else {
+                    //Replace with actions for this state!
+                    setTimeout(() => {
+                        console.log(chalk.bold("Attemting to end wait"));
+                        thread.send({ topic: "reply" });
+                    }, 300);
+                    //----------------end replacement.
+
+                }
+
             }
             else {
                 console.log(chalk.red("DEBUG: Uncaught message from child! ", msg.topic));

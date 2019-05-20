@@ -67,7 +67,7 @@ process.on("message", async (msg) => {
             console.log(warning('-----------------------------------------'))
             break;
         case "quit-game":
-            console.log(warning("tournament | Msg = restart-game | Attempting to restart"));
+            console.log(warning("tournament | Msg = restart-game | Attempting to quit"));
             t.quit();
             process.send({ topic: "exit" });
             console.log(warning("-----------------------------------------"))
