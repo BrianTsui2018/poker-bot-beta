@@ -1,3 +1,62 @@
+const {
+    nameGen
+} = require('../lobby/lobby-name-gen')
+
+const genLobbyNames = (n) => {
+    if (!n) {
+        n = 1;
+    }
+    let names = nameGen();
+    let nameList = [];
+    for (let i = 0; i < n; i++) {
+        let A = {
+            "name": names[i],
+            "text": names[i],
+            "value": names[i],
+            "type": "button"
+        };
+        nameList.push(A);
+    }
+    return nameList;
+}
+
+const askForBuyin = () => {
+    let message_block = [
+        {
+            "name": "50000",
+            "text": "$50,000",
+            "value": "50000",
+            "type": "button",
+        },
+        {
+            "name": "100000",
+            "text": "$100,000",
+            "value": "100000",
+            "type": "button",
+        },
+        {
+            "name": "250000",
+            "text": "$250,000",
+            "value": "250000",
+            "type": "button",
+        },
+        {
+            "name": "500000",
+            "text": "$500,000",
+            "value": "500000",
+            "type": "button",
+        },
+        {
+            "name": "1000000",
+            "text": "$1,000,000",
+            "value": "1000000",
+            "type": "button",
+        },
+    ]
+
+    return message_block;
+}
+
 
 const showdown_mockup = () => {
 
@@ -399,7 +458,63 @@ const start_game = (data) => {
 
 }
 
+/*------------------------------------------------------------------------------------
+|   Create Of Join? 
+|       Attachment in array format.
+|
+|                                                                                   */
+const create_or_join = [
+    {
+        title: 'Do you want to Create or Join a game?',
+        callback_id: '123',
+        attachment_type: 'default',
+        actions: [
+            {
+                "name": "create",
+                "text": "Create",
+                "value": "create",
+                "type": "button",
+            },
+            {
+                "name": "join",
+                "text": "Join",
+                "value": "join",
+                "type": "button",
+            },
+            {
+                "name": "no",
+                "text": "No",
+                "value": "no",
+                "type": "button",
+            }
+        ]
+    }
+]
+
+const newGame_or_stay = [
+    {
+        title: "You're already in a game. Would you like to quit it and create a new lobby?",
+        callback_id: 'quitOrStay',
+        attachment_type: 'default',
+        actions: [
+            {
+                "name": "newGame",
+                "text": "New Game",
+                "value": "new",
+                "type": "button",
+            },
+            {
+                "name": "stay",
+                "text": "Stay in current",
+                "value": "stay",
+                "type": "button",
+            }
+        ]
+    }
+]
 module.exports = {
+    askForBuyin,
+    genLobbyNames,
     showdown_mockup,
     update_state_msg_data_debug,
     update_setup_msg_data_debug,
@@ -408,6 +523,9 @@ module.exports = {
     update_setup,
     update_win,
     update_cards,
-    start_game
+    start_game,
+    create_or_join,
+    newGame_or_stay
 
 }
+

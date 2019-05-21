@@ -62,16 +62,16 @@ const createPlayer = async (data) => {
 const checkIn = async (data) => {
     try {
         // #debug -----------------------------
-        console.log('\n----------- player/player-router.js -> checkIn() ---------------');
-        console.log('----- data -----\n');
-        console.log(data);
+        // console.log('\n----------- player/player-router.js -> checkIn() ---------------');
+        // console.log('----- data -----\n');
+        // console.log(data);
         // ------------------------------------
 
         let thisPlayer = await player.findOne({ slack_id: data.slack_id, team_id: data.team_id });
 
         // #debug -----------------------------
-        console.log('\n----- thisPlayer -----\n');
-        console.log(thisPlayer);
+        // console.log('\n----- thisPlayer -----\n');
+        // console.log(thisPlayer);
         // ------------------------------------
 
         /*      Catch No User error             */

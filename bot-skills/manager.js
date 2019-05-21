@@ -46,7 +46,7 @@ const getPlayerByID = async (player_data) => {
 |	 																	*/
 const lobbyRemovePlayer = async (player_data) => {
     /*      Get player      */
-    const thisPlayer = await getPlayerByID(player_data);
+    let thisPlayer = await getPlayerByID(player_data);
     /*      Check-out Player    */
     if (thisPlayer) {
         thisPlayer = await checkOut(thisPlayer);
@@ -103,7 +103,7 @@ const registerLobby = async (lobby_data) => {
 const getLobbyPlayers = async (lobby_id) => {
     const playerList = await getAllPlayerInLobby(lobby_id);
     // #debug -----------------------------
-    console.log("\n--------- manager.js -> getLobbyPlayers -> return from getAllPlayerInLobby -----------------\n");
+    console.log("\n--------- manager.js/getLobbyPlayers -> return from getAllPlayerInLobby -----------------\n");
     console.log(playerList);
     //-----------------------------------
     let num_players = playerList.length;
@@ -169,7 +169,7 @@ const playerJoinLobby = async (user_data, lobby_id) => {
 
 }
 
-const getAllLobby = async () => {
+const getAllLobby = async (data) => {
     // append all players to each lobby
     // returns all lobby objects
 }
