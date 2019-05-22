@@ -13,7 +13,7 @@ const {
     lobbyIsFull,
     getLobby,
     getLobbyPlayers,
-    getAllLobby,
+    getCurrLobbyData,
     lobbyRemovePlayer,
     getPlayerByID,
     getPlayerBank,
@@ -400,8 +400,93 @@ const joinPoker = async (convo, reply) => {
             console.log('\nSuccess: remove player from current lobby.');
         }
     }
-    getAllLobby
+    let lobbyList = await getCurrLobbyData(thisPlayer);
+    console.log('\n------------- test zone -----------------');
+    console.log(convo.task.bot.api.chat);
+    let testdata = convo.task.bot.api.chat.postMessage(
+        {
 
+            "channel": "CJVBNLG9M",
+            "token": process.env.BOT_TOKEN,
+            "text": "testing",
+            "attachments": [
+                {
+                    "blocks": [
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": "*Which lobby would you like to join?* Here are a list of current games."
+                            }
+                        },
+                        {
+                            "type": "divider"
+                        },
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": "*Lobby Name* [3/6]\nBuy-in = $xxxxx | Min-bet = $xxxxx"
+                            },
+                            "accessory": {
+                                "type": "button",
+                                "text": {
+                                    "type": "plain_text",
+                                    "emoji": true,
+                                    "text": "Vote"
+                                },
+                                "value": "player_join_lobby"
+                            }
+                        },
+                        {
+                            "type": "context",
+                            "elements": [
+                                {
+                                    "type": "image",
+                                    "image_url": "https://api.slack.com/img/blocks/bkb_template_images/profile_1.png",
+                                    "alt_text": "name here"
+                                },
+                                {
+                                    "type": "image",
+                                    "image_url": "https://api.slack.com/img/blocks/bkb_template_images/profile_2.png",
+                                    "alt_text": "name here"
+                                },
+                                {
+                                    "type": "image",
+                                    "image_url": "https://api.slack.com/img/blocks/bkb_template_images/profile_3.png",
+                                    "alt_text": "name here"
+                                },
+                                {
+                                    "type": "plain_text",
+                                    "emoji": true,
+                                    "text": " in game"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "divider"
+                        },
+                        {
+                            "type": "actions",
+                            "elements": [
+                                {
+                                    "type": "button",
+                                    "text": {
+                                        "type": "plain_text",
+                                        "emoji": true,
+                                        "text": "Cancel Join"
+                                    },
+                                    "value": "cancel"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+
+        });
+    console.log('\n');
+    console.log(testdata);
 }
 module.exports = {
     createPoker,

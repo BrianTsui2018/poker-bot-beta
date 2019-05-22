@@ -2,7 +2,8 @@ const {
     getlobbies,
     getOneLobby,
     createLobby,
-    deleteLobbyAll
+    deleteLobbyAll,
+    getAllLobbiesInTeam
 } = require('../lobby/lobby-router');
 
 const {
@@ -12,7 +13,8 @@ const {
     withdraw,
     deposit,
     getOnePlayer,
-    getAllPlayerInLobby
+    getAllPlayerInLobby,
+    getAllCurrentPlayersInTeam
 } = require('../player/player-router');
 
 const getLobbyByID = async (lobby_id) => {
@@ -169,9 +171,118 @@ const playerJoinLobby = async (user_data, lobby_id) => {
 
 }
 
-const getAllLobby = async (data) => {
-    // append all players to each lobby
+
+/*----------------------------------------------------------------------
+|	[Manager.js] Get Curr Lobby Data
+|
+|	Description:
+|   -  Input: a player object
+|	-  Output: an [array] of 
+|           {   
+|               {lobby object}, 
+|               [currPlayers ID, ID, ID] 
+|           }
+|	 																	*/
+const getCurrLobbyData = async (thisPlayer) => {
+    // #debug -------------
+    // console.log('\n:---------- botskills/manager.js -> getAllLobby ---------');
+    // console.log('\nInput: data');
+    // console.log(thisPlayer);
+    //---------------------
+
+    /*      Get this user's team_id     */
+    let team_id = thisPlayer.team_id;
+    // #debug -------------
+    // console.log('\nGet this user\'s team_id :');
+    // console.log(team_id);
+    //---------------------
+
+    /*      Get all players with the same team_id in a Set      */
+    let allPlayersInTeam = await getAllCurrentPlayersInTeam({ team_id: team_id });
+    // #debug -------------
+    // console.log('\nGet all players with the same team_id in a Set :');
+    // console.log(allPlayersInTeam);
+    //--------------------
+    let lobby_Id_data = [];
+    let P_set = new Set();
+    for (let i = 0; i < allPlayersInTeam.length; i++) {
+        P_set.add(allPlayersInTeam[i].lastLobby);
+    }
+    let it = P_set.values();
+    P_set.forEach(function () {
+        let L_id = it.next().value;
+        console.log(L_id);
+        lobby_Id_data.push(L_id);
+    });
+
+    // #debug -------------
+    // console.log('\nThis is the set of Lobbies :');
+    // console.log(lobby_Id_data);
+    //--------------------
+
+    /*      Get all lobbies from the set    */
+    let allLobbiesInTeam = await getAllLobbiesInTeam(lobby_Id_data);
+    // #debug -------------
+    // console.log('\nGet all lobbies from this set :');
+    // console.log(allLobbiesInTeam);
+    //--------------------
+
+    /*      Construct data          */
+    let data = [];
+    // let dataObj = {
+    //     lobby: [],
+    //     currPlayers: []
+    // };
+    for (let j = 0; j < allLobbiesInTeam.length; j++) {
+
+        let thisLobby = allLobbiesInTeam[j];
+        let dataObj = { lobby: thisLobby, currPlayers: [] };
+        for (let k = 0; k < allPlayersInTeam.length; k++) {
+            let currPlayer = allPlayersInTeam[k];
+
+            if (currPlayer.lastLobby == thisLobby._id) {
+                dataObj.currPlayers.push(currPlayer._id);
+                // #debug ----------------
+                //console.log('...push ' + currPlayer.name + ' to ' + dataObj.lobby.name + '...');
+                // -----------------------
+            }
+        }
+        data.push(dataObj);
+    }
+
     // returns all lobby objects
+    // #debug -------------
+    // console.log('\nall lobby objects :');
+    // console.log(data);
+    //--------------------
+
+    /*--------------------------------------------------
+    |
+    |   Example output ---------------------------------
+    |
+    |   [ { lobby:
+    |       { maxPlayers: 6,
+    |       buyin: 50000,
+    |       minBet: 2000,
+    |       _id: 5ce435c9c95ff25924482ff6,
+    |       name: 'Test_Lobby_777',
+    |       __v: 0 },
+    |   currPlayers:
+    |       [ 5ce435c9c95ff25924482ff7,
+    |       5ce435c9c95ff25924482ff9,
+    |       5ce435c9c95ff25924482ff8 ] },
+    |   { lobby:
+    |       { maxPlayers: 6,
+    |       buyin: 250000,
+    |       minBet: 2000,
+    |       _id: 5ce3ea7ff8b90d1ed4d4ea28,
+    |       name: 'The Helix',
+    |       __v: 0 },
+    |   currPlayers: [ 5ce4e1e31c9d440000b86ff5 ] } ]
+    |
+    \--------------------------------------------------*/
+    return data;
+
 }
 
 const assignChip = async (player_data, amount) => {
@@ -198,7 +309,7 @@ module.exports = {
     lobbyIsFull,
     getLobbyByID,
     getLobbyPlayers,
-    getAllLobby,
+    getCurrLobbyData,
     lobbyRemovePlayer,
     getPlayerByID,
     getPlayerBank,

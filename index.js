@@ -167,6 +167,10 @@ controller.hears('poker', 'direct_message, direct_mention', (bot, message) => {
 controller.on('block_actions', function (bot, message) {
     console.log('\nBlock action caught!');
     console.log(message);
+    if (message.text === "player_join_lobby") {
+        console.log("\nCONFIRM PLAYER JOIN LOBBY!");
+    }
+
 
 });
 

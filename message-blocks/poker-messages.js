@@ -512,6 +512,18 @@ const newGame_or_stay = [
         ]
     }
 ]
+
+const current_lobbies_info = (data) => {
+    for (let i = 0; i < data.length; i++) {
+
+    }
+
+
+
+
+}
+
+
 module.exports = {
     askForBuyin,
     genLobbyNames,

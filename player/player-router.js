@@ -245,6 +245,26 @@ const deletePlayerAll = async () => {
 }
 //--------------------------------------------------------------------
 
+/*--------------------------------------------------------------------
+|	[Player / Player-Router.js] Get All Currently playing Players in team
+|
+|	Description:
+|	- Returns an array of players
+|																	*/
+const getAllCurrentPlayersInTeam = async (data) => {
+    try {
+        const playerList = await player.find({ team_id: data.team_id, isInLobby: true });
+        return playerList;
+
+    } catch (error) {
+        // error statements
+        console.log(e);
+        return e;
+    }
+
+}
+
+
 module.exports = {
     createPlayer,
     checkIn,
@@ -254,6 +274,6 @@ module.exports = {
     getOnePlayer,
     getAllPlayerInLobby,
     deletePlayerAll,
-
+    getAllCurrentPlayersInTeam
 
 };
