@@ -1,9 +1,11 @@
+const async = require('async');
 const {
     showdown_mockup,
     askForBuyin,
     genLobbyNames,
     create_or_join,
-    newGame_or_stay
+    newGame_or_stay,
+    current_lobbies_info
 } = require('../message-blocks/poker-messages');
 
 const {
@@ -385,108 +387,98 @@ const createPoker = (convo, reply) => {
 
 }
 
-const joinPoker = async (convo, reply) => {
-    // #debug ----------------------
-    console.log('\n---------------- poker-commands.js -> joinPoker() -----------------------------');
-    console.log('\nreply...');
-    console.log(reply);
-    let thisPlayer = await getPlayerByID({ slack_id: reply.user, team_id: reply.team.id });
-    console.log('\nget player...');
-    console.log(thisPlayer);
-    if (thisPlayer.isInLobby) {
-        console.log('\ntrying to remove player from lobby');
-        thisPlayer = await lobbyRemovePlayer(thisPlayer);
-        if (thisPlayer.isInLobby === false) {
-            console.log('\nSuccess: remove player from current lobby.');
-        }
-    }
-    let lobbyList = await getCurrLobbyData(thisPlayer);
-    console.log('\n------------- test zone -----------------');
-    console.log(convo.task.bot.api.chat);
-    let testdata = convo.task.bot.api.chat.postMessage(
-        {
 
-            "channel": "CJVBNLG9M",
+const joinPoker = async (convo, reply) => {
+
+
+    // #debug ----------------------
+    // console.log('\n---------------- poker-commands.js -> joinPoker() -----------------------------');
+    // console.log('\nreply...');
+    // console.log(reply);
+
+    let thisPlayer = await getPlayerByID({ slack_id: reply.user, team_id: reply.team.id });
+
+    // console.log('\nget player...');
+    // console.log(thisPlayer);
+
+    /*          Remove Player from current lobby if decided to join a new one       */
+    // if (thisPlayer.isInLobby) {
+    //     console.log('\ntrying to remove player from lobby');
+    //     thisPlayer = await lobbyRemovePlayer(thisPlayer);
+    //     if (thisPlayer.isInLobby === false) {
+    //         console.log('\nSuccess: remove player from current lobby.');
+    //     }
+    // }
+
+    //let lobbyList = await getCurrLobbyData(thisPlayer);
+
+    let lobbyList = [];
+    lobbyList = await getCurrLobbyData(thisPlayer);
+
+    // console.log('\n------------- test zone 2-----------------');
+    // console.log(convo.source_message);
+    // console.log("\n--------------\n");
+    // console.log(lobbyList);
+
+    let message_block = await current_lobbies_info(lobbyList);
+
+    // #debug----------------------
+    // console.log("\nPOST MESSAGE!\n");
+    // console.log(message_block);
+    //------------------------------
+
+    convo.task.bot.api.chat.postMessage(
+        {
+            "channel": convo.source_message.channel,
             "token": process.env.BOT_TOKEN,
-            "text": "testing",
             "attachments": [
                 {
-                    "blocks": [
-                        {
-                            "type": "section",
-                            "text": {
-                                "type": "mrkdwn",
-                                "text": "*Which lobby would you like to join?* Here are a list of current games."
-                            }
-                        },
-                        {
-                            "type": "divider"
-                        },
-                        {
-                            "type": "section",
-                            "text": {
-                                "type": "mrkdwn",
-                                "text": "*Lobby Name* [3/6]\nBuy-in = $xxxxx | Min-bet = $xxxxx"
-                            },
-                            "accessory": {
-                                "type": "button",
-                                "text": {
-                                    "type": "plain_text",
-                                    "emoji": true,
-                                    "text": "Vote"
-                                },
-                                "value": "player_join_lobby"
-                            }
-                        },
-                        {
-                            "type": "context",
-                            "elements": [
-                                {
-                                    "type": "image",
-                                    "image_url": "https://api.slack.com/img/blocks/bkb_template_images/profile_1.png",
-                                    "alt_text": "name here"
-                                },
-                                {
-                                    "type": "image",
-                                    "image_url": "https://api.slack.com/img/blocks/bkb_template_images/profile_2.png",
-                                    "alt_text": "name here"
-                                },
-                                {
-                                    "type": "image",
-                                    "image_url": "https://api.slack.com/img/blocks/bkb_template_images/profile_3.png",
-                                    "alt_text": "name here"
-                                },
-                                {
-                                    "type": "plain_text",
-                                    "emoji": true,
-                                    "text": " in game"
-                                }
-                            ]
-                        },
-                        {
-                            "type": "divider"
-                        },
-                        {
-                            "type": "actions",
-                            "elements": [
-                                {
-                                    "type": "button",
-                                    "text": {
-                                        "type": "plain_text",
-                                        "emoji": true,
-                                        "text": "Cancel Join"
-                                    },
-                                    "value": "cancel"
-                                }
-                            ]
-                        }
-                    ]
+                    "blocks": message_block
                 }
             ]
 
         });
-    console.log('\n');
-    console.log(testdata);
+
+    // let local = {};
+    // async.series([
+    //     function (callback) {
+    //         console.log('\n------------- test zone 1 -----------------');
+    //         local.thisPlayer = getPlayerByID({ slack_id: reply.user, team_id: reply.team.id },callback);
+
+    //     },
+    //     function (callback) {
+    //         console.log('\n------------- test zone 2 -----------------');
+    //         local.lobbyList = getCurrLobbyData(local.thisPlayer, callback);
+
+    //     },
+    //     function (callback) {
+    //         console.log('\n------------- test zone 3 -----------------');
+    //         //console.log(convo.source_message);
+    //         //console.log("\n--------------\n");
+    //         console.log(local.lobbyList);
+    //         local.message_block = current_lobbies_info(local.lobbyList);
+    //         callback();
+    //     }
+
+    // ], function (err) {
+    //     if (err) {
+    //         console.log(err);
+    //         return false
+    //     }
+    //     convo.task.bot.api.chat.postMessage(
+    //         {
+    //             "channel": convo.source_message.channel,
+    //             "token": process.env.BOT_TOKEN,
+    //             "attachments": [
+    //                 {
+    //                     "blocks": local.message_block
+    //                 }
+    //             ]
+
+    //         });
+    //     return true;
+    // });
+
 }
 module.exports = {
     createPoker,

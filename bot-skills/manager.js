@@ -1,3 +1,6 @@
+const async = require('async');
+const axios = require('axios');
+
 const {
     getlobbies,
     getOneLobby,
@@ -184,6 +187,7 @@ const playerJoinLobby = async (user_data, lobby_id) => {
 |           }
 |	 																	*/
 const getCurrLobbyData = async (thisPlayer) => {
+
     // #debug -------------
     // console.log('\n:---------- botskills/manager.js -> getAllLobby ---------');
     // console.log('\nInput: data');
@@ -228,61 +232,12 @@ const getCurrLobbyData = async (thisPlayer) => {
     //--------------------
 
     /*      Construct data          */
-    let data = [];
-    // let dataObj = {
-    //     lobby: [],
-    //     currPlayers: []
-    // };
-    for (let j = 0; j < allLobbiesInTeam.length; j++) {
+    // let data = await constructAllCurrLobbyData(allLobbiesInTeam, allPlayersInTeam);
+    // return data;
 
-        let thisLobby = allLobbiesInTeam[j];
-        let dataObj = { lobby: thisLobby, currPlayers: [] };
-        for (let k = 0; k < allPlayersInTeam.length; k++) {
-            let currPlayer = allPlayersInTeam[k];
+    let data = await constructAllCurrLobbyData(allLobbiesInTeam, allPlayersInTeam);
 
-            if (currPlayer.lastLobby == thisLobby._id) {
-                dataObj.currPlayers.push(currPlayer._id);
-                // #debug ----------------
-                //console.log('...push ' + currPlayer.name + ' to ' + dataObj.lobby.name + '...');
-                // -----------------------
-            }
-        }
-        data.push(dataObj);
-    }
-
-    // returns all lobby objects
-    // #debug -------------
-    // console.log('\nall lobby objects :');
-    // console.log(data);
-    //--------------------
-
-    /*--------------------------------------------------
-    |
-    |   Example output ---------------------------------
-    |
-    |   [ { lobby:
-    |       { maxPlayers: 6,
-    |       buyin: 50000,
-    |       minBet: 2000,
-    |       _id: 5ce435c9c95ff25924482ff6,
-    |       name: 'Test_Lobby_777',
-    |       __v: 0 },
-    |   currPlayers:
-    |       [ 5ce435c9c95ff25924482ff7,
-    |       5ce435c9c95ff25924482ff9,
-    |       5ce435c9c95ff25924482ff8 ] },
-    |   { lobby:
-    |       { maxPlayers: 6,
-    |       buyin: 250000,
-    |       minBet: 2000,
-    |       _id: 5ce3ea7ff8b90d1ed4d4ea28,
-    |       name: 'The Helix',
-    |       __v: 0 },
-    |   currPlayers: [ 5ce4e1e31c9d440000b86ff5 ] } ]
-    |
-    \--------------------------------------------------*/
     return data;
-
 }
 
 const assignChip = async (player_data, amount) => {
@@ -301,6 +256,82 @@ const withdrawChip = async (user_id, amount) => {
     // cannot be more than bank's ammount
 }
 
+async function constructAllCurrLobbyData(allLobbiesInTeam, allPlayersInTeam) {
+    let data = [];
+    let N = allLobbiesInTeam.length;
+    let M = allPlayersInTeam.length;
+    for (let i = 0; i < N; i++) {
+        let thisLobby = allLobbiesInTeam[i];
+        let dataObj = { lobby: thisLobby, currPlayers: [] };
+
+        for (let j = 0; j < M; j++) {
+            let currPlayer = allPlayersInTeam[j];
+            if (currPlayer.lastLobby == thisLobby._id) {
+                // await requestForDataObj(dataObj, currPlayer);
+                player_data = await axiosGet(currPlayer);
+                dataObj.currPlayers.push(player_data);
+
+            }
+        }
+        data.push(dataObj);
+    }
+    //#debug-------------------
+    // console.log('\n=========== MANAGER RETURNING DATA ==============');
+    // console.log(data);
+    // console.log("\n");
+    //--------------------------
+    return data;
+};
+
+const axiosGet = async (currPlayer) => {
+    const url = "https://slack.com/api/users.info";
+    const config = {
+        params: {
+            user: 'UJG3K1G91',
+            token: process.env.BOT_TOKEN
+        }
+    }
+    const getData = async (url, config) => {
+        try {
+            const response = await axios.get(url, config);
+            const data = response.data;
+            return data
+        } catch (error) {
+            console.log('\n--------- bad -----------');
+            console.log(error);
+        }
+    }
+    let user_profile = await getData(url, config);
+    //let name = user_profile.display_name_normalized === '' ? user_profile.real_name_normalized : user_profile.display_name_normalized;
+    let name = user_profile.user.profile.real_name_normalized;
+    let dp = user_profile.user.profile.image_24;
+    let player_data = { slack_id: currPlayer.slack_id, display_name: name, dp_url: dp };
+    return player_data;
+}
+
+function requestForDataObj(dataObj, currPlayer) {
+    let payload = {
+        method: 'GET',
+        url: 'https://slack.com/api/users.info',
+        qs: {
+            //user : currPlayer.slack_id
+            user: 'UJG3K1G91',
+            token: process.env.BOT_TOKEN
+        }
+    };
+    request(payload, function (error, response, body) {
+        if (error)
+            throw new Error(error);
+        //console.log('\n----------------------this body\n');
+        let user_profile = JSON.parse(body);
+        //console.log(user_profile);
+        // #debug ----------------------
+        //let name = user_profile.display_name_normalized === '' ? user_profile.real_name_normalized : user_profile.display_name_normalized;
+        let name = user_profile.user.profile.real_name_normalized;
+        let dp = user_profile.user.profile.image_24;
+        dataObj.currPlayers.push({ slack_id: currPlayer.slack_id, display_name: name, dp_url: dp });
+    });
+}
 
 module.exports = {
     registerPlayer,
@@ -316,3 +347,5 @@ module.exports = {
     assignChip,
     withdrawChip
 };
+
+

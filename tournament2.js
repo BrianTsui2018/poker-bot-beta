@@ -22,18 +22,19 @@ t.on("TOURNAMENT:updated", (data, done) => {
     console.log(chalk.bgCyan('Tournament | Updated!'));
 
     /*          Patch extra data here          */
-    // console.log(chalk.bgCyan('Tournament | Patching data here...'));
+    console.log(chalk.bgCyan('Tournament | Patching data here...'));
     // console.log('\nWhat data has now: --------------');
     // console.log(data);
     // console.log('\n\n');
-    // console.log('\nWhat gamestate has now: --------------');
-    // console.log(t.gamestate);
-    // console.log('\n\n');
+
     if (data.type === 'setup') {
         data.bigBlindPosition = t.gamestate.bigBlindPosition;
         data.smallBlindPosition = data.bigBlindPosition - 1 >= 0 ? data.bigBlindPosition - 1 : data.players.length - 1;
         data.dealerPosition = data.smallBlindPosition - 1 >= 0 ? data.smallBlindPosition - 1 : data.players.length - 1;
     }
+    console.log('\nWhat gamestate has now: --------------');
+    console.log(t.gamestate);
+    console.log('\n\n');
     //Sends data to parent.
     process.send({ topic: "updates", data }, () => {
 

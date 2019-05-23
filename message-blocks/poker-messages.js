@@ -1,3 +1,5 @@
+
+
 const {
     nameGen
 } = require('../lobby/lobby-name-gen')
@@ -263,6 +265,15 @@ const update_setup_msg_data_players_debug = (msg) => {
 
 const update_state = (msg) => {
 
+    /* TODO: ------------------------
+    |   if msg comes in as bet = 0, 
+    |   it assumes player bets 0, 
+    |   should distinguish cases:
+    |   - fold
+    |   - call
+    |   - check
+    \   ----------------------------*/
+
     let update;
     if (msg.data.state) {
         update = `:spades: *${msg.data.player.name}* has decided to *${msg.data.state}* ...`;
@@ -513,13 +524,100 @@ const newGame_or_stay = [
     }
 ]
 
-const current_lobbies_info = (data) => {
-    for (let i = 0; i < data.length; i++) {
+const current_lobbies_info = async (data) => {
+    // #debug -----------------------
+    console.log("\n\n--------------message-blocks/poker-messages.js -> current_lobbies_info(data)----------------");
+    console.log("\ninput data : ");
+    console.log(data);
+    // ------------------------------
+    let message_block = [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "*Which lobby would you like to join?* Here are a list of current games."
+            }
+        },
+        {
+            "type": "divider"
+        }
+    ];
 
+    for (let i = 0; i < data.length; i++) {
+        let lobbyName = data[i].lobby.name;
+        let currP = data[i].currPlayers.length;
+        let maxP = data[i].lobby.maxPlayers;
+        let buyin = data[i].lobby.buyin;
+        let minBet = data[i].lobby.minBet;
+        message_block.push({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": `*${lobbyName}* [${currP}/${maxP}]\nBuy-in = $${buyin} | Min-bet = $${minBet}`
+            },
+            "accessory": {
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "emoji": true,
+                    "text": "Join"
+                },
+                "value": "player_join_lobby"
+            }
+        });
+        let player_elements = [];
+        let players = data[i].currPlayers;
+
+        for (let j = 0; j < currP; j++) {
+            //#debug -------------
+            // console.log('\nmessage-blocks/poker-messages.js -> PUSH!');
+            // console.log(players[j]);
+            player_elements.push(
+                {
+                    "type": "image",
+                    //"image_url": "https://api.slack.com/img/blocks/bkb_template_images/profile_1.png",
+                    "image_url": players[j].dp_url,
+                    "alt_text": players[j].display_name
+                    //"alt_text": "--"
+                }
+            );
+        }
+
+        player_elements.push({
+            "type": "plain_text",
+            "emoji": true,
+            "text": " in game"
+        });
+        message_block.push(
+            {
+                "type": "context",
+                "elements": player_elements
+            }
+        );
     }
 
+    message_block.push(
+        {
+            "type": "divider"
+        },
+        {
+            "type": "actions",
+            "elements": [
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "emoji": true,
+                        "text": "Cancel Join"
+                    },
+                    "value": "cancel"
+                }
+            ]
+        }
+    );
 
 
+    return message_block;
 
 }
 
@@ -537,7 +635,8 @@ module.exports = {
     update_cards,
     start_game,
     create_or_join,
-    newGame_or_stay
+    newGame_or_stay,
+    current_lobbies_info
 
 }
 

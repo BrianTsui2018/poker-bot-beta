@@ -120,7 +120,7 @@ const startTournament = async (bot, thread_message_head) => {
                     setTimeout(() => {
                         console.log(chalk.bold("Attemting to end wait"));
                         thread.send({ topic: "reply" });
-                    }, 300);
+                    }, 6000);
                     //----------------end replacement.
 
                 }

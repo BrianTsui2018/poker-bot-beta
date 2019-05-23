@@ -92,6 +92,10 @@ const checkIn = async (data) => {
 
             /*        Push Player updates        */
             const updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer);
+            // #debug -----------------
+            console.log("\n------------- player-routers.js -> checkIn() ---------------");
+            console.log(updatedPlayer);
+            //-------------------------
             return updatedPlayer;
         }
         else {      /*      Player cannot join the lobby        */

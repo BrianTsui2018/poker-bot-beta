@@ -4,17 +4,17 @@
         {
             "id": "NOAH345",
             "name": "NOAH345 name",
-            "serviceUrl": "https://5a11acaa.ngrok.io/NOAH345/"
+            "serviceUrl": "https://imai-poker-utils.herokuapp.com/ua/NOAH345/"
         },
         {
             "id": "BRIAN123",
             "name": "BRIAN123 name",
-            "serviceUrl": "https://5a11acaa.ngrok.io/BRIAN123/"
+            "serviceUrl": "https://imai-poker-utils.herokuapp.com/ua/BRIAN123/"
         },
         {
             "id": "STEPH533",
             "name": "STEPH533 name",
-            "serviceUrl": "https://5a11acaa.ngrok.io/STEPH533/"
+            "serviceUrl": "https://imai-poker-utils.herokuapp.com/ua/STEPH533/"
         }
     
     ],
