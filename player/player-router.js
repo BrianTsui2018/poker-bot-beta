@@ -93,8 +93,8 @@ const checkIn = async (data) => {
             /*        Push Player updates        */
             const updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer);
             // #debug -----------------
-            console.log("\n------------- player-routers.js -> checkIn() ---------------");
-            console.log(updatedPlayer);
+            // console.log("\n------------- player-routers.js -> checkIn() ---------------");
+            // console.log(updatedPlayer);
             //-------------------------
             return updatedPlayer;
         }
@@ -138,7 +138,8 @@ const checkOut = async (data) => {
             //------------------------------------
 
             /*        Push Player updates        */
-            const updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer);
+            let updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer);
+            updatedPlayer.isInLobby = false;
             return updatedPlayer;
         }
         else {      /*      Player cannot join the lobby        */
@@ -215,8 +216,6 @@ const deposit = async (data, chips) => {
 |	- Returns an array of players
 |																	*/
 const getAllPlayerInLobby = async (lobby_id) => {
-    // #debug
-    console.log('lobby_id = ' + lobby_id);
     try {
         const playerList = await player.find({ lastLobby: lobby_id, isInLobby: true });
         // #debug ---------------------------------

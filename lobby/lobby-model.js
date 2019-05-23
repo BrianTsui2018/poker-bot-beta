@@ -39,7 +39,12 @@ const lobbySchema = new mongoose.Schema({
 	team_id: {
 		type: String,
 		trim: true
-	}
+	},
+	channel: {
+		type: String,
+		trim: true,
+		default: "general"
+	},
 });
 
 

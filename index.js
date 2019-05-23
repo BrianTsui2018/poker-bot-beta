@@ -9,7 +9,8 @@ const {
     createPoker,
     testShowCards,
     joinPoker,
-    playerJoin
+    playerJoin,
+    playerLeave
 } = require('./bot-skills/poker-commands');
 
 const {
@@ -153,7 +154,7 @@ controller.hears(['poker', 'join', 'create', 'game', 'play', 'start', 'lobby'], 
                 {
                     default: true,
                     callback: function (reply, convo) {
-                        convo.say('Excuse me?');
+                        convo.say('Beep-boop! Something went wrong :robot_face:');
                         convo.next();
                     }
                 }
@@ -222,9 +223,31 @@ controller.hears('test cards', 'direct_message,direct_mention, mention', functio
 
         });
     });
-
-
 });
+
+controller.hears(['quit', 'leave', 'done', 'check-out', 'check out', 'cash out', 'exit'], 'direct_message,direct_mention, mention', function (bot, message) {
+    bot.replyAcknowledge();
+    bot.startConversation(message, function (err, convo) {
+        convo.say('');
+        convo.next();
+        convo.say('');
+        convo.next();
+        convo.say('');
+        convo.next();
+        convo.say('');
+        convo.next();
+        //#debug-------------
+        // console.log("\nPlayer leaving game---------------- print message:");
+        // console.log(message);
+        //---------------------------
+        bot.reply(message, `<@${message.user}> has left the game.\nYour balance will be updated shortly.`, () => {
+            let user = { slack_id: message.user, team_id: message.team };
+            playerLeave(user);
+        });
+    });
+});
+
+
 controller.hears(['demo', 'demonstrate'], 'direct_message,direct_mention, mention', function (bot, message) {
 
     bot.replyAcknowledge();

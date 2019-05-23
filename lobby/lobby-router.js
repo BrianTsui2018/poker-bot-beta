@@ -163,7 +163,9 @@ const updateLobby = async (this_lobby) => {
 |	 																	*/
 const deleteLobby = async (this_lobby) => {
 	try {
-		const deleted_lobby = await lobby.findByIdAndDelete(this_lobby._id);
+		const deleted_lobby = await lobby.findByIdAndDelete(this_lobby._id, () => {
+			console.log("\nlobby-router.js : lobby deleted, id = " + this_lobby._id + " and name =" + this_lobby.name);
+		});
 		return deleted_lobby;
 	} catch (e) {
 		// error statements

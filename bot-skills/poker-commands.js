@@ -71,10 +71,10 @@ const setupLobby = async (convo, user) => {
 
         /*      Create Lobby with the given info        */
         //#debug------------
-        console.log("\n----- create lobby in poker-commands.js -------\nprint user----------");
-        console.log(user);
+        // console.log("\n----- create lobby in poker-commands.js -------\nprint convo----------");
+        // console.log(convo);
         //------------------
-        const created_lobby = await registerLobby({ name: convo.vars.lobby_name, buyin: convo.vars.lobby_buyin, team_id: user.team_id });
+        const created_lobby = await registerLobby({ name: convo.vars.lobby_name, buyin: convo.vars.lobby_buyin, team_id: user.team_id, channel: convo.source_message.channel });
         convo.say('... Created lobby *' + created_lobby.name + '*.');
         convo.next();
 
@@ -349,11 +349,16 @@ const playerJoin = async (data) => {
 
 }
 
+const playerLeave = (user) => {
+    lobbyRemovePlayer(user);
+}
+
 module.exports = {
     createPoker,
     joinPoker,
     testShowCards,
-    playerJoin
+    playerJoin,
+    playerLeave
 }
 
 

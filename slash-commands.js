@@ -157,10 +157,11 @@ const handleSlash = async (bot, message) => {
         case '/check-lobby':
             const thisLobbyID = await getLobbyIdByName(message.text);
             const gotThisLobby = await getOneLobby(thisLobbyID);
-            if (gotThisLobby) {
+            if (gotThisLobby._id) {
                 const lobby_name = gotThisLobby.name;
                 const max_p = gotThisLobby.maxPlayers;
                 const buyin = gotThisLobby.buyin;
+                const channel = gotThisLobby.channel;
                 // #debug --------------------------------
                 // console.log(gotThisLobby);
                 //----------------------------------------
@@ -168,7 +169,7 @@ const handleSlash = async (bot, message) => {
                 const cur_p = players.length;
 
                 var str = `Info for the requested lobby:\n`;
-                str = str.concat(lobby_name, ` [`, cur_p, `/`, max_p, `] | Buy-in $`, buyin, ` | `);
+                str = str.concat(lobby_name, ` [`, cur_p, `/`, max_p, `] | Buy-in $`, buyin, ` | Channel <#`, channel, '> | ');
                 players.forEach((player) => { str = str.concat(`<@${player.slack_id}>, `) });
                 str = str.substr(0, str.length - 2);
                 bot.reply(message, str);
