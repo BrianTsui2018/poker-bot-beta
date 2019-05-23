@@ -30,6 +30,7 @@ const {
 } = require('../player/player-router');
 
 const startTournament = async (bot, thread_message_head) => {
+
     /*          Chalk           */
     const chalk = require('chalk');
     const error = chalk.bold.red;

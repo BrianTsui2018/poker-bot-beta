@@ -1,4 +1,3 @@
-const async = require('async');
 const axios = require('axios');
 
 const {
@@ -6,7 +5,8 @@ const {
     getOneLobby,
     createLobby,
     deleteLobbyAll,
-    getAllLobbiesInTeam
+    getAllLobbiesInTeam,
+    getAllActiveLobbiesInTeam
 } = require('../lobby/lobby-router');
 
 const {
@@ -131,13 +131,14 @@ const playerJoinLobby = async (user_data, lobby_id) => {
     }
     // check if player is already in lobby
     if (thisPlayer.isInLobby) {
-        // return {
-        //     success: false,
-        //     player: thisPlayer,
-        //     lobby: undefined,
-        //     text: `<@${thisPlayer.slack_id}> is already in lobby.`
-        // };
-        return null;
+        if (thisPlayer.lastLobby === lobby_id) {
+            return "ALREADY";
+        } else {
+            lobbyRemovePlayer(thisPlayer);
+            thisPlayer.isInLobby = false;
+            return "LEFT_LAST";
+        }
+
     }
     // check if lobby exist    
     if (!thisLobby) {
@@ -207,6 +208,8 @@ const getCurrLobbyData = async (thisPlayer) => {
     // console.log('\nGet all players with the same team_id in a Set :');
     // console.log(allPlayersInTeam);
     //--------------------
+
+    /*      Gather all Lobby Data (in a Set)        */
     let lobby_Id_data = [];
     let P_set = new Set();
     for (let i = 0; i < allPlayersInTeam.length; i++) {
@@ -215,7 +218,6 @@ const getCurrLobbyData = async (thisPlayer) => {
     let it = P_set.values();
     P_set.forEach(function () {
         let L_id = it.next().value;
-        console.log(L_id);
         lobby_Id_data.push(L_id);
     });
 
@@ -225,18 +227,14 @@ const getCurrLobbyData = async (thisPlayer) => {
     //--------------------
 
     /*      Get all lobbies from the set    */
-    let allLobbiesInTeam = await getAllLobbiesInTeam(lobby_Id_data);
+    let allLobbiesInTeam = await getAllActiveLobbiesInTeam(lobby_Id_data);
     // #debug -------------
     // console.log('\nGet all lobbies from this set :');
     // console.log(allLobbiesInTeam);
     //--------------------
 
     /*      Construct data          */
-    // let data = await constructAllCurrLobbyData(allLobbiesInTeam, allPlayersInTeam);
-    // return data;
-
     let data = await constructAllCurrLobbyData(allLobbiesInTeam, allPlayersInTeam);
-
     return data;
 }
 
@@ -309,29 +307,7 @@ const axiosGet = async (currPlayer) => {
     return player_data;
 }
 
-function requestForDataObj(dataObj, currPlayer) {
-    let payload = {
-        method: 'GET',
-        url: 'https://slack.com/api/users.info',
-        qs: {
-            //user : currPlayer.slack_id
-            user: 'UJG3K1G91',
-            token: process.env.BOT_TOKEN
-        }
-    };
-    request(payload, function (error, response, body) {
-        if (error)
-            throw new Error(error);
-        //console.log('\n----------------------this body\n');
-        let user_profile = JSON.parse(body);
-        //console.log(user_profile);
-        // #debug ----------------------
-        //let name = user_profile.display_name_normalized === '' ? user_profile.real_name_normalized : user_profile.display_name_normalized;
-        let name = user_profile.user.profile.real_name_normalized;
-        let dp = user_profile.user.profile.image_24;
-        dataObj.currPlayers.push({ slack_id: currPlayer.slack_id, display_name: name, dp_url: dp });
-    });
-}
+
 
 module.exports = {
     registerPlayer,

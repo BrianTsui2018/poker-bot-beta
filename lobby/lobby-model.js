@@ -35,6 +35,10 @@ const lobbySchema = new mongoose.Schema({
 	minBet: {
 		type: Number,
 		default: (MONEY_SCALE / 25) 	// minimum bet, the big-blind amount, scales with the buy-in
+	},
+	team_id: {
+		type: String,
+		trim: true
 	}
 });
 

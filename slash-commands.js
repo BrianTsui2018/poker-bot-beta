@@ -50,7 +50,8 @@ const handleSlash = async (bot, message) => {
         case '/populate':
             bot.reply(message, 'Making a new lobby to put all the bots in...');
             const dummyLobby = await createLobby({
-                name: dummyData.lobbyName
+                name: dummyData.lobbyName,
+                team_id: message.team_id
             });
 
             bot.reply(message, `New lobby [${dummyLobby.name}] created! Currently has [${dummyData.playerList.length}] players...`);
@@ -154,24 +155,22 @@ const handleSlash = async (bot, message) => {
                 Displays lobby name, [cur # players / max ], player1 player2 player3.
         */
         case '/check-lobby':
-            const gotThisLobby = await getOneLobby(message.text);
+            const thisLobbyID = await getLobbyIdByName(message.text);
+            const gotThisLobby = await getOneLobby(thisLobbyID);
             if (gotThisLobby) {
                 const lobby_name = gotThisLobby.name;
-                const cur_p = gotThisLobby.currentPlayers;
                 const max_p = gotThisLobby.maxPlayers;
-                const players = gotThisLobby.playerList;
                 const buyin = gotThisLobby.buyin;
                 // #debug --------------------------------
                 // console.log(gotThisLobby);
                 //----------------------------------------
+                const players = await getAllPlayerInLobby(gotThisLobby._id);
+                const cur_p = players.length;
 
                 var str = `Info for the requested lobby:\n`;
                 str = str.concat(lobby_name, ` [`, cur_p, `/`, max_p, `] | Buy-in $`, buyin, ` | `);
-                players.forEach((player) => { str = str.concat(`<@${player}>, `) });
+                players.forEach((player) => { str = str.concat(`<@${player.slack_id}>, `) });
                 str = str.substr(0, str.length - 2);
-                // #debug --------------------------------
-                // console.log(str);
-                //----------------------------------------
                 bot.reply(message, str);
             }
             else {

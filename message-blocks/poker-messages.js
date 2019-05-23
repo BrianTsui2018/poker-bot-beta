@@ -1,5 +1,3 @@
-
-
 const {
     nameGen
 } = require('../lobby/lobby-name-gen')
@@ -526,9 +524,9 @@ const newGame_or_stay = [
 
 const current_lobbies_info = async (data) => {
     // #debug -----------------------
-    console.log("\n\n--------------message-blocks/poker-messages.js -> current_lobbies_info(data)----------------");
-    console.log("\ninput data : ");
-    console.log(data);
+    //console.log("\n\n-------------- message-blocks/poker-messages.js -> current_lobbies_info(data)----------------");
+    // console.log("\ninput data : ");
+    //console.log(data);
     // ------------------------------
     let message_block = [
         {
@@ -549,6 +547,11 @@ const current_lobbies_info = async (data) => {
         let maxP = data[i].lobby.maxPlayers;
         let buyin = data[i].lobby.buyin;
         let minBet = data[i].lobby.minBet;
+
+        let value = {
+            "topic": "JOIN_LOBBY",
+            "lobby_id": data[i].lobby._id
+        }
         message_block.push({
             "type": "section",
             "text": {
@@ -562,7 +565,7 @@ const current_lobbies_info = async (data) => {
                     "emoji": true,
                     "text": "Join"
                 },
-                "value": "player_join_lobby"
+                "value": JSON.stringify(value)
             }
         });
         let player_elements = [];
@@ -595,7 +598,9 @@ const current_lobbies_info = async (data) => {
             }
         );
     }
-
+    let cancle_value = {
+        "topic": "CANCLE_JOIN_LOBBY",
+    }
     message_block.push(
         {
             "type": "divider"
@@ -610,7 +615,7 @@ const current_lobbies_info = async (data) => {
                         "emoji": true,
                         "text": "Cancel Join"
                     },
-                    "value": "cancel"
+                    "value": JSON.stringify(cancle_value)
                 }
             ]
         }

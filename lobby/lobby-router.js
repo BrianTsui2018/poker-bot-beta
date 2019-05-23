@@ -199,12 +199,37 @@ const deleteLobbyAll = async () => {
 |	[Lobby / Lobby-Router.js] getAllLobbiesInTeam
 |
 |	Description:
-|	- Uses Mongoose function deleteMany
-|	- to delete all lobbies in DB
-|	- returns an array of deleted lobbies
 |
 |	 																	*/
-const getAllLobbiesInTeam = async (lobbyIdList) => {
+const getAllLobbiesInTeam = async (data) => {
+	try {
+		// let allLobbiesInTeam = [];
+		// for (let i = 0; i < lobbyIdList.length; i++) {
+		// 	let thisLobby = await getOneLobby(lobbyIdList[i]);
+		// 	if (thisLobby) {
+		// 		allLobbiesInTeam.push(thisLobby);
+		// 	}
+		// 	else {
+		// 		console.log("\n-- Warning: lobby/lobby-router.js -> getAllLobbiesInTeam() -> getOneLobby() : attempted to get a lobby by ID but no such lobby exist on database. Proceed returning lobby list.\n");
+		// 	}
+
+		// }
+		let allLobbiesInTeam = lobby.find({ team_id: data.team_id });
+		return allLobbiesInTeam;
+	} catch (e) {
+		// error statements
+		console.log(e);
+		return e;
+	}
+}
+//----------------------------------------------------------------------
+/*----------------------------------------------------------------------
+|	[Lobby / Lobby-Router.js] getAllActiveLobbiesInTeam
+|
+|	Description:
+|
+|	 																	*/
+const getAllActiveLobbiesInTeam = async (lobbyIdList) => {
 	try {
 		let allLobbiesInTeam = [];
 		for (let i = 0; i < lobbyIdList.length; i++) {
@@ -217,6 +242,7 @@ const getAllLobbiesInTeam = async (lobbyIdList) => {
 			}
 
 		}
+
 		return allLobbiesInTeam;
 	} catch (e) {
 		// error statements
@@ -224,7 +250,6 @@ const getAllLobbiesInTeam = async (lobbyIdList) => {
 		return e;
 	}
 }
-//----------------------------------------------------------------------
 
 module.exports = {
 	getlobbies,
@@ -234,5 +259,6 @@ module.exports = {
 	deleteLobby,
 	deleteLobbyAll,
 	getLobbyIdByName,
-	getAllLobbiesInTeam
+	getAllLobbiesInTeam,
+	getAllActiveLobbiesInTeam
 };
