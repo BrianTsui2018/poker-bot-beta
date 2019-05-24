@@ -330,6 +330,8 @@ const joinPoker = async (convo, reply) => {
         // #debug ---------------
         // console.log("\n-> Created new user.");
         // -----------------------
+
+        /* not yet working */
         convo.say(`I have created a new account for you, <@${thisPlayer.slack_id}>. You now have \$${thisPlayer.bank}.`);
 
         //convo.say(`I have created a new account for you, <@${thisPlayer.slack_id}>. You now have \$${thisPlayer.bank}.`);
