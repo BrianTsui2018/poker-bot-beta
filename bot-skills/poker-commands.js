@@ -314,6 +314,27 @@ const joinPoker = async (convo, reply) => {
 
     let thisPlayer = await getPlayerByID({ slack_id: reply.user, team_id: reply.team.id });
 
+    /*      Load user data from DB by slack user ID         */
+    let user_data = {
+        slack_id: reply.user,
+        name: reply.raw_message.user.name,
+        team_id: reply.team.id,
+        team_name: reply.team.domain
+    };
+
+    /*        Check if player is new or returning           */
+
+    if (!thisPlayer) {
+        /*           Create a user                */
+        thisPlayer = await createNewUser(user_data);
+        // #debug ---------------
+        // console.log("\n-> Created new user.");
+        // -----------------------
+        convo.say(`I have created a new account for you, <@${thisPlayer.slack_id}>. You now have \$${thisPlayer.bank}.`);
+
+        //convo.say(`I have created a new account for you, <@${thisPlayer.slack_id}>. You now have \$${thisPlayer.bank}.`);
+    }
+
     let lobbyList = [];
     lobbyList = await getCurrLobbyData(thisPlayer);
 
@@ -342,6 +363,7 @@ const joinPoker = async (convo, reply) => {
 }
 
 const playerJoin = async (data) => {
+
     /*       Add this player to the new lobby        */
     let response = await playerJoinLobby({ slack_id: data.user_slack_id, team_id: data.team_id }, data.lobby_id);
 

@@ -323,7 +323,8 @@ controller.on('block_actions', async function (bot, message) {
         let data = {
             "team_id": message.team.id,
             "user_slack_id": message.user,
-            "lobby_id": response.lobby_id
+            "lobby_id": response.lobby_id,
+            "user_name": message.raw_message.user.username
         }
         // console.log("\n----- data -----");
         // console.log(data);
