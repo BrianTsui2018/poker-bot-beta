@@ -474,25 +474,25 @@ const start_game = (data) => {
 |                                                                                   */
 const create_or_join = [
     {
-        title: 'Do you want to Create or Join a game?',
-        callback_id: '123',
+        title: 'Would you like to Create a new lobby, or Join a current game?',
+        callback_id: 'create-or-join',
         attachment_type: 'default',
         actions: [
             {
                 "name": "create",
-                "text": "Create",
+                "text": "Create:diamonds:",
                 "value": "create",
                 "type": "button",
             },
             {
                 "name": "join",
-                "text": "Join",
+                "text": "Join:spades:",
                 "value": "join",
                 "type": "button",
             },
             {
                 "name": "no",
-                "text": "No",
+                "text": "Cancel",
                 "value": "no",
                 "type": "button",
             }
@@ -522,12 +522,21 @@ const newGame_or_stay = [
     }
 ]
 
+const pingPlayer = (data) => {
+    let message_block = [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "*Which lobby would you like to join?* Here are a list of current games."
+            }
+        }
+
+    ]
+    return message_block;
+}
+
 const current_lobbies_info = async (data) => {
-    // #debug -----------------------
-    //console.log("\n\n-------------- message-blocks/poker-messages.js -> current_lobbies_info(data)----------------");
-    // console.log("\ninput data : ");
-    //console.log(data);
-    // ------------------------------
     let message_block = [
         {
             "type": "section",
@@ -563,7 +572,7 @@ const current_lobbies_info = async (data) => {
                 "text": {
                     "type": "plain_text",
                     "emoji": true,
-                    "text": "Join"
+                    "text": "Join:spades:"
                 },
                 "value": JSON.stringify(value)
             }
@@ -572,16 +581,11 @@ const current_lobbies_info = async (data) => {
         let players = data[i].currPlayers;
 
         for (let j = 0; j < currP; j++) {
-            //#debug -------------
-            // console.log('\nmessage-blocks/poker-messages.js -> PUSH!');
-            // console.log(players[j]);
             player_elements.push(
                 {
                     "type": "image",
-                    //"image_url": "https://api.slack.com/img/blocks/bkb_template_images/profile_1.png",
                     "image_url": players[j].dp_url,
                     "alt_text": players[j].display_name
-                    //"alt_text": "--"
                 }
             );
         }
@@ -595,11 +599,37 @@ const current_lobbies_info = async (data) => {
             {
                 "type": "context",
                 "elements": player_elements
+            }, {
+                "type": "divider"
             }
         );
+
     }
-    let cancle_value = {
-        "topic": "CANCLE_JOIN_LOBBY",
+
+    let create_value = {
+        "topic": "CREATE_LOBBY",
+    }
+
+    message_block.push(
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": `*New Lobby*\nMake a new one for other players to join.`
+            },
+            "accessory": {
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "emoji": true,
+                    "text": "Create:diamonds:"
+                },
+                "value": JSON.stringify(create_value)
+            }
+        }
+    )
+    let cancel_value = {
+        "topic": "CANCEL_JOIN_LOBBY",
     }
     message_block.push(
         {
@@ -615,13 +645,11 @@ const current_lobbies_info = async (data) => {
                         "emoji": true,
                         "text": "Cancel Join"
                     },
-                    "value": JSON.stringify(cancle_value)
+                    "value": JSON.stringify(cancel_value)
                 }
             ]
         }
     );
-
-
     return message_block;
 
 }
@@ -641,7 +669,8 @@ module.exports = {
     start_game,
     create_or_join,
     newGame_or_stay,
-    current_lobbies_info
+    current_lobbies_info,
+    pingPlayer
 
 }
 

@@ -114,8 +114,8 @@ const registerLobby = async (lobby_data) => {
 const getLobbyPlayers = async (lobby_id) => {
     const playerList = await getAllPlayerInLobby(lobby_id);
     // #debug -----------------------------
-    console.log("\n--------- manager.js/getLobbyPlayers -> return from getAllPlayerInLobby -----------------\n");
-    console.log(playerList);
+    // console.log("\n--------- manager.js/getLobbyPlayers -> return from getAllPlayerInLobby -----------------\n");
+    // console.log(playerList);
     //-----------------------------------
     let num_players = playerList.length;
     return { num_players, playerList };
@@ -140,25 +140,28 @@ const playerJoinLobby = async (user_data, lobby_id) => {
         if (thisPlayer.lastLobby === lobby_id) {
             return "ALREADY";
         } else {
-            lobbyRemovePlayer(thisPlayer);
+            await lobbyRemovePlayer(thisPlayer);
             thisPlayer.isInLobby = false;
-            return "LEFT_LAST";
+
         }
 
     }
     // check if lobby exist    
     if (!thisLobby) {
         valid = false;
+        return "NO-LOBBY";
     }
     // check if player bank >= buyin
     if (thisPlayer.bank < thisLobby.buyin) {
         valid = false;
+        return "BROKE";
     }
 
     // check if lobby curr player < max players
     let currPlayers = await getLobbyPlayers(thisLobby._id);
     if (currPlayers.num_players >= thisLobby.maxPlayers) {
         valid = false;
+        return "FULL";
     }
     // check-in player to lobby
     if (valid) {

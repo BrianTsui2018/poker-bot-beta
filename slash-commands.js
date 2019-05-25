@@ -24,7 +24,8 @@ const {
 
 const {
     showdown_mockup,
-    start_game
+    start_game,
+    pingPlayer
 } = require('./message-blocks/poker-messages');
 
 /*      Dummy Data      */
@@ -232,32 +233,53 @@ const handleSlash = async (bot, message) => {
             bot.reply(message, "Ping All players in lobby.",
                 async function (err, response) {
                     // #debug-------------------------
-                    console.log("\n------- message");
-                    console.log(message);
+                    // console.log("\n------- message");
+                    // console.log(message);
+                    // console.log("\n---------------response");
+                    // console.log(response);
                     //--------------------------------
+
                     /*      gather data         */
                     let data = {
                         team_id: message.team_id,
                         user_slack_id: message.user_id,
                         lobby_channel: message.channel_name,
-                        lobby_id: '',
-                        players: []
+                        thread_ts: response.ts
                     }
 
-                    /*      get player for lobby id        */
-                    data.lobby_id = await getOnePlayer({ slack_id: data.user_slack_id, team_id: data.team_id });
+                    /*      Thread start messgae        */
+                    bot.sendWebhook({
+                        "text": "start here.",
+                        "channel": data.lobby_channel,
+                        "thread_ts": data.thread_ts                   // Block this out to display message block in channel (instead of thread)
 
+                    }, function (err, res) {
+                        if (err) {
+                            console.log(err);
+                        }
+                    });
+
+                    /*      get player for lobby id        */
+                    let thisPlayer = await getOnePlayer({ slack_id: data.user_slack_id, team_id: data.team_id });
+                    data.lobby_id = thisPlayer.lastLobby;
                     /*      get array of users in lobby     */
                     data.players = await getAllPlayerInLobby(data.lobby_id);
 
                     /*      message block       */
-
+                    let message_block = pingPlayer(data);
+                    // console.log("\n------ data -----");
+                    // console.log(data);
+                    // console.log("\n----- message_block------");
+                    // console.log(message_block);
                     /*      ping each user      */
                     for (let i = 0; i < data.players.length; i++) {
-                        bot.api.chat.postMessage(
+                        bot.api.chat.postEphemeral(
                             {
-                                "channel": data.players.slack_id,
+                                "channel": data.lobby_channel,
+                                "thread_ts": data.thread_ts,
                                 "token": process.env.BOT_TOKEN,
+                                "user": data.players[i].slack_id,
+                                //"text": "does this work?"
                                 "attachments": [
                                     {
                                         "blocks": message_block
@@ -265,6 +287,7 @@ const handleSlash = async (bot, message) => {
                                 ]
 
                             });
+
                     }
 
                 }

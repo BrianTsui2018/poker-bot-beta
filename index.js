@@ -8,9 +8,10 @@ const {
 const {
     createPoker,
     testShowCards,
-    joinPoker,
+    lobbyMenu,
     playerJoin,
-    playerLeave
+    playerLeave,
+    refreshLobbyList
 } = require('./bot-skills/poker-commands');
 
 const {
@@ -122,32 +123,38 @@ controller.hears('I am hungry', 'direct_message, direct_mention, mention', (bot,
 /*   Bot listens to keyword in Slack    */
 controller.hears(['poker', 'join', 'create', 'game', 'play', 'start', 'lobby'], 'direct_message, direct_mention, mention', (bot, message) => {
 
-    bot.startConversation(message, function (err, convo) {
+    bot.startConversation(message, async function (err, convo) {
         if (err) { console.log(err); }
 
-        convo.say('hi');
-        convo.ask({
+        convo.say("Hello! Let's play *Texas Holdem' Poker*.");
+        await convo.ask({
             attachments: create_or_join
         }, [
                 {
                     pattern: "create",
                     callback: function (reply, convo) {
                         createPoker(convo, reply);
-                        // bot.closeRTM();
+
                     }
                 }, {
                     pattern: "join",
                     callback: function (reply, convo) {
-                        //convo.say('JOIN!');
                         convo.next();
-                        joinPoker(bot, reply);
-                        // bot.closeRTM();
+                        lobbyMenu(bot, reply.channel);
+
                     }
                 },
                 {
-                    pattern: "no",
+                    pattern: "balance",
                     callback: function (reply, convo) {
-                        convo.say('Too bad');
+                        convo.say("Here's your balance:");
+                        convo.next();
+                    }
+                },
+                {
+                    pattern: "daily",
+                    callback: function (reply, convo) {
+                        convo.say("Your daily chips:");
                         convo.next();
                     }
                 },
@@ -310,51 +317,54 @@ controller.hears(['demo', 'demonstrate'], 'direct_message,direct_mention, mentio
 });
 
 controller.on('block_actions', async function (bot, message) {
+    // #debug
     console.log('\nindex.js : Event -> Block action caught!==========================\n');
-    console.log(message);
+
     let response = JSON.parse(message.text);
-    console.log("\n-----");
-    console.log(response);
+
 
     if (response.topic === "JOIN_LOBBY") {
         console.log("\nCONFIRM PLAYER JOIN LOBBY!");
-        console.log("\nmessage.actions.text-------");
-        console.log(message.actions[0].text);
+
         let data = {
             "team_id": message.team.id,
+            "team_domain": message.team.domain,
             "user_slack_id": message.user,
             "lobby_id": response.lobby_id,
-            "user_name": message.raw_message.user.username
+            "user_name": message.raw_message.user.username,
+            "channel_id": message.channel
         }
-        // console.log("\n----- data -----");
-        // console.log(data);
 
         /*          Put player in lobby           */
-        let result = await playerJoin(data);
+        let result = await playerJoin(bot, data);
+        await refreshLobbyList(bot, message);
         if (result === "ALREADY") {
             console.log("\nindex.js : case ALREADY\n");
             bot.reply(message, `<@${message.user}>, you are currently playing in that game already.`);
         } else {
             console.log("\nindex.js : case JOINED\n");
-            bot.reply(message, `<@${message.user}>, you have joined the lobby *${result.name}*.\nYou will receive a direct message shortly. Please wait a moment.`);
+            bot.reply(message, `<@${message.user}>, you have joined the lobby *${result.name}*.\nYou will receive a direct message shortly. Please wait a moment.:clubs:`);
         }
+
     }
-    else if (response.topic === "CANCLE_JOIN_LOBBY") {
-        console.log("\nPLAYER CANCLE JOIN LOBBY!");
+    else if (response.topic === "CREATE_LOBBY") {
+        console.log("\nPLAYER CREATE LOBBY!");
+        bot.startConversation(message, function (err, convo) {
+            createPoker(convo, message);
+        });
+
+
+    }
+    else if (response.topic === "CANCEL_JOIN_LOBBY") {
+        await refreshLobbyList(bot, message);
+        console.log("\nPLAYER CANCEL JOIN LOBBY!");
         bot.reply(message, `<@${message.user}> :ok_hand: `);
-        let action_data = {
-            token: message.token,
-            channel: message.channel,
-            ts: message.message.ts
-        }
-        // #debug ---------------
-        console.log("\n-------------- action data");
-        console.log(action_data);
-        //-----------------------
 
     }
 
 });
+
+
 
 //----------------------------------------
 /*        Slash Command handling        */

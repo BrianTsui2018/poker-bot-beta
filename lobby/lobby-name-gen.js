@@ -52,7 +52,7 @@ function nameGen(type) {
         nameList.push(name);
 
     }
-    console.log(nameList);
+    //console.log(nameList);
     return (nameList);
 }
 
