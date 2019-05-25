@@ -305,7 +305,7 @@ const createPoker = (convo, reply) => {
 }
 
 
-const joinPoker = async (convo, reply) => {
+const joinPoker = async (bot, reply) => {
 
     // #debug ----------------------
     // console.log('\n---------------- poker-commands.js -> joinPoker() -----------------------------');
@@ -332,7 +332,7 @@ const joinPoker = async (convo, reply) => {
         // -----------------------
 
         /* not yet working */
-        convo.say(`I have created a new account for you, <@${thisPlayer.slack_id}>. You now have \$${thisPlayer.bank}.`);
+        bot.say(`I have created a new account for you, <@${thisPlayer.slack_id}>. You now have \$${thisPlayer.bank}.`);
 
         //convo.say(`I have created a new account for you, <@${thisPlayer.slack_id}>. You now have \$${thisPlayer.bank}.`);
     }
@@ -362,7 +362,13 @@ const joinPoker = async (convo, reply) => {
             ]
 
         });
+    // #debug-----------------------
+    // console.log("\n");
+    // console.log(convo);
+    // -----------------------------
+
 }
+
 
 const playerJoin = async (data) => {
 

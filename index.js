@@ -140,7 +140,7 @@ controller.hears(['poker', 'join', 'create', 'game', 'play', 'start', 'lobby'], 
                     callback: function (reply, convo) {
                         //convo.say('JOIN!');
                         convo.next();
-                        joinPoker(convo, reply);
+                        joinPoker(bot, reply);
                         // bot.closeRTM();
                     }
                 },
@@ -342,6 +342,16 @@ controller.on('block_actions', async function (bot, message) {
     else if (response.topic === "CANCLE_JOIN_LOBBY") {
         console.log("\nPLAYER CANCLE JOIN LOBBY!");
         bot.reply(message, `<@${message.user}> :ok_hand: `);
+        let action_data = {
+            token: message.token,
+            channel: message.channel,
+            ts: message.message.ts
+        }
+        // #debug ---------------
+        console.log("\n-------------- action data");
+        console.log(action_data);
+        //-----------------------
+
     }
 
 });

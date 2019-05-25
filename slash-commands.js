@@ -203,22 +203,72 @@ const handleSlash = async (bot, message) => {
             break;
 
         /*
-            starts a tournament
+            starts a demo tournament
         */
-        case '/start':
+        case "/demo":
             // #debug ------------------------------------------------
-            console.log('\n... slash-commands/js : Start tournament---------------\n');
-            //--------------------------------------------------------        
+            console.log("\n... slash-commands/js : Start demo tournament---------------\n");
+            //--------------------------------------------------------
 
-            bot.reply(message, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:", function (err, response) {
-                // #debug-----
-                // console.log("\n---------- /start -------\n");
-                // console.log(message);
-                //--------------
-                response.message.channel = message.channel_id;
-                startTournament(bot, response.message);
-            });
+            bot.reply(message, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:",
+                function (err, response) {
+                    // #debug-----
+                    // console.log("\n---------- /start -------\n");
+                    // console.log(message);
+                    //--------------
+                    response.message.channel = message.channel_id;
+                    startTournament(bot, response.message);
+                }
+            );
 
+            break;
+        /*
+                Pings all users in lobby
+        */
+        case "/start":
+            // #debug ------------------------------------------------
+            console.log("\n... slash-commands/js : Start ---------------\n");
+            //--------------------------------------------------------
+            bot.reply(message, "Ping All players in lobby.",
+                async function (err, response) {
+                    // #debug-------------------------
+                    console.log("\n------- message");
+                    console.log(message);
+                    //--------------------------------
+                    /*      gather data         */
+                    let data = {
+                        team_id: message.team_id,
+                        user_slack_id: message.user_id,
+                        lobby_channel: message.channel_name,
+                        lobby_id: '',
+                        players: []
+                    }
+
+                    /*      get player for lobby id        */
+                    data.lobby_id = await getOnePlayer({ slack_id: data.user_slack_id, team_id: data.team_id });
+
+                    /*      get array of users in lobby     */
+                    data.players = await getAllPlayerInLobby(data.lobby_id);
+
+                    /*      message block       */
+
+                    /*      ping each user      */
+                    for (let i = 0; i < data.players.length; i++) {
+                        bot.api.chat.postMessage(
+                            {
+                                "channel": data.players.slack_id,
+                                "token": process.env.BOT_TOKEN,
+                                "attachments": [
+                                    {
+                                        "blocks": message_block
+                                    }
+                                ]
+
+                            });
+                    }
+
+                }
+            );
             break;
         default:
             bot.reply(message, 'What command is that');
