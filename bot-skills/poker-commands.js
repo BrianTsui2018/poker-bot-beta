@@ -4,7 +4,8 @@ const {
     genLobbyNames,
     create_or_join,
     newGame_or_stay,
-    current_lobbies_info
+    current_lobbies_info,
+    one_lobby_info
 } = require('../message-blocks/poker-messages');
 
 const {
@@ -12,9 +13,10 @@ const {
     registerLobby,
     playerJoinLobby,
     lobbyIsFull,
-    getLobby,
+    getLobbyByID,
     getLobbyPlayers,
     getCurrLobbyData,
+    getOneLobbyData,
     lobbyRemovePlayer,
     getPlayerByID,
     getPlayerBank,
@@ -68,17 +70,28 @@ const setupLobby = async (convo, user) => {
 
         /*      Create Lobby with the given info        */
         const created_lobby = await registerLobby({ name: convo.vars.lobby_name, buyin: convo.vars.lobby_buyin, team_id: user.team_id, channel: convo.source_message.channel });
-        convo.say('... Created lobby *' + created_lobby.name + '*.');
+        convo.say('... Created lobby *' + created_lobby.name + '*. :diamonds:');
         convo.next();
 
         /*      Add this player to the new lobby        */
         const updated_lobby = await playerJoinLobby({ slack_id: user.slack_id, team_id: user.team_id }, created_lobby._id);
-        convo.say('<@' + user.slack_id + '> is waiting in the lobby.');
+        convo.say('<@' + user.slack_id + '> is waiting in the lobby.\nGame starts as soon as another player joins.:spades:');
         convo.next();
 
         /*      Check if the last procedure was successful      */
         if (updated_lobby) {
-            convo.say('Game starts as soon as another player joins.\nLet me know if anyone would like to join the game. \n(enter \"@my_name poker\" in any channel, or privately.');
+            convo.say('');
+            let data = {
+                "user_slack_id": user.slack_id,
+                "team_id": user.team_id,
+                "lobby_id": updated_lobby._id,
+                "channel_id": convo.context.channel
+            }
+            /*
+                ------------------ Lobby -------------------
+            */
+            oneLobbyMenu(bot, data.channel_id, data.lobby_id);
+
             return updated_lobby;
         } else {
             console.log(`Debug: poker-commands.js : seems like there was problem creating and joining lobby.\n`);
@@ -258,9 +271,9 @@ const createPoker = (convo, reply) => {
 
 
 const lobbyMenu = async (bot, channel_id) => {
-    // console.log('\n---------------- poker-commands.js -> joinPoker() -----------------------------');
+    // console.log('\n---------------- poker-commands.js -> lobbyMenu() -----------------------------');
     let lobbyList = [];
-    lobbyList = await getCurrLobbyData({ team_id: bot.team_info.id });
+    lobbyList = await getCurrLobbyData({ "team_id": bot.team_info.id });
     let message_block = await current_lobbies_info(lobbyList);
     bot.api.chat.postMessage(
         {
@@ -271,6 +284,23 @@ const lobbyMenu = async (bot, channel_id) => {
     );
 }
 
+const oneLobbyMenu = async (bot, channel_id, lobby_id) => {
+    // console.log('\n---------------- poker-commands.js -> oneLobbyMenu() -----------------------------');
+
+    let thisLobby = await getLobbyByID(lobby_id);
+    let thisData = {};
+    thisData.lobby = thisLobby;
+    let thisLobbyPlayerList = await getOneLobbyData(thisLobby);
+    thisData.currPlayers = thisLobbyPlayerList;
+    let message_block = await one_lobby_info(thisData);
+    bot.api.chat.postMessage(
+        {
+            "channel": channel_id,
+            "token": bot.config.token,
+            "attachments": [{ "blocks": message_block }]
+        }
+    );
+}
 
 const playerJoin = async (bot, data) => {
 
@@ -281,7 +311,6 @@ const playerJoin = async (bot, data) => {
     let response = await playerJoinLobby({ slack_id: data.user_slack_id, team_id: data.team_id }, data.lobby_id);
 
     return response;
-
 }
 
 /*      Refresh Lobby List      */
@@ -290,7 +319,6 @@ const refreshLobbyList = async (bot, message) => {
         slack_id: message.user,
         team_id: message.team.id
     }
-    console.log(data);
 
     /*      Get the list of lobby in this team       */
     let lobbyList = await getCurrLobbyData(data);
@@ -308,6 +336,36 @@ const refreshLobbyList = async (bot, message) => {
         ]
     }
     bot.api.chat.update(action_data);
+}
+
+/*      Refresh Lobby Section       */
+const refreshLobbySection = async (bot, message, lobby_id) => {
+    let data = {
+        slack_id: message.user,
+        team_id: message.team.id
+    }
+
+    /*      Construct Message block     */
+    let thisLobby = await getLobbyByID(lobby_id);
+    let thisData = {};
+    thisData.lobby = thisLobby;
+    let thisLobbyPlayerList = await getOneLobbyData(thisLobby);
+    thisData.currPlayers = thisLobbyPlayerList;
+    let message_block = await one_lobby_info(thisData);
+
+    /*      Send out the update     */
+    let action_data = {
+        "token": bot.config.token,
+        "channel": message.channel,
+        "ts": message.message.ts,
+        "attachments": [
+            {
+                "blocks": message_block
+            }
+        ]
+    }
+    bot.api.chat.update(action_data);
+
 }
 
 const playerLeave = (user) => {
@@ -349,5 +407,6 @@ module.exports = {
     testShowCards,
     playerJoin,
     playerLeave,
-    refreshLobbyList
+    refreshLobbyList,
+    refreshLobbySection
 }

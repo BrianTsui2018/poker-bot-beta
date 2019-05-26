@@ -249,6 +249,24 @@ const getCurrLobbyData = async (thisPlayer) => {
     return data;
 }
 
+const getOneLobbyData = async (thisLobby) => {
+    let data = [];
+    /*      Get all the active players in lobby     */
+    let players = await getAllPlayerInLobby(thisLobby._id);
+    // #debug --------------------------------------------------------
+    console.log("\n------ manager.js ---------- players:");
+    console.log(players);
+
+
+    /*      Construct data          */
+    for (let j = 0; j < players.length; j++) {
+        player_data = await axiosGet(players[j]);
+        data.push(player_data);
+    }
+    return data;
+}
+
+
 const assignChip = async (player_data, amount) => {
     /*      Adds chips to user's bank (DB) by Slack user ID     */
     if (amount < 0) {
@@ -285,9 +303,9 @@ async function constructAllCurrLobbyData(allLobbiesInTeam, allPlayersInTeam) {
         data.push(dataObj);
     }
     //#debug-------------------
-    // console.log('\n=========== MANAGER RETURNING DATA ==============');
-    // console.log(data);
-    // console.log("\n");
+    console.log('\n=========== MANAGER RETURNING DATA ==============');
+    console.log(data);
+    console.log("\n");
     //--------------------------
     return data;
 };
@@ -335,6 +353,7 @@ module.exports = {
     getLobbyByID,
     getLobbyPlayers,
     getCurrLobbyData,
+    getOneLobbyData,
     lobbyRemovePlayer,
     getPlayerByID,
     getPlayerBank,

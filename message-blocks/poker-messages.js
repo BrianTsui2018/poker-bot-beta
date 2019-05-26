@@ -528,7 +528,7 @@ const pingPlayer = (data) => {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": "*Which lobby would you like to join?* Here are a list of current games."
+                "text": "*ping!* :robot_face:"
             }
         }
 
@@ -629,7 +629,7 @@ const current_lobbies_info = async (data) => {
         }
     )
     let cancel_value = {
-        "topic": "CANCEL_JOIN_LOBBY",
+        "topic": "REFERESH_ALL",
     }
     message_block.push(
         {
@@ -643,7 +643,7 @@ const current_lobbies_info = async (data) => {
                     "text": {
                         "type": "plain_text",
                         "emoji": true,
-                        "text": "Cancel Join"
+                        "text": "Refresh All"
                     },
                     "value": JSON.stringify(cancel_value)
                 }
@@ -654,6 +654,228 @@ const current_lobbies_info = async (data) => {
 
 }
 
+const one_lobby_info = async (data) => {
+    let message_block = [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": `Would anyone here like to play a game of Poker with <@${data.currPlayers[0].slack_id}>? :clubs:`
+            }
+        },
+        {
+            "type": "divider"
+        }
+    ];
+
+    let lobby_id = data.lobby._id;
+    let lobbyName = data.lobby.name;
+    let currP = data.currPlayers.length;
+    let maxP = data.lobby.maxPlayers;
+    let buyin = data.lobby.buyin;
+    let minBet = data.lobby.minBet;
+
+    let value = {
+        "topic": "JOIN_LOBBY_DIRECT",
+        "lobby_id": lobby_id
+    }
+    message_block.push({
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": `*${lobbyName}* [${currP}/${maxP}]\nBuy-in = $${buyin} | Min-bet = $${minBet}`
+        },
+        "accessory": {
+            "type": "button",
+            "text": {
+                "type": "plain_text",
+                "emoji": true,
+                "text": "Join:spades:"
+            },
+            "value": JSON.stringify(value)
+        }
+    });
+
+    let player_elements = [];
+    let players = data.currPlayers;
+    for (let j = 0; j < currP; j++) {
+        player_elements.push(
+            {
+                "type": "image",
+                "image_url": players[j].dp_url,
+                "alt_text": players[j].display_name
+            }
+        );
+    }
+
+    player_elements.push({
+        "type": "plain_text",
+        "emoji": true,
+        "text": " in game"
+    });
+    message_block.push(
+        {
+            "type": "context",
+            "elements": player_elements
+        }, {
+            "type": "divider"
+        }
+    );
+    return message_block;
+}
+
+/*------------------------------------------------------------------------------------
+|   Fold, Check/Call, Raise, All-In?
+|       Attachment in array format.
+|
+|                                                                                   */
+const makeBet = (data) => {
+    /*
+        data.lobby_id
+        data.cards
+        data.cards_url
+        data.wallet
+        data.curr_top_bet
+        data.min_bet
+    */
+    data.wallet = 100001;
+    data.curr_top_bet = 100000;
+
+    /*      Display information     */
+    let message_block = [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "**Your Cards in the Hole**\n"
+            }
+        },
+        {
+            "type": "image",
+            "image_url": "https://i.imgur.com/rqxxJsZ.jpg",     //data.cards_url
+            "alt_text": "Your cards"
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "Bet:"
+            }
+        }
+    ]
+
+    /*      Call/check and Fold     */
+    let bet_elemenets = [];
+
+    /*      Player has enough to call / check      */
+    if (data.curr_top_bet < data.wallet) {
+        data.val = data.curr_top_bet;
+        bet_elemenets.push(
+            button_check_call(data)
+        );
+    } else {
+        data.val = data.wallet;
+        bet_elemenets.push(
+            button_all_in(data)
+        );
+    }
+
+    /*      Player can always fold        */
+    bet_elemenets.push(
+        button_fold(data)
+    );
+    message_block.push(
+        {
+            "type": "actions",
+            "elements": bet_elemenets
+        }
+    );
+
+    let raise_elements = [];
+    /*      Up to 8 raise buttons   */
+    for (let i = 0; i < 7; i++) {
+        if (data.curr_top_bet * (i + 2) < data.wallet) {
+            data.val = data.curr_top_bet * (i + 2);
+            raise_elements.push(
+                button_raise(data)
+            );
+        }
+    }
+
+    /*          Raise: All in          */
+    data.val = data.wallet;
+    raise_elements.push(
+        button_all_in(data)
+    );
+
+    /*      Player raise        */
+    if (data.curr_top_bet < data.wallet) {
+        message_block.push(
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "Raise:"
+                }
+            },
+            {
+                "type": "actions",
+                "elements": raise_elements
+            }
+        );
+    }
+    return message_block;
+}
+
+const button_all_in = (data) => {
+    return {
+        "type": "button",
+        "text": {
+            "type": "plain_text",
+            "text": "All-in!",
+            "emoji": true
+        },
+        "value": JSON.stringify({ "topic": "BET", "choice": "all-in", "val": data.val, "lobby_id": data.lobby_id }) // all in
+    };
+}
+
+const button_raise = (data) => {
+    return {
+        "type": "button",
+        "text": {
+            "type": "plain_text",
+            "text": val.toString(10),
+            "emoji": true
+        },
+        "value": JSON.stringify({ "topic": "BET", "choice": "raise", "val": data.val, "lobby_id": data.lobby_id })
+    };
+}
+
+const button_check_call = (data) => {
+    return {
+        "type": "button",
+        "text": {
+            "type": "plain_text",
+            "text": "Call/Check",
+            "emoji": true
+        },
+        "style": "primary",
+        "value": JSON.stringify({ "topic": "BET", "choice": "call", "val": data.val, "lobby_id": data.lobby_id }) //data.curr_top_bet
+    };
+}
+
+const button_fold = (data) => {
+    return {
+        "type": "button",
+        "text": {
+            "type": "plain_text",
+            "text": "Fold",
+            "emoji": true
+        },
+        "style": "danger",
+        "value": JSON.stringify({ "topic": "BET", "choice": "fold", "val": 0, "lobby_id": data.lobby_id })
+    };
+}
 
 module.exports = {
     askForBuyin,
@@ -670,7 +892,9 @@ module.exports = {
     create_or_join,
     newGame_or_stay,
     current_lobbies_info,
-    pingPlayer
+    one_lobby_info,
+    pingPlayer,
+    makeBet
 
 }
 
