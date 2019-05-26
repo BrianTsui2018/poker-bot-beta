@@ -152,7 +152,7 @@ const startTournament = async (bot, data) => {
                     //Replace with actions for this state!
                     setTimeout(() => {
                         console.log(chalk.bold("Attemting to end wait"));
-                        thread.send({ topic: "reply" });
+                        thread.send({ topic: "acknowledgement" });
                     }, 6000);
                     //----------------end replacement.
                 }
