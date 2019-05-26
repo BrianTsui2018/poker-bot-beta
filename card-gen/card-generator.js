@@ -27,7 +27,7 @@ process.on("message", (msg) => {
                 //-------------------------
                 let options = {
                     method: 'POST',
-                    url: 'http://5a11acaa.ngrok.io/iu/image',
+                    url: 'https://imai-poker-utils.herokuapp.com/',
                     headers:
                     {
                         'cache-control': 'no-cache',
@@ -80,7 +80,7 @@ process.on("message", (msg) => {
                 let cards = generateCardPayload(p);
                 let options = {
                     method: 'POST',
-                    url: 'http://5a11acaa.ngrok.io/iu/image',
+                    url: 'https://imai-poker-utils.herokuapp.com/',
                     headers:
                     {
                         'cache-control': 'no-cache',

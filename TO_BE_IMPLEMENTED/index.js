@@ -20,7 +20,7 @@ const startTournament = () => {
 
             //Replace with actions for this state!
             setTimeout(() => {
-                console.log(chalk.bold("Attemting to end wait"));
+                console.log(chalk.bold("Attempting to end wait"));
                 thread.send({ topic: "reply" });
             }, 5000);
             //----------------end replacement.
