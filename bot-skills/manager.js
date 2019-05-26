@@ -140,25 +140,28 @@ const playerJoinLobby = async (user_data, lobby_id) => {
         if (thisPlayer.lastLobby === lobby_id) {
             return "ALREADY";
         } else {
-            lobbyRemovePlayer(thisPlayer);
+            await lobbyRemovePlayer(thisPlayer);
             thisPlayer.isInLobby = false;
-            return "LEFT_LAST";
+
         }
 
     }
     // check if lobby exist    
     if (!thisLobby) {
         valid = false;
+        return "NO-LOBBY";
     }
     // check if player bank >= buyin
     if (thisPlayer.bank < thisLobby.buyin) {
         valid = false;
+        return "BROKE";
     }
 
     // check if lobby curr player < max players
     let currPlayers = await getLobbyPlayers(thisLobby._id);
     if (currPlayers.num_players >= thisLobby.maxPlayers) {
         valid = false;
+        return "FULL";
     }
     // check-in player to lobby
     if (valid) {

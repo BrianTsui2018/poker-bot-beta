@@ -205,17 +205,6 @@ const deleteLobbyAll = async () => {
 |	 																	*/
 const getAllLobbiesInTeam = async (data) => {
 	try {
-		// let allLobbiesInTeam = [];
-		// for (let i = 0; i < lobbyIdList.length; i++) {
-		// 	let thisLobby = await getOneLobby(lobbyIdList[i]);
-		// 	if (thisLobby) {
-		// 		allLobbiesInTeam.push(thisLobby);
-		// 	}
-		// 	else {
-		// 		console.log("\n-- Warning: lobby/lobby-router.js -> getAllLobbiesInTeam() -> getOneLobby() : attempted to get a lobby by ID but no such lobby exist on database. Proceed returning lobby list.\n");
-		// 	}
-
-		// }
 		let allLobbiesInTeam = lobby.find({ team_id: data.team_id });
 		return allLobbiesInTeam;
 	} catch (e) {
@@ -242,9 +231,7 @@ const getAllActiveLobbiesInTeam = async (lobbyIdList) => {
 			else {
 				console.log("\n-- Warning: lobby/lobby-router.js -> getAllLobbiesInTeam() -> getOneLobby() : attempted to get a lobby by ID but no such lobby exist on database. Proceed returning lobby list.\n");
 			}
-
 		}
-
 		return allLobbiesInTeam;
 	} catch (e) {
 		// error statements
