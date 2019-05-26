@@ -4,7 +4,7 @@ const chalk = require('chalk');
 const async = require("async");
 
 /**
- *      TWO PLACES NEEDS THE AUTH REMOVED!
+ *      TODO TWO PLACES NEEDS THE AUTH REMOVED!
  */
 
 
