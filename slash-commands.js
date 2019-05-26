@@ -25,7 +25,8 @@ const {
 const {
     showdown_mockup,
     start_game,
-    pingPlayer
+    pingPlayer,
+    makeBet
 } = require('./message-blocks/poker-messages');
 
 /*      Dummy Data      */
@@ -52,7 +53,7 @@ const handleSlash = async (bot, message) => {
             bot.reply(message, 'Making a new lobby to put all the bots in...');
             const dummyLobby = await createLobby({
                 name: dummyData.lobbyName,
-                team_id: message.team_id
+                team_id: message.team_id,
             });
 
             bot.reply(message, `New lobby [${dummyLobby.name}] created! Currently has [${dummyData.playerList.length}] players...`);
@@ -217,8 +218,10 @@ const handleSlash = async (bot, message) => {
                     // console.log("\n---------- /start -------\n");
                     // console.log(message);
                     //--------------
-                    response.message.channel = message.channel_id;
-                    startTournament(bot, response.message);
+                    let data = response.message;
+                    data.channel = message.channel_id;
+                    data.use_demo = true;
+                    startTournament(bot, data);
                 }
             );
 
@@ -266,7 +269,7 @@ const handleSlash = async (bot, message) => {
                     data.players = await getAllPlayerInLobby(data.lobby_id);
 
                     /*      message block       */
-                    let message_block = pingPlayer(data);
+                    let message_block = makeBet(data);
                     // console.log("\n------ data -----");
                     // console.log(data);
                     // console.log("\n----- message_block------");
@@ -285,11 +288,9 @@ const handleSlash = async (bot, message) => {
                                         "blocks": message_block
                                     }
                                 ]
-
-                            });
-
+                            }
+                        );
                     }
-
                 }
             );
             break;

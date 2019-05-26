@@ -11,7 +11,8 @@ const {
     lobbyMenu,
     playerJoin,
     playerLeave,
-    refreshLobbyList
+    refreshLobbyList,
+    refreshLobbySection
 } = require('./bot-skills/poker-commands');
 
 const {
@@ -322,8 +323,21 @@ controller.on('block_actions', async function (bot, message) {
 
     let response = JSON.parse(message.text);
 
-
-    if (response.topic === "JOIN_LOBBY") {
+    if (response.topic === "BET") {
+        let data = {
+            "team_id": message.team.id,
+            "team_domain": message.team.domain,
+            "user_slack_id": message.user,
+            "lobby_id": response.lobby_id,
+            "user_name": message.raw_message.user.username,
+            "channel_id": message.channel
+        }
+        //#debug ---------------
+        console.log("\n--------------- incoming data from player betting")
+        console.log(data);
+        //----------------------
+    }
+    else if (response.topic === "JOIN_LOBBY" || response.topic === "JOIN_LOBBY_DIRECT") {
         console.log("\nCONFIRM PLAYER JOIN LOBBY!");
 
         let data = {
@@ -337,29 +351,42 @@ controller.on('block_actions', async function (bot, message) {
 
         /*          Put player in lobby           */
         let result = await playerJoin(bot, data);
-        await refreshLobbyList(bot, message);
+        /*          Refresh the list menu          */
+        if (response.topic === "JOIN_LOBBY_DIRECT") {
+            await refreshLobbySection(bot, message, data.lobby_id);
+        }
+        else {
+            await refreshLobbyList(bot, message);
+        }
+
         if (result === "ALREADY") {
             console.log("\nindex.js : case ALREADY\n");
             bot.reply(message, `<@${message.user}>, you are currently playing in that game already.`);
         } else {
             console.log("\nindex.js : case JOINED\n");
-            bot.reply(message, `<@${message.user}>, you have joined the lobby *${result.name}*.\nYou will receive a direct message shortly. Please wait a moment.:clubs:`);
-        }
+            bot.reply(message, `<@${message.user}>, you have joined the lobby *${result.name}*.\nPlease await in the lobby's thread.:clubs:`);
 
+
+            /*
+            bot.reply(convo.source_message, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:", function (err, response) {
+                startTournament(bot, { "channel": response.channel, "ts": response.message.ts });
+            });
+            */
+
+
+
+        }
     }
     else if (response.topic === "CREATE_LOBBY") {
         console.log("\nPLAYER CREATE LOBBY!");
         bot.startConversation(message, function (err, convo) {
             createPoker(convo, message);
         });
-
-
     }
-    else if (response.topic === "CANCEL_JOIN_LOBBY") {
+    else if (response.topic === "REFERESH_ALL") {
+        console.log("\nPLAYER REFRESH ALL LOBBIES!");
         await refreshLobbyList(bot, message);
-        console.log("\nPLAYER CANCEL JOIN LOBBY!");
-        bot.reply(message, `<@${message.user}> :ok_hand: `);
-
+        // bot.reply(message, `<@${message.user}> :ok_hand: `);
     }
 
 });

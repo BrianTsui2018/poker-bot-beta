@@ -15,7 +15,9 @@ const {
     createLobby,
     addPlayer,
     deleteLobbyAll,
+    updateLobby,
     getLobbyIdByName
+
 } = require('../lobby/lobby-router');
 
 const {
@@ -29,7 +31,7 @@ const {
     deletePlayerAll,
 } = require('../player/player-router');
 
-const startTournament = async (bot, thread_message_head) => {
+const startTournament = async (bot, data) => {
 
     /*          Chalk           */
     const chalk = require('chalk');
@@ -40,17 +42,47 @@ const startTournament = async (bot, thread_message_head) => {
     /*        Requirement         */
     const childProcess = require("child_process");
 
-    /*      Retrieve players data       */
-    // DUMMY DATA REMOVE IF NOT NEEDED
-    const dummyData = require('../player/dummy-players.json');
-    const dummyLobbyID = await getLobbyIdByName(dummyData.lobbyName);
-    const player_lobby_data = await getAllPlayerInLobby(dummyLobbyID);
+
+    let player_lobby_data = [];
+    let READY_TO_START = false;
+
+
+    if (data.use_demo === true) {
+        /*       DUMMY PLAYERS          */
+        const dummyData = require('../player/dummy-players.json');
+        const dummyLobbyID = await getLobbyIdByName(dummyData.lobbyName);
+        player_lobby_data = await getAllPlayerInLobby(dummyLobbyID);
+        READY_TO_START = true;
+    } else {                                                            //  Note:   Possible error is when two users got here at the same time, and thought themselves to be 2nd player joinng the lobby
+        /*       REAL PLAYERS           */                              //          Suppose if and only if the player joining is the 2nd one, then a new tournament would start (a new thread would be created).
+        /*      Retrieve Lobby data         */                          //          For now, the expected recovery is the users to either ignore the 2nd thread(game) or start a new one if glitched terribly.
+        let thisLobby = await getOneLobby(data.lobby_id);               //--------------------------------------- Between these two lines is where possible duplication game error may occur
+        /*      Game Start Validation      */
+        if (thisLobby.is_playing === false) {
+            /*      Check for lobby status first to block off risk of duplicate-game error         */
+            thisLobby.is_playing = true;
+            /*      Update ASAP incase another player is joining simutaneously      */
+            updateLobby(thisLobby);                                     //--------------------------------------- Between these two lines is where possible duplication game error may occur
+            READY_TO_START = true;
+            /*      Retrieve players data       */
+            player_lobby_data = await getAllPlayerInLobby(data.lobby_id);
+            if (player_lobby_data.length < 2) {
+                /*      Reset to false      */
+                thisLobby.is_playing = false;
+                updateLobby(thisLobby);
+                READY_TO_START = false;
+            }
+
+        }
+
+    }
 
     /*         Variables          */
     let preflop_done = false;
     let num_players = player_lobby_data.length;
     let players_contacted = 0;
     let this_team_id = player_lobby_data[0].team_id;
+
 
     /*     Start Tounarment      */
     const startT = () => {
@@ -102,8 +134,8 @@ const startTournament = async (bot, thread_message_head) => {
 
                 bot.sendWebhook({
                     blocks: this_block_message,
-                    channel: thread_message_head.channel,
-                    thread_ts: thread_message_head.ts                   // Block this out to display message block in channel (instead of thread)
+                    channel: data.channel,
+                    thread_ts: data.ts                   // Block this out to display message block in channel (instead of thread)
 
                 }, function (err, res) {
                     if (err) {
@@ -123,9 +155,7 @@ const startTournament = async (bot, thread_message_head) => {
                         thread.send({ topic: "reply" });
                     }, 6000);
                     //----------------end replacement.
-
                 }
-
             }
             else {
                 console.log(chalk.red("DEBUG: Uncaught message from child! ", msg.topic));
@@ -136,8 +166,12 @@ const startTournament = async (bot, thread_message_head) => {
         thread.send({ topic: "start-game" });
     }
 
-    /*     Run the game script      */
-    startT();
+
+    if (READY_TO_START === true) {
+        /*     Run the game script      */
+        startT();
+    }
+
 }
 
 

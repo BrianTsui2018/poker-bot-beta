@@ -45,6 +45,10 @@ const lobbySchema = new mongoose.Schema({
 		trim: true,
 		default: "general"
 	},
+	is_playing: {
+		type: Boolean,
+		default: false
+	}
 });
 
 
