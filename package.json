@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "env-cmd dev.env nodemon index.js",
     "start": "node index.js",
-    //"heroku-postbuild": "cd ./poker-holdem-engine/ && npm install",
     "test": "env-cmd dev.env mocha"
   },
   "keywords": [],
