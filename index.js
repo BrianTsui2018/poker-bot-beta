@@ -352,7 +352,24 @@ controller.on('block_actions', async function (bot, message) {
         console.log(action_data);
         //-----------------------
 
+    }else if(message.actions[0].block_id === 'turnbuttons'){
+        switch(message.actions[0].value){
+            case 'fold':
+                bot.reply(message, `${message.raw_message.user.name} folds`);
+                break;
+            case 'call':
+                bot.reply(message, `${message.raw_message.user.name} calls/checks`);
+                break;
+            case 'raise':
+                //TODO add function to get raise amount
+                bot.reply(message, `${message.raw_message.user.name} raises`);
+                break;
+            case 'all-in':
+                bot.reply(message, `${message.raw_message.user.name} is all-in!!!`);
+                break;
+        }
     }
+
 
 });
 

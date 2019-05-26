@@ -114,8 +114,8 @@ const registerLobby = async (lobby_data) => {
 const getLobbyPlayers = async (lobby_id) => {
     const playerList = await getAllPlayerInLobby(lobby_id);
     // #debug -----------------------------
-    console.log("\n--------- manager.js/getLobbyPlayers -> return from getAllPlayerInLobby -----------------\n");
-    console.log(playerList);
+    //console.log("\n--------- manager.js/getLobbyPlayers -> return from getAllPlayerInLobby -----------------\n");
+    //console.log(playerList);
     //-----------------------------------
     let num_players = playerList.length;
     return { num_players, playerList };
@@ -162,11 +162,13 @@ const playerJoinLobby = async (user_data, lobby_id) => {
     }
     // check-in player to lobby
     if (valid) {
-        const updatedPlayer = await checkIn({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id, lobby_id: thisLobby._id, buyin: thisLobby.buyin });
+        //add this step is required for checking in to work must have something to do with js data types
+        var checkin_data = {slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id, lobby_id: thisLobby._id, buyin: thisLobby.buyin};
+        const updatedPlayer = await checkIn(checkin_data);
+
         if (updatedPlayer) {
             const updated_lobby = await getLobbyByID(lobby_id);
             if (updated_lobby) {
-
                 return updated_lobby;
             }
         }
