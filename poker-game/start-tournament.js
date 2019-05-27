@@ -6,10 +6,7 @@ const {
     update_state,
     update_setup,
     update_win,
-    update_cards,
-    FLOP,
-    RIVER,
-    TURN
+    update_cards
 } = require('../message-blocks/poker-messages');
 
 const {
@@ -105,19 +102,18 @@ const startTournament = async (bot, data) => {
                 if (msg.data.type === "state" || msg.data.type === "bet") {
                     let this_player = await getOnePlayer({ slack_id: msg.data.playerId, team_id: this_team_id });
                     // #debug ---------------
-                    console.log('\n------------- "state" This Player : -----------------\n');
+                    // console.log('\n------------- "state" This Player : -----------------\n');
                     // console.log('Searching for this player = \{ slack_id: ', msg.data.playerId, ', team_id: ', this_team_id, '...\n');
                     // console.log(this_player);
                     // console.log(chalk.bgMagenta('------------------------------------------'));
                     // ----------------------
                     msg.data.player = this_player;
                     this_block_message = update_state(msg);
-                    console.log(this_block_message);
 
                 }
                 else if (msg.data.type === "setup") {
                     // #debug ---------------
-                    console.log('\n------------- SETUP: -----------------\n');
+                    // console.log('\n------------- SETUP: -----------------\n');
                     // console.log(msg);
                     // console.log(msg.data.players);
                     // console.log(msg.data.players[0].cards);
@@ -125,16 +121,12 @@ const startTournament = async (bot, data) => {
                     /*      Debug printing of player info       */
                     //this_block_message = this_block_message.concat(update_setup_msg_data_players_debug(msg));                
                     // ----------------------
-                    console.log(this_block_message);
                 } else if (msg.data.type === "cards") {
-                    // #debug ---------------
-                    console.log('\n------------- CARDS: -----------------\n');
-                    console.log(msg);
                     this_block_message = update_cards(msg);
-                    console.log('\n');
-                    console.log(this_block_message);
+
                 } else if (msg.data.type === "win") {
                     this_block_message = update_win(msg);
+
                 }
 
                 /*      Not used debug function     */
