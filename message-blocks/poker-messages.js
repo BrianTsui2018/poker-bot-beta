@@ -367,7 +367,11 @@ const update_setup = (msg) => {
 
 
 const update_cards = (msg) => {
-
+    let this_block_message;
+    if (msg.data.session === "FLOP") { this_block_message = FLOP(msg.data); }
+    else if (msg.data.session === "RIVER") { this_block_message = RIVER(msg.data); }
+    else if (msg.data.session === "TURN") { this_block_message = TURN(msg.data); };
+    return this_block_message;
 }
 
 
@@ -877,6 +881,104 @@ const button_fold = (data) => {
     };
 }
 
+const base_template = [
+    {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": "" //Insert section here
+        }
+    },
+    {
+        "type": "image",
+        "title": {
+            "type": "plain_text",
+            "text": "card", //Insert Text here.
+            "emoji": true
+        },
+        "image_url": "", //Insert image URL here
+        "alt_text": "" //Alt msg here
+    },
+    {
+        "type": "divider"
+    },
+    {
+        "type": "section",
+        "text": {
+            "type": "plain_text",
+            "text": "Collecting user bets soon....",
+            "emoji": true
+        }
+    }
+]
+
+const card_name_translator = (cards) => {
+
+    translatedCards = []
+    for (let idx = 0; idx < cards.length; idx++) {
+        let thisCard = "";
+        switch (cards[idx].rank) {
+            case 'K': thisCard = "King of ";
+                break;
+            case 'Q': thisCard = "Queen of ";
+                break;
+            case 'J': thisCard = "Jack of ";
+                break;
+            case 'A': thisCard = "Ace of ";
+                break;
+            default: thisCard = cards[idx].rank + " of ";
+        }
+
+        switch (cards[idx].type) {
+            case 'D': thisCard += 'Diamonds';
+                break;
+            case 'C': thisCard = "Clubs";
+                break;
+            case 'S': thisCard = "Spades";
+                break;
+            case 'H': thisCard = "Hearts";
+                break;
+            default: throw new Error("Unexpect card type came in ... ");
+        }
+
+        translatedCards.push(thisCard);
+        thisCard = "";
+
+    }
+    return translatedCards.join(', ');
+
+}
+
+const FLOP = (data) => {
+    let flop_block = [...base_template];
+    flop_block[0].text.text = ":diamonds: Session : *FLOP*";
+    flop_block[1].title.text = `First three cards : ${card_name_translator(data.cards)} ... what now?`;
+    flop_block[1].image_url = data.cardImages[0].url;
+    flop_block[1].alt_text = "Three cards shown!";
+
+    return flop_block;
+}
+
+const RIVER = (data) => {
+    let flop_block = [...base_template];
+    flop_block[0].text.text = ":clubs: Session : *RIVER*";
+    flop_block[1].title.text = `New card : ${card_name_translator(data.cards)} ... what now?`;
+    flop_block[1].image_url = data.cardImages[0].url;
+    flop_block[1].alt_text = "Four cards shown!";
+
+    return flop_block;
+}
+
+const TURN = (data) => {
+    let flop_block = [...base_template];
+    flop_block[0].text.text = ":HEART: Session : *TURN*";
+    flop_block[1].title.text = `New card : ${card_name_translator(data.cards)} ... what now?`;
+    flop_block[1].image_url = data.cardImages[0].url;
+    flop_block[1].alt_text = "Five cards shown!";
+
+    return flop_block;
+}
+
 module.exports = {
     askForBuyin,
     genLobbyNames,
@@ -894,7 +996,10 @@ module.exports = {
     current_lobbies_info,
     one_lobby_info,
     pingPlayer,
-    makeBet
+    makeBet,
+    FLOP,
+    RIVER,
+    TURN
 
 }
 
