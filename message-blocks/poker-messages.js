@@ -374,7 +374,10 @@ const update_cards = (msg) => {
     return this_block_message;
 }
 
-
+const update_showdown = msg => {
+    let this_block_message = SHOWDOWN(msg.data);
+    return this_block_message;
+}
 
 const update_win = (msg) => {
 
@@ -926,17 +929,17 @@ const card_name_translator = (cards) => {
                 break;
             case 'A': thisCard = "Ace of ";
                 break;
-            default: thisCard = cards[idx].rank + " of ";
+            default: thisCard = parseInt(cards[idx].rank) + 1 + " of ";
         }
 
         switch (cards[idx].type) {
             case 'D': thisCard += 'Diamonds';
                 break;
-            case 'C': thisCard = "Clubs";
+            case 'C': thisCard += "Clubs";
                 break;
-            case 'S': thisCard = "Spades";
+            case 'S': thisCard += "Spades";
                 break;
-            case 'H': thisCard = "Hearts";
+            case 'H': thisCard += "Hearts";
                 break;
             default: throw new Error("Unexpect card type came in ... ");
         }
@@ -979,6 +982,58 @@ const TURN = (data) => {
     return flop_block;
 }
 
+const show_down_template =
+    [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": ":loudspeaker: *SHOW DOWN* :bangbang: \n Cards are ranked from highest to lowest!"
+            }
+        },
+        {
+            "type": "image",
+            "title": {
+                "type": "plain_text",
+                "text": "Example Image",
+                "emoji": true
+            },
+            "image_url": "https://i.imgur.com/ceTQ9vF.jpg",
+            "alt_text": "Example Image"
+        },
+        {
+            "type": "divider"
+        }
+    ];
+
+const show_down_user =
+{
+    "type": "section",
+    "text":
+    {
+        "type": "mrkdwn",
+        "text": "" //replace with :black_medium_square:*[User 1]* \n :black_small_square:Best Cards : [bestCards] \n :black_small_square:Info : [bestCardsInfo Obj]
+    },
+    "accessory":
+    {
+        "type": "image",
+        "image_url": "", //Fill with image url
+        "alt_text": "Card pairs"
+    }
+};
+
+const SHOWDOWN = (data) => {
+    let showdown_array = [...show_down_template];
+    for (let idx = 0; idx < data.ranks.length; idx++) {
+        showdown_array.push(show_down_user);
+        showdown_array[showdown_array.length - 1].text.text = `*<@${data.rank[idx].playyerId}>*\n :black_small_square: Best Cards : ${data.rank[idx].bestCardInfo.name} .`;
+        showdown_array[showdown_array.length - 1].accessory.image_url = data.cardImages[idx].url;
+
+    }
+    showdown_array.push({ "type": "divider" })
+
+    return showdown_array;
+}
 module.exports = {
     askForBuyin,
     genLobbyNames,
@@ -997,9 +1052,7 @@ module.exports = {
     one_lobby_info,
     pingPlayer,
     makeBet,
-    FLOP,
-    RIVER,
-    TURN
+    update_showdown
 
 }
 

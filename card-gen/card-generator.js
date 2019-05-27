@@ -3,110 +3,72 @@ const generateCardPayload = require('./card-namer');
 const chalk = require('chalk');
 const async = require("async");
 
-/**
- *      TWO PLACES NEEDS THE AUTH REMOVED!
- */
 
 
 let allCommonCards = [];
-let setup_array = [];
 
-
+//Communicates with parent thread (Tournament)
 process.on("message", (msg) => {
     switch (msg.topic) {
-        case "card-pairs":
-            console.log(chalk.magenta("card-gen | Msg = card-pairs | Starting on making pairs with..."));
-            console.log(msg.data);
-            //run the async card function.
-            async.eachOf(msg.data, (p, idx, callback1) => {
-                //console.log(chalk.magenta(msg.data.player))
-                let cards = generateCardPayload(p.cards);
-                //#debug
-                console.log("\n----------------------------- cards after generateCardPayload()------------");
-                console.log(cards);
-                //-------------------------
-                let options = {
-                    method: 'POST',
-                    url: 'http://5a11acaa.ngrok.io/iu/image',
-                    headers:
-                    {
-                        'cache-control': 'no-cache',
-                        Authorization: process.env.CARD_GEN_TOKEN,
-                        'Content-Type': 'application/json'
-                    },
-                    body: cards,
-                    json: true
-                };
-
-                request(options, function (error, response, body) {
-                    if (error) console.log(error);
-
-                    console.log('CARD GEN', body);
-
-                    setup_array.push({ index: idx, url: body.url });
-                    callback1();
-                });
-
-            }, (err) => {
-                console.log(chalk.magenta('Processed all images!'))
-                console.log(setup_array);
-
-                process.send({ topic: "images", data: setup_array });
-                if (err) console.log(err);
-            });
-            console.log(chalk.magenta("card-gen----------card-pairs "));
-            break;
         case "common-cards":
             console.log(chalk.magenta("card-gen | Msg = common-cards"));
-            //run common-cards;
-
-            //let thisPicture = [msg.data[0], msg.data[1], msg.data[2],]
             for (let idx = 0; idx < msg.data.length; idx++) {
-                allCommonCards.push(msg.data[idx])
+                //This carry the all card rank&type in PREFLOP, FLOP, TURN, RIVER..
+                allCommonCards.push(msg.data[idx]) //Common cards are stored in the idx-th slot
             }
+            let commoncards_array = [allCommonCards]; //Wrap around with another array to make use of the repeated code.
 
-            //commoncards_array = [thisPicture];
-            // let idx = 3;
-            // for (let i = 0; i < 2; i++) {
-            //     thisPicture.push(msg.data[idx]);
-            //     commoncards_array.push(thisPicture);
-            //     idx++;
-            let commoncards_array = [allCommonCards];
+            requestForCardImage(commoncards_array);
 
-            // }
-            let finalArray = [];
-            console.log(chalk.magenta('CARDS ARRAY -', commoncards_array));
-            async.eachOf(commoncards_array, (p, idx, callback1) => {
-                let cards = generateCardPayload(p);
-                let options = {
-                    method: 'POST',
-                    url: 'http://5a11acaa.ngrok.io/iu/image',
-                    headers:
-                    {
-                        'cache-control': 'no-cache',
-                        Authorization: process.env.CARD_GEN_TOKEN,
-                        'Content-Type': 'application/json'
-                    },
-                    body: cards,
-                    json: true
-                };
-
-                request(options, function (error, response, body) {
-                    if (error) throw new Error(error);
-                    //console.log(response);
-                    finalArray.push({ index: idx, url: body.url });
-                    callback1();
-                });
-
-            }, (err) => {
-                console.log(chalk.magenta('card-gen | Sending common cards back'))
-                console.log(commoncards_array);
-
-                process.send({ topic: "images", data: finalArray });
-                if (err) console.log(err);
-            });
+            break;
+        case "card-pairs":
+            let cardPairs = [];
+            console.log(JSON.stringify(msg.data));
+            for (let idx = 0; idx < msg.data.length; idx++) {
+                cardPairs.push(msg.data[idx].cards); //Card pairs are stored in each idx's "cards"
+            }
+            requestForCardImage(cardPairs);
             break;
         default:
+            //Any uncaught messages are here:
             console.log(chalk.red("card-gen | Uncaught topic! ", msg.topic));
     }
 })
+
+
+/**
+ * Takes a generated card payload and fires a request to the Utils app for PHE
+ * @param {[Object]} card_array Array of objects such as { 'rank' : 'A', 'type': 'C'} for Ace of Clubs.
+ */
+function requestForCardImage(card_array) {
+    console.log(chalk.magenta('CARDS ARRAY -', card_array));
+    let image_url_array = [];
+    async.eachOf(card_array, (p, idx, callback1) => {
+        let cards = generateCardPayload(p);
+        let options = {
+            method: 'POST',
+            url: 'http://localhost:5002/iu/image',
+            headers: {
+                'cache-control': 'no-cache',
+                Authorization: process.env.CARD_GEN_TOKEN,
+                'Content-Type': 'application/json'
+            },
+            body: cards,
+            json: true
+        };
+        request(options, function (error, response, body) {
+            if (error)
+                throw new Error(error);
+            //console.log(response);
+            image_url_array.push({ index: idx, url: body.url });
+            callback1();
+        });
+    }, (err) => {
+        console.log(chalk.magenta('card-gen | Sending common cards back'));
+        console.log(card_array);
+        process.send({ topic: "images", data: image_url_array });
+        if (err)
+            console.log(err);
+    });
+}
+

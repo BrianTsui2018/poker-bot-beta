@@ -7,9 +7,7 @@ const {
     update_setup,
     update_win,
     update_cards,
-    FLOP,
-    RIVER,
-    TURN
+    update_showdown
 } = require('../message-blocks/poker-messages');
 
 const {
@@ -135,6 +133,13 @@ const startTournament = async (bot, data) => {
                     console.log(this_block_message);
                 } else if (msg.data.type === "win") {
                     this_block_message = update_win(msg);
+                } else if (msg.data.type === "showdown") {
+                    // #debug ---------------
+                    console.log('\n------------- CARDS: -----------------\n');
+                    console.log(msg);
+                    this_block_message = update_showdown(msg);
+                    console.log('\n');
+                    console.log(this_block_message);
                 }
 
                 /*      Not used debug function     */
