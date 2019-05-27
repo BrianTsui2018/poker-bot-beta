@@ -134,6 +134,7 @@ controller.hears(['poker', 'join', 'create', 'game', 'play', 'start', 'lobby'], 
                 {
                     pattern: "create",
                     callback: function (reply, convo) {
+                        convo.next();
                         createPoker(convo, reply);
 
                     }
@@ -365,7 +366,6 @@ controller.on('block_actions', async function (bot, message) {
         } else {
             console.log("\nindex.js : case JOINED\n");
             bot.reply(message, `<@${message.user}>, you have joined the lobby *${result.name}*.\nPlease await in the lobby's thread.:clubs:`);
-
 
             /*
             bot.reply(convo.source_message, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:", function (err, response) {

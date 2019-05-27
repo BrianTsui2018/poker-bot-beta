@@ -38,8 +38,8 @@ const player = require('./player-model');
 const createPlayer = async (data) => {
     try {
         const newPlayer = new player(data);		    // Constructs a player locally with the passed in data {user_id and user_name}
-        await newPlayer.save(); 					// This pushes the locally created player up to the DB
-
+        data.res = await newPlayer.save(); 					// This pushes the locally created player up to the DB
+        return data;
     } catch (e) {
         // error statement
         console.log(e);
@@ -261,10 +261,20 @@ const getAllCurrentPlayersInTeam = async (data) => {
 
     } catch (error) {
         // error statements
-        console.log(e);
-        return e;
+        console.log(error);
+        return error;
     }
 
+}
+
+const updatePlayer = async (thisPlayer) => {
+    try {
+        const updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer);
+        return updatedPlayer;
+    } catch (error) {
+        console.log(error);
+        return error;
+    }
 }
 
 
@@ -277,6 +287,7 @@ module.exports = {
     getOnePlayer,
     getAllPlayerInLobby,
     deletePlayerAll,
-    getAllCurrentPlayersInTeam
+    getAllCurrentPlayersInTeam,
+    updatePlayer
 
 };
