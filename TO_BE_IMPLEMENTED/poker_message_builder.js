@@ -28,6 +28,8 @@ const base_template = [
         }
     }
 ]
+
+
 const card_name_translator = (cards) => {
 
     translatedCards = []
@@ -95,10 +97,64 @@ const TURN = (data) => {
     return flop_block;
 }
 
+const show_down_template =
+    [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": ":loudspeaker: *SHOW DOWN* :bangbang: \n Cards are ranked from highest to lowest!"
+            }
+        },
+        {
+            "type": "image",
+            "title": {
+                "type": "plain_text",
+                "text": "Example Image",
+                "emoji": true
+            },
+            "image_url": "https://i.imgur.com/ceTQ9vF.jpg",
+            "alt_text": "Example Image"
+        },
+        {
+            "type": "divider"
+        }
+    ];
+
+const show_down_user =
+{
+    "type": "section",
+    "text":
+    {
+        "type": "mrkdwn",
+        "text": "" //replace with :black_medium_square:*[User 1]* \n :black_small_square:Best Cards : [bestCards] \n :black_small_square:Info : [bestCardsInfo Obj]
+    },
+    "accessory":
+    {
+        "type": "image",
+        "image_url": "", //Fill with image url
+        "alt_text": "Card pairs"
+    }
+};
+
+const SHOWDOWN = (data) => {
+    let showdown_array = [...show_down_template];
+    for (let idx = 0; idx < data.ranks.length; idx++) {
+        showdown_array.push(show_down_user);
+        showdown_array[showdown_array.length - 1].text.text = `*<@${data.rank[idx].playyerId}>*\n :black_small_square: Best Cards : ${data.rank[idx].bestCardInfo.name} .`;
+        showdown_array[showdown_array.length - 1].accessory.image_url = data.cardImages[idx].url;
+
+    }
+    showdown_array.push({ "type": "divider" })
+
+    return showdown_array;
+}
+
 module.exports = {
     FLOP,
     RIVER,
-    TURN
+    TURN,
+    SHOWDOWN
 }
 // data = {
 //     type: 'cards',
