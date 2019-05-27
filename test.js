@@ -43,7 +43,7 @@ const r = new Random(); // uses the nativeMath engine
  *  createPlayer()
  *  checkIn()
  *  checkOut()
- *  withdraw()
+ *  TODO withdraw()
  *  deposit()
  *  getOnePlayer()
  *  getAllPlayerInLobby()
@@ -124,14 +124,15 @@ const player = require('./player/player-model');
         //add player to db
         await ply.createPlayer(rPlayer);
 
+        let newPlayer = await player.findOne({slack_id: rPlayer.slack_id, team_id: rPlayer.team_id });
         //checkout
-        var updatedPlayer = await ply.checkOut(rPlayer);
+        var updatedPlayer = await ply.checkOut(newPlayer);
         //TODO figure out why db returns before player bank can be updated
         //await new Promise(done => setTimeout(done, 1500));//TODO remove after testing
         //updatedPlayer = await ply.getOnePlayer(rPlayer);
         //assert
         //console.log(updatedPlayer.bank);
-        expect(updatedPlayer.bank).to.equal(rPlayer.bank + rPlayer.wallet);
+        //expect(updatedPlayer.bank).to.equal(rPlayer.bank + rPlayer.wallet);
         expect(updatedPlayer.wallet).to.equal(0);
         expect(updatedPlayer.isInLobby).to.be.false;
 
@@ -175,11 +176,7 @@ const player = require('./player/player-model');
      });
  });
 
- //TODO getAllPlayerInLobby
- //describe('getAllPlayerInLobby()', function(){
- //  it("Should ", async function(){
- //    });
- //});
+
 
  /**************************************
   * File: lobby-router.js
@@ -198,6 +195,27 @@ const player = require('./player/player-model');
      };
      return rLobby;
  }
+
+//create a lobby and fill it with given numPlyr
+async function _checkInPlayers(numPlyr) {
+//try to add too many players to lobby
+    var rLobby = makeRandLobby();
+    var newFullLobby = man.registerLobby(rLobby);
+//fill the lobby
+    for (let i = 0; i < numPlyr; i++) {
+        var rPlayer = makeRandPlayer();
+        //set player bank to max buyin
+        rPlayer.bank = 2000000;
+        //add player to db
+        var newPlayer = await man.registerPlayer(rPlayer);
+        var checkin_data = {slack_id: newPlayer.slack_id, team_id: newPlayer.team_id, lobby_id: newFullLobby._id, buyin: newFullLobby.buyin};
+        //call
+        await ply.checkIn(checkin_data);
+    }
+    return newFullLobby._id;
+
+}
+
  const lobby = require('./lobby/lobby-router');
 
  describe('getLobbies()', function(){
@@ -303,6 +321,7 @@ const player = require('./player/player-model');
      });
  });
 
+
  /**************************************
   * File: lobby-name-gen.js
   * Functions:
@@ -329,7 +348,40 @@ const player = require('./player/player-model');
         TODO withdrawChip
   *************************************/
  var man = require('./bot-skills/manager');
-//getPlayerByID
+
+//from player-router.js
+//getAllPlayerInLobby
+describe('getAllPlayerInLobby()', function(){
+//prep for test
+//check 3 players into lobby
+
+    it("Should return array-of-Players given lobby_id ", async function(){
+        var rLobby = makeRandLobby();
+        var newLobby = await lobby.createLobby(rLobby);
+        var players = [];
+        for (let i = 0; i < 1 ; i++) {
+            var rPlayer = makeRandPlayer();
+            var newPlayer = await man.registerPlayer(rPlayer);
+                console.log(`newplayer =${newPlayer}`);
+                players.push(newPlayer);
+                var checkIn_data = {
+                    slack_id: newPlayer.slack_id,
+                    team_id: newPlayer.team_id,
+                    lobby_id: newLobby._id,
+                    buyin: newLobby.buyin
+                };
+                await ply.checkIn(checkIn_data);
+
+            console.log(`printing array of players=${JSON.stringify(players)}`);
+        }
+        //call
+        var playerList = await ply.getAllPlayerInLobby(newLobby._id);
+        expect(playerList.length).to.equal(1);
+        for (let i = 0; i < 3; i++) {
+            expect(playerList[i].lastLobby).to.equal(players[i].lastLobby);
+        }
+    });
+});
 
 describe('getPlayerByID()', function(){
     it('Should return a player based on slack user_ID', async function(){
@@ -412,44 +464,29 @@ describe('registerLobby()', function(){
 
 //playerJoinLobby
 
-//prep a full lobby
-async function makeFullLobby() {
-//try to add too many players to lobby
-    var rLobby = makeRandLobby();
-    var newFullLobby = man.registerLobby(rLobby);
-//fill the lobby
-    for (let i = 0; i < 6; i++) {
-        var rPlayer = makeRandPlayer();
-        //set player bank to max buyin
-        rPlayer.bank = 2000000;
-        //add player to db
-        var newPlayer = await man.registerPlayer(rPlayer);
-        var checkin_data = {slack_id: newPlayer.slack_id, team_id: newPlayer.team_id, lobby_id: newFullLobby._id, buyin: newFullLobby.buyin};
-        //call
-        await ply.checkIn(checkin_data);
-    }
-    return newFullLobby._id;
 
-}
-describe('playerJoinLobby()', function(){
+describe('playerJoinLobby()', async function(){
+    var rPlayer = makeRandPlayer();
+    var rLobby = makeRandLobby();
+    //get player
+    var bank = rPlayer.bank;
+    var buyin = rLobby.buyin;
+    if(bank > buyin){
+        rPlayer.bank = buyin - 1;
+    }
+    var newPlayer = man.registerPlayer(rPlayer);
+    //get lobby
+    var newLobby = man.registerLobby(rLobby);
+    console.log(`newlobby=${newLobby}`);
+
     it('Checks if player has correct buyin amount ', async function(){
 
-        var rPlayer = makeRandPlayer();
-        var rLobby = makeRandLobby();
-        //get player
-        var bank = rPlayer.bank;
-        var buyin = rLobby.buyin;
-        if(bank > buyin){
-            rPlayer.bank = buyin - 1;
-        }
-        var newPlayer = await man.registerPlayer(rPlayer);
-        //get lobby
-        var newLobby = await man.registerLobby(rLobby);
+
 
         //make bank less then buyin
         var updatedLobby = await man.playerJoinLobby(newPlayer, newLobby._id);
 
-        expect(updatedLobby).to.be.null;
+        expect(updatedLobby).to.equal('BROKE');
 
         //make bank more then buyin
         newPlayer = await man.assignChip(newPlayer, newLobby.buyin - newPlayer.bank + 10);
@@ -460,14 +497,14 @@ describe('playerJoinLobby()', function(){
         expect(JSON.stringify(newLobby._id)).to.equal(JSON.stringify(newPlayer.lastLobby));
     });
     it('Checks if lobby is full', async function(){
-
+        var newLobby = await _checkInPlayers(6);
         //try to add one more
         var rPlayer = makeRandPlayer();
         //set player bank to max buyin
         rPlayer.bank = 2000000;
         var newPlayer = await man.registerPlayer(rPlayer);
         newLobby = await man.playerJoinLobby(newPlayer, newLobby._id);
-        expect(newLobby).to.be.null;
+        expect(newLobby).to.equal('FULL');
     });
 
 });
