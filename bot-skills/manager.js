@@ -310,9 +310,9 @@ async function constructAllCurrLobbyData(allLobbiesInTeam, allPlayersInTeam) {
         data.push(dataObj);
     }
     //#debug-------------------
-    console.log('\n=========== MANAGER RETURNING DATA ==============');
-    console.log(data);
-    console.log("\n");
+    // console.log('\n=========== MANAGER RETURNING DATA ==============');
+    // console.log(data);
+    // console.log("\n");
     //--------------------------
     return data;
 };
