@@ -1,0 +1,16 @@
+[
+        {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": ":arrow_right: Session : *PRE-FLOP*"
+        }
+        },
+    {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": ":spades: *[User name]* has decided to *[ fold / do other things ]* ..."
+        }
+    }
+]
