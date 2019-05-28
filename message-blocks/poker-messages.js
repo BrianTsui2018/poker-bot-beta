@@ -1026,7 +1026,7 @@ const SHOWDOWN = (data) => {
     let showdown_array = [...show_down_template];
     for (let idx = 0; idx < data.ranks.length; idx++) {
         showdown_array.push(show_down_user);
-        showdown_array[showdown_array.length - 1].text.text = `*<@${data.rank[idx].playyerId}>*\n :black_small_square: Best Cards : ${data.rank[idx].bestCardInfo.name} .`;
+        showdown_array[showdown_array.length - 1].text.text = `*<@${data.ranks[idx].playyerId}>*\n :black_small_square: Best Cards : ${data.rank[idx].bestCardInfo.name} .`;
         showdown_array[showdown_array.length - 1].accessory.image_url = data.cardImages[idx].url;
 
     }
