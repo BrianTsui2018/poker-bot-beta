@@ -21,7 +21,8 @@ const {
     getPlayerByID,
     getPlayerBank,
     assignChip,
-    withdrawChip
+    withdrawChip,
+    patchPlayerDP
 } = require('./manager.js');
 
 const {
@@ -47,6 +48,9 @@ const createNewUser = async (user_data) => {
         let user = await registerPlayer(user_data);
         /*           Assign chip to user            */
         user = await assignChip(user_data, new_player_chips);
+        /*           Get display pic                */
+        user = await patchPlayerDP(user);
+
         return user;
     } catch (error) {
         console.log(`\n----------------------\nERROR! poker-commands.js failed to create user / assign chip.\n----------------------\n`);
@@ -200,6 +204,7 @@ const create_lobby_callback = async (convo, message) => {
         if (!user) {
             /*           Create a user                */
             user = await createNewUser(user_data);
+            convo.next();
             convo.say(`I have created a new account for you, <@${user.slack_id}>. You now have \$${user.bank}.`);
             getLobbyNameFromUser(convo, user);
         }

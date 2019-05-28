@@ -45,6 +45,21 @@ const playerSchema = new mongoose.Schema({
     isInLobby: {
         type: Boolean,
         default: false
+    },
+    dp: {
+        type: String,
+        trim: true,
+        default: ''
+    },
+    card1: {
+        type: String,
+        trim: true,
+        default: ''
+    },
+    card2: {
+        type: String,
+        trim: true,
+        default: ''
     }
 });
 

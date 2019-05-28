@@ -24,10 +24,13 @@ process.on("message", (msg) => {
         case "card-pairs":
             let cardPairs = [];
             console.log(JSON.stringify(msg.data));
+            let playersID = [];
+
             for (let idx = 0; idx < msg.data.length; idx++) {
                 cardPairs.push(msg.data[idx].cards); //Card pairs are stored in each idx's "cards"
+                playersID.push(msg.data[idx].id);
             }
-            requestForCardImage(cardPairs);
+            requestForCardImage(cardPairs, playersID);
             break;
         default:
             //Any uncaught messages are here:
@@ -40,7 +43,7 @@ process.on("message", (msg) => {
  * Takes a generated card payload and fires a request to the Utils app for PHE
  * @param {[Object]} card_array Array of objects such as { 'rank' : 'A', 'type': 'C'} for Ace of Clubs.
  */
-function requestForCardImage(card_array) {
+function requestForCardImage(card_array, playersID) {
     console.log(chalk.magenta('CARDS ARRAY -', card_array));
     let image_url_array = [];
     async.eachOf(card_array, (p, idx, callback1) => {
@@ -60,12 +63,18 @@ function requestForCardImage(card_array) {
             if (error)
                 throw new Error(error);
             //console.log(response);
-            image_url_array.push({ index: idx, url: body.url });
+            if (playersID) {
+                image_url_array.push({ index: idx, id: playersID[idx], url: body.url });
+            } else {
+                image_url_array.push({ index: idx, url: body.url });
+            }
+
             callback1();
         });
     }, (err) => {
         console.log(chalk.magenta('card-gen | Sending common cards back'));
         console.log(card_array);
+
         process.send({ topic: "images", data: image_url_array });
         if (err)
             console.log(err);

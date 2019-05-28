@@ -18,7 +18,8 @@ const {
     deposit,
     getOnePlayer,
     getAllPlayerInLobby,
-    getAllCurrentPlayersInTeam
+    getAllCurrentPlayersInTeam,
+    updatePlayer
 } = require('../player/player-router');
 
 const getLobbyByID = async (lobby_id) => {
@@ -100,9 +101,15 @@ const getPlayerBank = async (player_data) => {
     return chips;
 }
 
+const patchPlayerDP = async (newPlayer) => {
+    let extra_data = await axiosGet(newPlayer.slack_id, newPlayer.name);            // input only needs {name, slack_id}, returns { slack_id, display_name, dp_url }
+    newPlayer.dp = extra_data.dp_url;
+    newPlayer = updatePlayer(newPlayer);
+    return newPlayer;
+}
+
 const registerPlayer = async (user_data) => {
-    await createPlayer(user_data);
-    const newPlayer = await getPlayerByID(user_data);
+    let newPlayer = await createPlayer(user_data);
     return newPlayer;
 }
 
@@ -303,9 +310,9 @@ async function constructAllCurrLobbyData(allLobbiesInTeam, allPlayersInTeam) {
         data.push(dataObj);
     }
     //#debug-------------------
-    console.log('\n=========== MANAGER RETURNING DATA ==============');
-    console.log(data);
-    console.log("\n");
+    // console.log('\n=========== MANAGER RETURNING DATA ==============');
+    // console.log(data);
+    // console.log("\n");
     //--------------------------
     return data;
 };
@@ -343,8 +350,6 @@ const axiosGet = async (currPlayer) => {
     return player_data;
 }
 
-
-
 module.exports = {
     registerPlayer,
     registerLobby,
@@ -358,7 +363,9 @@ module.exports = {
     getPlayerByID,
     getPlayerBank,
     assignChip,
-    withdrawChip
+    withdrawChip,
+    patchPlayerDP,
+    axiosGet            // input only needs {name, slack_id}, returns { slack_id, display_name, dp_url }
 };
 
 
