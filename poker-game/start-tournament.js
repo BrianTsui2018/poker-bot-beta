@@ -59,6 +59,7 @@ const startTournament = async (bot, data) => {
         /*      Retrieve Lobby data         */                          //          For now, the expected recovery is the users to either ignore the 2nd thread(game) or start a new one if glitched terribly.
         let thisLobby = await getOneLobby(data.lobby_id);               //--------------------------------------- Between these two lines is where possible duplication game error may occur
         /*      Game Start Validation      */
+        console.log(`is this lobby already playing = ${thisLobby}`);
         if (thisLobby.is_playing === false) {
             /*      Check for lobby status first to block off risk of duplicate-game error         */
             thisLobby.is_playing = true;
