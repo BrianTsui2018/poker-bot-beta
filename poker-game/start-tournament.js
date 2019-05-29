@@ -127,7 +127,7 @@ const startTournament = async (bot, data) => {
                 } else if (msg.data.type === "cards") {
                     // #debug ---------------
                     console.log('\n------------- CARDS: -----------------\n');
-                    console.log(msg);
+                    console.log(msg.data.cards);
                     this_block_message = update_cards(msg);
                     console.log('\n');
                     console.log(this_block_message);

@@ -919,6 +919,8 @@ const card_name_translator = (cards) => {
 
     translatedCards = []
     for (let idx = 0; idx < cards.length; idx++) {
+        console.log("\n-------------------- poker-messages.js ------ card_name_translator(cards) ----> card[idx]/rank = ");
+        console.log(cards[idx].rank);
         let thisCard = "";
         switch (cards[idx].rank) {
             case 'K': thisCard = "King of ";
@@ -929,8 +931,10 @@ const card_name_translator = (cards) => {
                 break;
             case 'A': thisCard = "Ace of ";
                 break;
-            default: thisCard = parseInt(cards[idx].rank) + 1 + " of ";
+            default: thisCard = parseInt(cards[idx].rank) + " of ";
         }
+        console.log("\n---- thisCard =", thisCard);
+        console.log("\n----------------------------------\n\n");
 
         switch (cards[idx].type) {
             case 'D': thisCard += 'Diamonds';
@@ -1026,7 +1030,7 @@ const SHOWDOWN = (data) => {
     let showdown_array = [...show_down_template];
     for (let idx = 0; idx < data.ranks.length; idx++) {
         showdown_array.push(show_down_user);
-        showdown_array[showdown_array.length - 1].text.text = `*<@${data.ranks[idx].playyerId}>*\n :black_small_square: Best Cards : ${data.rank[idx].bestCardInfo.name} .`;
+        showdown_array[showdown_array.length - 1].text.text = `*<@${data.ranks[idx].playyerId}>*\n :black_small_square: Best Cards : ${data.ranks[idx].bestCardInfo.name} .`;
         showdown_array[showdown_array.length - 1].accessory.image_url = data.cardImages[idx].url;
 
     }

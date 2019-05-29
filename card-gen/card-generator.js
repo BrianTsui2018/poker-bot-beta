@@ -5,6 +5,7 @@ const async = require("async");
 
 
 
+
 let allCommonCards = [];
 
 //Communicates with parent thread (Tournament)
@@ -12,17 +13,20 @@ process.on("message", (msg) => {
     switch (msg.topic) {
         case "common-cards":
             console.log(chalk.magenta("card-gen | Msg = common-cards"));
+            console.log(msg.data);
             for (let idx = 0; idx < msg.data.length; idx++) {
                 //This carry the all card rank&type in PREFLOP, FLOP, TURN, RIVER..
                 allCommonCards.push(msg.data[idx]) //Common cards are stored in the idx-th slot
             }
             let commoncards_array = [allCommonCards]; //Wrap around with another array to make use of the repeated code.
-
-            requestForCardImage(commoncards_array);
+            console.log(chalk.magenta("Post for loop"));
+            console.log(commoncards_array);
+            requestForCardImage(commoncards_array, "common");
 
             break;
         case "card-pairs":
             let cardPairs = [];
+            console.log("Card Gen | Case card-pairs")
             console.log(JSON.stringify(msg.data));
             let playersID = [];
 
@@ -30,7 +34,7 @@ process.on("message", (msg) => {
                 cardPairs.push(msg.data[idx].cards); //Card pairs are stored in each idx's "cards"
                 playersID.push(msg.data[idx].id);
             }
-            requestForCardImage(cardPairs, playersID);
+            requestForCardImage(cardPairs, "pairs", playersID);
             break;
         default:
             //Any uncaught messages are here:
@@ -41,13 +45,18 @@ process.on("message", (msg) => {
 
 /**
  * Takes a generated card payload and fires a request to the Utils app for PHE
- * @param {[Object]} card_array Array of objects such as { 'rank' : 'A', 'type': 'C'} for Ace of Clubs.
+ * @param {[Object]}    card_array Array of objects such as { 'rank' : 'A', 'type': 'C'} for Ace of Clubs.
+ * @param {String}      message Short message for parent thread to figure out type of images
+ * @param {Array}       playersID Optional. For identifying owners of images
  */
-function requestForCardImage(card_array, playersID) {
-    console.log(chalk.magenta('CARDS ARRAY -', card_array));
+function requestForCardImage(card_array, message, playersID) {
+    //console.log(chalk.magenta('CARDS ARRAY -'));
+    //console.log(card_array);
     let image_url_array = [];
     async.eachOf(card_array, (p, idx, callback1) => {
         let cards = generateCardPayload(p);
+        console.log(chalk.yellow('CARDS'));
+        console.log(cards);
         let options = {
             method: 'POST',
             url: 'https://imai-poker-utils.herokuapp.com/iu/image',
@@ -60,24 +69,24 @@ function requestForCardImage(card_array, playersID) {
             json: true
         };
         request(options, function (error, response, body) {
-            if (error) {
-                console.log("\n------------- card-generator.js ---- request();")
-                console.log(error);
-            }
+            if (error)
+                throw new Error(error);
             //console.log(response);
+            console.log(chalk.magenta("BODY ! "));
+            console.log(body);
             if (playersID) {
                 image_url_array.push({ index: idx, id: playersID[idx], url: body.url });
             } else {
-                image_url_array.push({ index: idx, url: body.url });
+                image_url_array.push({ numberOfCards: card_array[0].length, url: body.url });
             }
 
             callback1();
         });
     }, (err) => {
         console.log(chalk.magenta('card-gen | Sending common cards back'));
-        console.log(card_array);
+        console.log(chalk.magenta(JSON.stringify(card_array)));
 
-        process.send({ topic: "images", data: image_url_array });
+        process.send({ topic: message, data: image_url_array });
         if (err)
             console.log(err);
     });

@@ -23,7 +23,7 @@ const cardTranslator = (card) => {
             break;
         case "K": translatedCard.rank = '12';
             break;
-        default: translatedCard.rank = card.rank;
+        default: translatedCard.rank = card.rank - 1;
     }
 
     return translatedCard;
