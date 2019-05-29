@@ -67,6 +67,7 @@ const startTournament = async (bot, data) => {
             READY_TO_START = true;
             /*      Retrieve players data       */
             player_lobby_data = await getAllPlayerInLobby(data.lobby_id);
+            console.log(`player lobby data= ${player_lobby_data}`);
             if (player_lobby_data.length < 2) {
                 /*      Reset to false      */
                 thisLobby.is_playing = false;
@@ -179,7 +180,7 @@ const startTournament = async (bot, data) => {
         thread.send({ topic: "start-game" });
     }
 
-
+    console.log(`READY_TO_START === ${READY_TO_START}`);
     if (READY_TO_START === true) {
         /*     Run the game script      */
         startT();
