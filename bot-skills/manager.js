@@ -273,6 +273,28 @@ const getOneLobbyData = async (thisLobby) => {
     return data;
 }
 
+/**
+ * Seeks for a player base on slack id and team id. Updates the wallet and saves.
+ * @param {object} data     Object contains a user_slack_id and team_id
+ */
+const updatePlayerWallet = async (data) => {
+
+    let playerinfo = { slack_id: data.user_slack_id, team_id: data.team_id };
+    try {
+        let player = await getOnePlayer(playerinfo);
+
+        console.log("Manager API | Wallet update !---------------");
+        console.log("Was : ", player.wallet)
+        player.wallet -= data.spent;
+        await player.save();
+        console.log("Now : ", player.wallet)
+
+    } catch (error) {
+        console.log("Manager API | Wallet update ERROR!---------------");
+        console.log(error);
+    }
+
+}
 
 const assignChip = async (player_data, amount) => {
     /*      Adds chips to user's bank (DB) by Slack user ID     */
@@ -372,6 +394,7 @@ module.exports = {
     assignChip,
     withdrawChip,
     patchPlayerDP,
+    updatePlayerWallet,
     axiosGet,            // input only needs {name, slack_id}, returns { slack_id, display_name, dp_url }
     axiosPUT
 };
