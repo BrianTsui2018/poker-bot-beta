@@ -22,7 +22,8 @@ const {
     getPlayerBank,
     assignChip,
     withdrawChip,
-    patchPlayerDP
+    patchPlayerDP,
+    axiosPUT
 } = require('./manager.js');
 
 const {
@@ -405,6 +406,20 @@ const newPlayerChips = async (bot, data) => {
     }
 }
 
+const placeBet = (data, cb) => {
+    if (data.choice !== fold) {
+
+        let betData = {
+            action: data.val,
+            userID: data.user_slack_id
+        }
+
+        axiosPUT(betData, (body) => {
+
+            cb(body);
+        });
+    }
+}
 
 module.exports = {
     createPoker,
@@ -413,5 +428,6 @@ module.exports = {
     playerJoin,
     playerLeave,
     refreshLobbyList,
-    refreshLobbySection
+    refreshLobbySection,
+    placeBet
 }

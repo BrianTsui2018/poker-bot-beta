@@ -173,7 +173,7 @@ const playerJoinLobby = async (user_data, lobby_id) => {
     // check-in player to lobby
     if (valid) {
         //add this step is required for checking in to work must have something to do with js data types
-        var checkin_data = {slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id, lobby_id: thisLobby._id, buyin: thisLobby.buyin};
+        var checkin_data = { slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id, lobby_id: thisLobby._id, buyin: thisLobby.buyin };
         const updatedPlayer = await checkIn(checkin_data);
 
         if (updatedPlayer) {
@@ -350,6 +350,13 @@ const axiosGet = async (currPlayer) => {
     return player_data;
 }
 
+const axiosPUT = async (betData) => {
+
+    let url = `https://imai-poker-utils.herokuapp.com/ua/${betData.userID}/action`;
+    let body = await axios.put(url, betData);
+    return body;
+}
+
 module.exports = {
     registerPlayer,
     registerLobby,
@@ -365,7 +372,8 @@ module.exports = {
     assignChip,
     withdrawChip,
     patchPlayerDP,
-    axiosGet            // input only needs {name, slack_id}, returns { slack_id, display_name, dp_url }
+    axiosGet,            // input only needs {name, slack_id}, returns { slack_id, display_name, dp_url }
+    axiosPUT
 };
 
 
