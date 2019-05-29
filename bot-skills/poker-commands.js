@@ -415,11 +415,16 @@ const placeBet = async (data) => {
             userID: data.user_slack_id
         }
 
-        let body = await axiosPUT(betData);
+        try {
+            let body = await axiosPUT(betData);
+            data.spent = body.action;
+            await updatePlayerWallet(data);
+        } catch (error) {
+            console.log("poker-command.js | Place bet error. | Returning ing 0")
+            console.log(error);
+            return 0;
+        }
 
-        data.spent = body.action;
-
-        await updatePlayerWallet(data);
         return body.data;
     }
     else {
