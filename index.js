@@ -220,6 +220,7 @@ controller.hears(['begin','play', 'start'], 'direct_message, direct_mention, men
                         console.log(`reply = ${reply}`);
 
                         var player = getPlayerByID(reply.user);
+                        console.log(`player info isInLobby = ${player.isInLobby}\n players lastLobby= ${player.lastLobby}`);
                         if(player.isInLobby === true) {
 
                             startTournament(bot, {
