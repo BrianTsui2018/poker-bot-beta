@@ -26,8 +26,8 @@ process.on("message", (msg) => {
             break;
         case "card-pairs":
             let cardPairs = [];
-            console.log("Card Gen | Case card-pairs")
-            console.log(JSON.stringify(msg.data));
+            // console.log("Card Gen | Case card-pairs")
+            // console.log(JSON.stringify(msg.data));
             let playersID = [];
 
             for (let idx = 0; idx < msg.data.length; idx++) {

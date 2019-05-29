@@ -45,9 +45,17 @@ const {
 |                                                                                   */
 const createNewUser = async (user_data) => {
     try {
+        if (!user_data) {
+            console.log("---- ERROR! -----\n./bot-skills/poker-commands.js > createNewUser > failed to register player!");
+        }
         const new_player_chips = 1000000;
         /*           Create a user                  */
         let user = await registerPlayer(user_data);
+        if (!user) {
+            console.log("---- ERROR! -----\n./bot-skills/poker-commands.js > createNewUser > failed to register player!");
+        } else {
+            console.log(user);
+        }
         /*           Assign chip to user            */
         user = await assignChip(user_data, new_player_chips);
         /*           Get display pic                */

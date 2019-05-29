@@ -162,8 +162,8 @@ const checkOut = async (data) => {
 |																	*/
 const getOnePlayer = async (data) => {
     try {
-        let thisPlayer
-        if (data.tean_id) {
+        let thisPlayer;
+        if (data.team_id) {
             thisPlayer = await player.findOne({ slack_id: data.slack_id, team_id: data.team_id });
         }
         else {
