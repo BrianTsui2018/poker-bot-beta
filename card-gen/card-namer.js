@@ -46,5 +46,5 @@ const generateCardPayload = (cardArray) => {
 }
 
 
-// console.log(generateCardPayload([{ "rank": "Q", "type": "C" }, { "rank": "A", "type": "S" }]))
+//console.log(generateCardPayload([{ "rank": "Q", "type": "C" }, { "rank": "A", "type": "S" }]))
 module.exports = generateCardPayload;

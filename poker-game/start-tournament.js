@@ -34,6 +34,8 @@ const {
     updatePlayer
 } = require('../player/player-router');
 
+const { retryGetCommonCards, retryGetPairCards } = require('../utils/cards');
+
 const startTournament = async (bot, data) => {
 
     /*          Chalk           */
@@ -207,16 +209,28 @@ const startTournament = async (bot, data) => {
                         console.log(players_in_lobby[x]);
                     }
                     //console.log(this_block_message);
-
-
+                  
                     /*      Get the next player by PHE index        */
                     next_player_idx = msg.data.nextBetPosition;
+                  
 
-                } else if (msg.data.type === "cards") {
+                    if (!msg.data.cardImages[0].url) {
+                        console.log("!! -- IMAGE NOT FOUND @ PAIR CARDS-- !! Starting backup measures")
+                        this_block_message = await retryGetPairCards(data, this_block_message)
+                    }
+                }
+                    else if (msg.data.type === "cards") {
                     // #debug ---------------
                     console.log('\n------------- CARDS: -----------------\n');
                     console.log(msg.data.cards);
                     this_block_message = update_cards(msg);
+
+                    //If this_block_message does not contain the image URL :
+                    if (!this_block_message[1].image_url) {
+                        console.log("!! -- IMAGE NOT FOUND -- !! Starting backup measures")
+                        this_block_message = await retryGetCommonCards(data, this_block_message)
+                    }
+
                     console.log('\n');
                     console.log(this_block_message);
 
