@@ -23,6 +23,8 @@ const {
     create_or_join
 } = require('./message-blocks/poker-messages');
 
+const getPlayerByID = require('./bot-skills/manager');
+
 //----------------------------------------
 /*      Authentication checkpoint       */
 if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET || !process.env.VERIFICATION_TOKEN || !process.env.PORT) {                   // online deployment doesn't need to check for PORT env var
@@ -122,7 +124,7 @@ controller.hears('I am hungry', 'direct_message, direct_mention, mention', (bot,
 
 //----------------------------------------
 /*   Bot listens to keyword in Slack    */
-controller.hears(['poker', 'join', 'create', 'game', 'play', 'start', 'lobby'], 'direct_message, direct_mention, mention', (bot, message) => {
+controller.hears(['poker', 'join', 'create', 'lobby'], 'direct_message, direct_mention, mention', (bot, message) => {
 
     bot.startConversation(message, async function (err, convo) {
         if (err) { console.log(err); }
@@ -173,6 +175,85 @@ controller.hears(['poker', 'join', 'create', 'game', 'play', 'start', 'lobby'], 
 });
 
 
+//TODO add message to user about how to start game, add message about waiting for at least two players
+controller.hears(['begin','play', 'start'], 'direct_message, direct_mention, mention', (bot, message) => {
+
+    /* Gather data to send to start tournament
+     *  use_demo === false
+     *
+     */
+    bot.replyAcknowledge();
+    bot.startConversation(message, function (err, convo) {
+        convo.next();
+        convo.ask({
+            attachments: [
+                {
+                    title: 'Ready to begin the game?',
+                    callback_id: '123',
+                    attachment_type: 'default',
+                    actions: [
+                        {
+                            "name": "yes",
+                            "text": "Yes, please",
+                            "value": "yes",
+                            "type": "button",
+                        },
+                        {
+                            "name": "no",
+                            "text": "No, not yet",
+                            "value": "no",
+                            "type": "button",
+                        }
+                    ]
+                }
+            ]
+        }, [
+            {
+                pattern: "yes",
+                callback: function (reply, convo) {
+                    bot.reply(convo.source_message, ":black_joker: Let's Play Texas Holdem!* :black_joker:", function (err, response) {
+                        //get lobby_id
+                        var player = getPlayerByID(reply.slack_id);
+                        if(player.isInLobby === true) {
+
+                            startTournament(bot, {
+                                "channel": response.channel,
+                                "ts": response.message.ts,
+                                "use_demo": false,
+                                "lobby_id": player.lastLobby
+                            });
+                        }
+                    });
+                    // bot.reply(convo, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:", function (err, response) {
+                    //     response.message.channel = convo.context.channel;
+                    //     startTournament(bot, response.message);
+                    //     convo.say('Click into game message to see progress in Thread.');
+                    // });
+
+                    convo.stop();
+                }
+            },
+            {
+                pattern: "no",
+                callback: function (reply, convo) {
+                    convo.say('Ok, whenever you\'re ready!');
+                    convo.next();
+                }
+            },
+            {
+                default: true,
+                callback: function (reply, convo) {
+                    convo.say('Beep-boop... Error!:robot_face:');
+                    convo.next();
+                }
+            }
+        ]);
+
+    });
+});
+
+
+});
 // controller.on('direct_mention', function (bot, message) {
 //     console.log('\nDirect mention caught!');
 //     //console.log(message);

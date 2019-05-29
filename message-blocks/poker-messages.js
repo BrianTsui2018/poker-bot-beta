@@ -288,7 +288,7 @@ const update_state = (msg) => {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": `:arrow_right: Session : *${msg.data.session}* `
+                "text": `:arrow_right: Betting Round : *${msg.data.session}* `
             }
         },
         {
