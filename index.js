@@ -213,6 +213,10 @@ controller.hears(['begin','play', 'start'], 'direct_message, direct_mention, men
                 callback: function (reply, convo) {
                     bot.reply(convo.source_message, ":black_joker: Let's Play Texas Holdem!* :black_joker:", function (err, response) {
                         //get lobby_id
+                        console.log(`about to fire up tournament`);
+                        console.log(reply);
+                        console.log(response.channel);
+                        console.log(response.message);
                         var player = getPlayerByID(reply.slack_id);
                         if(player.isInLobby === true) {
 
