@@ -197,7 +197,7 @@ controller.hears(['begin','play', 'start'], 'direct_message, direct_mention, men
                     actions: [
                         {
                             "name": "yes",
-                            "text": "Yes, please",
+                            "text": "Shuffle-up and Deal!",
                             "value": "yes",
                             "type": "button",
                         },

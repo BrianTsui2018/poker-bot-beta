@@ -35,7 +35,7 @@ const takeTurn = async (player, message) => { //TODO integrate into gameflow
     }
 //ephemeral messages must include playerid and channel
 //send cards
-    var mes = {"user": message.user_id, "channel": message.channel, "blocks": message_blocks.playershand_mockup};
+    var mes = {"user": message.user_id, "channel": message.channel, "blocks": message_blocks.makeBet};
     try {
         await bot.sendEphemeral(mes);
     } catch (e) {
