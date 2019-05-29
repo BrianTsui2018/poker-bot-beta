@@ -133,7 +133,18 @@ const startTournament = async (bot, data) => {
                     /*      Debug printing of player info       */
                     //this_block_message = this_block_message.concat(update_setup_msg_data_players_debug(msg));                
                     // ----------------------
-                    console.log(this_block_message);
+                    console.log('\n./poker-game/start-tournament.js ---> update:setup: msg.data.cardImages[] = ');
+                    console.log(msg.data.cardImages);
+
+                    let imgArr = msg.data.cardImages;
+                    for (let i = 0; i < imgArr.length; i++) {
+
+                    }
+
+
+
+
+                    //console.log(this_block_message);
                 } else if (msg.data.type === "cards") {
                     // #debug ---------------
                     console.log('\n------------- CARDS: -----------------\n');

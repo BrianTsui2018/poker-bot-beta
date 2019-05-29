@@ -313,10 +313,10 @@ const update_setup = (msg) => {
         playerNameList = playerNameList.concat(', ', msg.data.players[i].name);
     }
     // #debug -----------
-    console.log('\n--------- poker-messages.js -> update_setup() ----------');
-    console.log(msg.data.players);
-    console.log(playerNameList, ' / ', num_players);
-    console.log('\n\n');
+    // console.log('\n--------- poker-messages.js -> update_setup() ----------');
+    // console.log(msg.data.players);
+    // console.log(playerNameList.length, ' / ', num_players);
+    // console.log('\n\n');
     //---------------------
 
     let message_block = [
