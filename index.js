@@ -23,7 +23,10 @@ const {
     create_or_join
 } = require('./message-blocks/poker-messages');
 
-const getPlayerByID = require('./bot-skills/manager');
+const {
+    getPlayerByID
+}        = require('./bot-skills/manager');
+
 
 //----------------------------------------
 /*      Authentication checkpoint       */
@@ -214,10 +217,9 @@ controller.hears(['begin','play', 'start'], 'direct_message, direct_mention, men
                     bot.reply(convo.source_message, ":black_joker: Let's Play Texas Holdem!* :black_joker:", function (err, response) {
                         //get lobby_id
                         console.log(`about to fire up tournament`);
-                        console.log(reply);
-                        console.log(response.channel);
-                        console.log(response.message);
-                        var player = getPlayerByID(reply.slack_id);
+                        console.log(`reply = ${reply}`);
+
+                        var player = getPlayerByID(reply.user);
                         if(player.isInLobby === true) {
 
                             startTournament(bot, {
