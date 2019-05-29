@@ -371,6 +371,9 @@ const update_cards = (msg) => {
     if (msg.data.session === "FLOP") { this_block_message = FLOP(msg.data); }
     else if (msg.data.session === "RIVER") { this_block_message = RIVER(msg.data); }
     else if (msg.data.session === "TURN") { this_block_message = TURN(msg.data); };
+
+    //Run a check to see if images are set into the data message
+
     return this_block_message;
 }
 
@@ -909,7 +912,7 @@ const base_template = [
         "type": "section",
         "text": {
             "type": "plain_text",
-            "text": "Collecting user bets soon....",
+            "text": "Collecting user bets soon....", //Longer text here.
             "emoji": true
         }
     }
@@ -959,7 +962,8 @@ const card_name_translator = (cards) => {
 const FLOP = (data) => {
     let flop_block = [...base_template];
     flop_block[0].text.text = ":diamonds: Session : *FLOP*";
-    flop_block[1].title.text = `First three cards : ${card_name_translator(data.cards)} ... what now?`;
+    flop_block[1].title.text = "Cards : ";
+    flop_block[3].text.text = `First three cards : ${card_name_translator(data.cards)} ... what now?`;
     flop_block[1].image_url = data.cardImages[0].url;
     flop_block[1].alt_text = "Three cards shown!";
 
@@ -967,23 +971,25 @@ const FLOP = (data) => {
 }
 
 const RIVER = (data) => {
-    let flop_block = [...base_template];
-    flop_block[0].text.text = ":clubs: Session : *RIVER*";
-    flop_block[1].title.text = `New card : ${card_name_translator(data.cards)} ... what now?`;
-    flop_block[1].image_url = data.cardImages[0].url;
-    flop_block[1].alt_text = "Four cards shown!";
+    let river_block = [...base_template];
+    river_block[0].text.text = ":clubs: Session : *RIVER*";
+    river_block[1].title.text = "Cards : ";
+    river_block[3].text.text = `New card : ${card_name_translator(data.cards)} ... what now?`;
+    river_block[1].image_url = data.cardImages[0].url;
+    river_block[1].alt_text = "Four cards shown!";
 
-    return flop_block;
+    return river_block;
 }
 
 const TURN = (data) => {
-    let flop_block = [...base_template];
-    flop_block[0].text.text = ":HEART: Session : *TURN*";
-    flop_block[1].title.text = `New card : ${card_name_translator(data.cards)} ... what now?`;
-    flop_block[1].image_url = data.cardImages[0].url;
-    flop_block[1].alt_text = "Five cards shown!";
+    let turn_block = [...base_template];
+    turn_block[0].text.text = ":HEART: Session : *TURN*";
+    turn_block[1].title.text = "Cards : ";
+    turn_block[3].text.text = `New card : ${card_name_translator(data.cards)} ... what now?`;
+    turn_block[1].image_url = data.cardImages[0].url;
+    turn_block[1].alt_text = "Five cards shown!";
 
-    return flop_block;
+    return turn_block;
 }
 
 const show_down_template =
