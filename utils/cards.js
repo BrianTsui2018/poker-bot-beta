@@ -118,7 +118,7 @@ const retryGetPairCards = async (data) => {
     //console.log(chalk.magenta('CARDS ARRAY -'));
     //console.log(card_array);
     let image_url_array = [];
-    async.eachOf(card_array, (p, idx, callback1) => {
+    async.eachOf(card_array, async (p, idx, callback1) => {
         let cards = generateCardPayload(p);
         let url = `https://imai-poker-utils.herokuapp.com/iu/${cards.cardName}`;
 
@@ -151,12 +151,12 @@ const retryGetPairCards = async (data) => {
 }
 
 
-console.log(textBasedCards([
-    { rank: 'A', type: 'D' },
-    { rank: '10', type: 'D' },
-    { rank: 'A', type: 'D' },
-    { rank: '10', type: 'D' }]
-));
+// console.log(textBasedCards([
+//     { rank: 'A', type: 'D' },
+//     { rank: '10', type: 'D' },
+//     { rank: 'A', type: 'D' },
+//     { rank: '10', type: 'D' }]
+// ));
 module.exports = {
     retryGetCommonCards,
     retryGetPairCards

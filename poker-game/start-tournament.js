@@ -60,8 +60,6 @@ const startTournament = async (bot, data) => {
         tournament_configuration = dummyData;
         READY_TO_START = true;
     } else {
-        console.log("\n./poker-game/start-tournament.js -> Tournament start with REAL players-------");
-        console.log(data);
         //                                                              //  Note:   Possible error is when two users got here at the same time, and thought themselves to be 2nd player joinng the lobby
         /*       REAL PLAYERS               */                          //          Suppose if and only if the player joining is the 2nd one, then a new tournament would start (a new thread would be created).
         /*      Retrieve Lobby data         */                          //          For now, the expected recovery is the users to either ignore the 2nd thread(game) or start a new one if glitched terribly.
@@ -129,6 +127,9 @@ const startTournament = async (bot, data) => {
         }
 
     }
+    // #debug------------------
+    console.log("\n./poker-game/start-tournament.js > READY TO START | players_in_lobby = ");
+    console.log(players_in_lobby);
 
     /*         Variables          */
     let num_players = players_in_lobby.length;
@@ -181,8 +182,8 @@ const startTournament = async (bot, data) => {
                     /*      Debug printing of player info       */
                     //this_block_message = this_block_message.concat(update_setup_msg_data_players_debug(msg));                
                     // ----------------------
-                    console.log('\n./poker-game/start-tournament.js ---> update:setup: msg.data = ');
-                    console.log(msg.data);
+                    // console.log('\n./poker-game/start-tournament.js ---> update:setup: msg.data = ');
+                    // console.log(msg.data);
 
                     /*          Update player images to database            */
                     let imgArr = msg.data.cardImages;
@@ -205,21 +206,21 @@ const startTournament = async (bot, data) => {
                         players_in_lobby[x].cards = imgArr[i].url;
                         players_in_lobby[x] = await updatePlayer(players_in_lobby[x]);
                         players_in_lobby[x].idx = imgArr[i].index;
-                        console.log('\n./poker-game/start-tournament.js ---> updated player! = ');
-                        console.log(players_in_lobby[x]);
+                        // console.log('\n./poker-game/start-tournament.js ---> updated player! = ');
+                        // console.log(players_in_lobby[x]);
                     }
                     //console.log(this_block_message);
-                  
+
                     /*      Get the next player by PHE index        */
                     next_player_idx = msg.data.nextBetPosition;
-                  
+
 
                     if (!msg.data.cardImages[0].url) {
                         console.log("!! -- IMAGE NOT FOUND @ PAIR CARDS-- !! Starting backup measures")
                         this_block_message = await retryGetPairCards(data, this_block_message)
                     }
                 }
-                    else if (msg.data.type === "cards") {
+                else if (msg.data.type === "cards") {
                     // #debug ---------------
                     console.log('\n------------- CARDS: -----------------\n');
                     console.log(msg.data.cards);
@@ -330,7 +331,6 @@ const startTournament = async (bot, data) => {
             }
         })
 
-        console.log("\nsld...... 2 \n");
         /*        Start the game           */
         // thread.send({ topic: "start-game", configs: tournament_configuration });
         thread.send({ topic: "start-game" });
@@ -339,7 +339,6 @@ const startTournament = async (bot, data) => {
 
     if (READY_TO_START === true) {
         /*     Run the game script      */
-        console.log("\nsld...... 1 \n");
         startT();
     }
 
