@@ -142,7 +142,9 @@ const createLobby = async (data) => {
 |	 																				*/
 const updateLobby = async (this_lobby) => {
 	try {
-		const updated_lobby = await lobby.findOneAndUpdate(this_lobby._id, this_lobby);			// Potential problem with atomicity.
+		console.log("\n------------ ./lobby/lobby-router.js > updateLobb() > this_lobby = ");
+		console.log(this_lobby);
+		const updated_lobby = await lobby.findOneAndUpdate({ _id: this_lobby._id }, this_lobby);			// Potential problem with atomicity.
 		return updated_lobby;
 	} catch (e) {
 		console.log(e);

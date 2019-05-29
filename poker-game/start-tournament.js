@@ -7,7 +7,8 @@ const {
     update_setup,
     update_win,
     update_cards,
-    update_showdown
+    update_showdown,
+    makeBet
 } = require('../message-blocks/poker-messages');
 
 const {
@@ -54,14 +55,15 @@ const startTournament = async (bot, data) => {
         const dummyData = require('../player/dummy-players.json');
         const dummyLobbyID = await getLobbyIdByName(dummyData.lobbyName);
         players_in_lobby = await getAllPlayerInLobby(dummyLobbyID);
+        tournament_configuration = dummyData;
         READY_TO_START = true;
     } else {
         console.log("\n./poker-game/start-tournament.js -> Tournament start with REAL players-------");
         console.log(data);
         //                                                              //  Note:   Possible error is when two users got here at the same time, and thought themselves to be 2nd player joinng the lobby
-        /*       REAL PLAYERS           */                              //          Suppose if and only if the player joining is the 2nd one, then a new tournament would start (a new thread would be created).
+        /*       REAL PLAYERS               */                          //          Suppose if and only if the player joining is the 2nd one, then a new tournament would start (a new thread would be created).
         /*      Retrieve Lobby data         */                          //          For now, the expected recovery is the users to either ignore the 2nd thread(game) or start a new one if glitched terribly.
-        thisLobby = await getOneLobby(data.lobby_id);               //--------------------------------------- Between these two lines is where possible duplication game error may occur
+        thisLobby = await getOneLobby(data.lobby_id);                   //--------------------------------------- Between these two lines is where possible duplication game error may occur
         if (!thisLobby) {
             console.log("\nERROR! start-tournament.js -> Real Players mode -> could not get the lobby");
         }
@@ -70,9 +72,11 @@ const startTournament = async (bot, data) => {
             console.log("\n./poker-game/start-tournament.js -> This lobby is not playing at the moment-------");
             /*      Check for lobby status first to block off risk of duplicate-game error         */
             thisLobby.is_playing = true;
+
             /*      Update ASAP incase another player is joining simutaneously      */
             updateLobby(thisLobby);                                     //--------------------------------------- Between these two lines is where possible duplication game error may occur
             READY_TO_START = true;
+
             /*      Retrieve players data       */
             players_in_lobby = await getAllPlayerInLobby(data.lobby_id);
             if (players_in_lobby.length < 2) {
@@ -133,7 +137,8 @@ const startTournament = async (bot, data) => {
     /*     Start Tounarment      */
     const startT = () => {
         /*      Thread      */
-        const thread = childProcess.fork("tournament2.js");         //Immediately fork a child process to start to run tournament
+        let configs = [JSON.stringify(tournament_configuration)];
+        const thread = childProcess.fork("tournament2.js", configs);         //Immediately fork a child process to start to run tournament
 
         thread.on("message", async (msg) => {                       //Each time child process passes a msg back, this thread listener catches it.
             if (msg.topic === "exit") {
@@ -255,11 +260,12 @@ const startTournament = async (bot, data) => {
                         if (msg.data.type === "setup" || (msg.data.type === "bet") || msg.data.type === "cards") {
 
                             /*      The player      */
-                            let betting_data;
+                            let betting_data = {};
                             if (next_player_idx > num_players) { next_player_idx = 0; }
                             let next_player = players_in_lobby.find(P => P.idx === next_player_idx);
 
                             /*      The lobby       */
+                            console.log(next_player);
                             betting_data.lobby_id = next_player.lastLobby;
 
                             /*      Message block       */
@@ -268,7 +274,7 @@ const startTournament = async (bot, data) => {
                             console.log("\n------ msg.data.type === " + msg.data.type + " ----------\n    ----- betting_data -----");
                             console.log(betting_data);
                             console.log("\n------ msg.data.type === " + msg.data.type + " ----------\n    ----- message_block------");
-                            console.log(message_block);
+                            console.log(private_message_block);
 
                             /*      Send to one player       */
                             bot.api.chat.postEphemeral(
@@ -312,7 +318,8 @@ const startTournament = async (bot, data) => {
 
         console.log("\nsld...... 2 \n");
         /*        Start the game           */
-        thread.send({ topic: "start-game", configs: tournament_configuration });
+        // thread.send({ topic: "start-game", configs: tournament_configuration });
+        thread.send({ topic: "start-game" });
     }
 
 

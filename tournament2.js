@@ -2,7 +2,7 @@
 
 const Tournament = require("poker-holdem-engine");
 const childProcess = require("child_process");
-const mongoUri = "mongodb://localhost:8000/store"
+//const mongoUri = "mongodb://localhost:8000/store"
 
 // TODO : REMOVE BEFORE PRODUCTION
 const chalk = require('chalk');
@@ -13,7 +13,7 @@ const warning = chalk.keyword('orange');
 let cards_not_done = true;
 
 // DUMMY DATA REMOVE IF NOT NEEDED
-const dummyData = require('./player/dummy-players.json');
+//const dummyData = require('./player/dummy-players.json');
 
 
 //One additional listener to track acknowledgement from parent
@@ -88,8 +88,8 @@ pidgeon.on("Check for image data", (data) => {
 
 
 //Our tournament: 
-//let t = new Tournament(dummyData.tournamentID, dummyData.playerList, dummyData.tournamentSettings);
-let t;
+let configs = JSON.parse(process.argv[2]);
+let t = new Tournament(configs.tournamentID, configs.playerList, configs.tournamentSettings);
 
 //Forks a child to handle image generation
 const imageThread = childProcess.fork("./card-gen/card-generator.js");
@@ -150,19 +150,13 @@ imageThread.on("message", (msg) => {
 });
 
 
+
+
 //Main communication processes with parent (index.js) here.
 process.on("message", async (msg) => {
     switch (msg.topic) {
         case "start-game":
             console.log(chalk.green("tournament | Msg = start-game | Starting !"));
-            //do stuff to tournament setting.
-            if (use_demo === true) {
-                t = new Tournament(dummyData.tournamentID, dummyData.playerList, dummyData.tournamentSettings);
-            } else {
-                t = new Tournament(msg.configs.tournamentID, msg.configs.playerList, msg.configs.tournamentSettings);
-            }
-
-
             await t.start();
             break;
         case "pause-game":
