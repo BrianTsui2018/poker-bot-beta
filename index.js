@@ -217,7 +217,7 @@ controller.hears(['begin','play', 'start'], 'direct_message, direct_mention, men
                     bot.reply(convo.source_message, ":black_joker: Let's Play Texas Holdem!* :black_joker:", function (err, response) {
                         //get lobby_id
                         console.log(`about to fire up tournament`);
-                        console.log(`reply = ${reply}`);
+                        console.log(`players_id = ${reply.user}`);
 
                         var player = getPlayerByID(reply.user);
                         console.log(`player info isInLobby = ${player.isInLobby}\n players lastLobby= ${player.lastLobby}`);
