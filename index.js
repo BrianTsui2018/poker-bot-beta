@@ -253,7 +253,7 @@ controller.hears(['begin','play', 'start'], 'direct_message, direct_mention, men
 });
 
 
-});
+
 // controller.on('direct_mention', function (bot, message) {
 //     console.log('\nDirect mention caught!');
 //     //console.log(message);
