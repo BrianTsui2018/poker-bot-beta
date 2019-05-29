@@ -30,6 +30,7 @@ const {
     getOnePlayer,
     getAllPlayerInLobby,
     deletePlayerAll,
+    updatePlayer
 } = require('../player/player-router');
 
 const { retryGetCommonCards, retryGetPairCards } = require('../utils/cards');
@@ -46,15 +47,15 @@ const startTournament = async (bot, data) => {
     const childProcess = require("child_process");
 
 
-    let player_lobby_data = [];
+    let players_in_lobby = [];
     let READY_TO_START = false;
-
-
+    let thisLobby;
+    let tournament_configuration;
     if (data.use_demo === true) {
         /*       DUMMY PLAYERS          */
         const dummyData = require('../player/dummy-players.json');
         const dummyLobbyID = await getLobbyIdByName(dummyData.lobbyName);
-        player_lobby_data = await getAllPlayerInLobby(dummyLobbyID);
+        players_in_lobby = await getAllPlayerInLobby(dummyLobbyID);
         READY_TO_START = true;
     } else {
         console.log("\n./poker-game/start-tournament.js -> Tournament start with REAL players-------");
@@ -62,7 +63,7 @@ const startTournament = async (bot, data) => {
         //                                                              //  Note:   Possible error is when two users got here at the same time, and thought themselves to be 2nd player joinng the lobby
         /*       REAL PLAYERS           */                              //          Suppose if and only if the player joining is the 2nd one, then a new tournament would start (a new thread would be created).
         /*      Retrieve Lobby data         */                          //          For now, the expected recovery is the users to either ignore the 2nd thread(game) or start a new one if glitched terribly.
-        let thisLobby = await getOneLobby(data.lobby_id);               //--------------------------------------- Between these two lines is where possible duplication game error may occur
+        thisLobby = await getOneLobby(data.lobby_id);               //--------------------------------------- Between these two lines is where possible duplication game error may occur
         if (!thisLobby) {
             console.log("\nERROR! start-tournament.js -> Real Players mode -> could not get the lobby");
         }
@@ -75,8 +76,8 @@ const startTournament = async (bot, data) => {
             updateLobby(thisLobby);                                     //--------------------------------------- Between these two lines is where possible duplication game error may occur
             READY_TO_START = true;
             /*      Retrieve players data       */
-            player_lobby_data = await getAllPlayerInLobby(data.lobby_id);
-            if (player_lobby_data.length < 2) {
+            players_in_lobby = await getAllPlayerInLobby(data.lobby_id);
+            if (players_in_lobby.length < 2) {
                 console.log("\n./poker-game/start-tournament.js -> This lobby will not start because there is only 1 player in lobby-------");
                 /*      Reset to false      */
                 thisLobby.is_playing = false;
@@ -88,14 +89,48 @@ const startTournament = async (bot, data) => {
 
         }
 
+        let t_pList = [];
+        /*      Build player List       */
+        for (let i = 0; i < players_in_lobby.length; i++) {
+            let thisPlayer = players_in_lobby[i];
+            let sID = thisPlayer.slack_id;
+            let url = "https://imai-poker-utils.herokuapp.com/ua/" + sID + "/";
+            let P = {
+                "id": sID,
+                "name": thisPlayer.name,
+                "serviceUrl": url
+            }
+            t_pList.push(P);
+        }
+
+        /*          Config              */
+        tournament_configuration = {
+            "tournamentID": thisLobby._id,
+            "playerList": t_pList,
+            "lobbyName": thisLobby.name,
+            "tournamentSettings": {
+                "BUYIN": thisLobby.buyin,
+                "WARMUP": false,
+                "WARMUP_GAME": 10,
+                "WARMUP_TIME": 10,
+                "HAND_THROTTLE_TIME": 1,
+                "SMALL_BLINDS": [thisLobby.minBet / 2],
+                "SMALL_BLINDS_PERIOD": 1,
+                "PAY_ANTE_AT_HAND": 1,
+                "MAX_GAMES": 1,
+                "POINTS": [
+                    [10, 2, 0, 0]
+                ]
+            }
+        }
+
     }
 
     /*         Variables          */
-    let preflop_done = false;
-    let num_players = player_lobby_data.length;
-    let players_contacted = 0;
-    let this_team_id = player_lobby_data[0].team_id;
-
+    let num_players = players_in_lobby.length;
+    let count_idx = 0;
+    let this_team_id = players_in_lobby[0].team_id;
+    let next_player_idx = -1;
 
     /*     Start Tounarment      */
     const startT = () => {
@@ -113,16 +148,22 @@ const startTournament = async (bot, data) => {
 
                 let this_block_message = [];
                 if (msg.data.type === "state" || msg.data.type === "bet") {
-                    let this_player = await getOnePlayer({ slack_id: msg.data.playerId, team_id: this_team_id });
+                    /*          Report the last player's bet        */
+                    let last_player = players_in_lobby.find(P => P.slack_id === msg.data.playerId);
+
                     // #debug ---------------
                     console.log('\n------------- "state" This Player : -----------------\n');
                     // console.log('Searching for this player = \{ slack_id: ', msg.data.playerId, ', team_id: ', this_team_id, '...\n');
-                    // console.log(this_player);
+                    // console.log(last_player);
                     // console.log(chalk.bgMagenta('------------------------------------------'));
                     // ----------------------
-                    msg.data.player = this_player;
+
+                    msg.data.player = last_player;
                     this_block_message = update_state(msg);
-                    console.log(this_block_message);
+                    // console.log(this_block_message);
+
+                    /*      Get the next player by PHE index        */
+                    next_player_idx = last_player.idx + 1;
 
                 }
                 else if (msg.data.type === "setup") {
@@ -135,27 +176,45 @@ const startTournament = async (bot, data) => {
                     /*      Debug printing of player info       */
                     //this_block_message = this_block_message.concat(update_setup_msg_data_players_debug(msg));                
                     // ----------------------
-                    console.log('\n./poker-game/start-tournament.js ---> update:setup: msg.data.cardImages[] = ');
-                    console.log(msg.data.cardImages);
+                    console.log('\n./poker-game/start-tournament.js ---> update:setup: msg.data = ');
+                    console.log(msg.data);
 
+                    /*          Update player images to database            */
                     let imgArr = msg.data.cardImages;
                     /*  {
                             index:
                             id: 
                             url: 
                         }               */
+                    // for (let i = 0; i < imgArr.length; i++) {
+                    //     let thisPlayer = await getOnePlayer({ slack_id: imgArr[i].id, team_id: this_team_id });
+                    //     thisPlayer.cards = imgArr[i].url;
+                    //     let updatedPlayer = await updatePlayer(thisPlayer);
+                    //     updatedPlayer.idx = imgArr[i].index;
+                    //     console.log('\n./poker-game/start-tournament.js ---> updated player! = ');
+                    //     console.log(updatedPlayer);
+                    //     players.push(updatedPlayer);
+                    // }
                     for (let i = 0; i < imgArr.length; i++) {
-                        getOnePlayer(imgArr[i].id);
+                        let x = players_in_lobby.findIndex(P => P.slack_id === imgArr[i].id);
+                        players_in_lobby[x].cards = imgArr[i].url;
+                        players_in_lobby[x] = await updatePlayer(players_in_lobby[x]);
+                        players_in_lobby[x].idx = imgArr[i].index;
+                        console.log('\n./poker-game/start-tournament.js ---> updated player! = ');
+                        console.log(players_in_lobby[x]);
                     }
+                    //console.log(this_block_message);
+                  
+                    /*      Get the next player by PHE index        */
+                    next_player_idx = msg.data.nextBetPosition;
+                  
 
                     if (!msg.data.cardImages[0].url) {
                         console.log("!! -- IMAGE NOT FOUND @ PAIR CARDS-- !! Starting backup measures")
                         this_block_message = await retryGetPairCards(data, this_block_message)
                     }
-
-
-                    //console.log(this_block_message);
-                } else if (msg.data.type === "cards") {
+                }
+                    else if (msg.data.type === "cards") {
                     // #debug ---------------
                     console.log('\n------------- CARDS: -----------------\n');
                     console.log(msg.data.cards);
@@ -169,13 +228,25 @@ const startTournament = async (bot, data) => {
 
                     console.log('\n');
                     console.log(this_block_message);
+
+                    /*      Get the next player by PHE index        */
+                    next_player_idx = msg.data.nextBetPosition;
+
                 } else if (msg.data.type === "win") {
                     this_block_message = update_win(msg);
                 } else if (msg.data.type === "showdown") {
                     // #debug ---------------
-                    console.log('\n------------- CARDS: -----------------\n');
+                    console.log('\n------------- SHOWDOWN: -----------------\n');
                     console.log(msg);
+                    console.log("\n------------ msg.data.ranks");
+                    console.log(JSON.stringify(msg.data.ranks));
+
+                    for (let i = 0; i < msg.data.ranks.length; i++) {
+                        let thisPlayer = await getOnePlayer(msg.data.ranks[i].playerId)
+                        msg.data.ranks[i].bestCardsInfo.url = thisPlayer.cards;
+                    }
                     this_block_message = update_showdown(msg);
+
                     console.log('\n');
                     console.log(this_block_message);
                 }
@@ -192,6 +263,46 @@ const startTournament = async (bot, data) => {
                     if (err) {
                         console.log(err);
                     }
+                    else {
+                        /*          Gather data and send message to the first player            */
+
+                        if (msg.data.type === "setup" || (msg.data.type === "bet") || msg.data.type === "cards") {
+
+                            /*      The player      */
+                            let betting_data;
+                            if (next_player_idx > num_players) { next_player_idx = 0; }
+                            let next_player = players_in_lobby.find(P => P.idx === next_player_idx);
+
+                            /*      The lobby       */
+                            betting_data.lobby_id = next_player.lastLobby;
+
+                            /*      Message block       */
+                            let private_message_block = makeBet(betting_data);
+
+                            console.log("\n------ msg.data.type === " + msg.data.type + " ----------\n    ----- betting_data -----");
+                            console.log(betting_data);
+                            console.log("\n------ msg.data.type === " + msg.data.type + " ----------\n    ----- message_block------");
+                            console.log(message_block);
+
+                            /*      Send to one player       */
+                            bot.api.chat.postEphemeral(
+                                {
+                                    "channel": data.channel,
+                                    "thread_ts": data.ts,
+                                    "token": process.env.BOT_TOKEN,
+                                    "user": next_player.slack_id,
+                                    //"text": "does this work?"
+                                    "attachments": [
+                                        {
+                                            "blocks": private_message_block
+                                        }
+                                    ]
+                                }
+                            );
+                        }
+                    }
+
+
                 });
 
                 if (msg.data.type === 'win') {
@@ -204,7 +315,7 @@ const startTournament = async (bot, data) => {
                     setTimeout(() => {
                         console.log(chalk.bold("Attemting to end wait"));
                         thread.send({ topic: "acknowledgement" });
-                    }, 6000);
+                    }, 8000);
                     //----------------end replacement.
                 }
             }
@@ -213,13 +324,15 @@ const startTournament = async (bot, data) => {
             }
         })
 
+        console.log("\nsld...... 2 \n");
         /*        Start the game           */
-        thread.send({ topic: "start-game" });
+        thread.send({ topic: "start-game", configs: tournament_configuration });
     }
 
 
     if (READY_TO_START === true) {
         /*     Run the game script      */
+        console.log("\nsld...... 1 \n");
         startT();
     }
 

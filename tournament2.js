@@ -2,7 +2,7 @@
 
 const Tournament = require("poker-holdem-engine");
 const childProcess = require("child_process");
-// const mongoUri = "mongodb://localhost:8000/store"
+const mongoUri = "mongodb://localhost:8000/store"
 
 // TODO : REMOVE BEFORE PRODUCTION
 const chalk = require('chalk');
@@ -88,7 +88,9 @@ pidgeon.on("Check for image data", (data) => {
 
 
 //Our tournament: 
-let t = new Tournament(dummyData.tournamentID, dummyData.playerList, dummyData.tournamentSettings);
+//let t = new Tournament(dummyData.tournamentID, dummyData.playerList, dummyData.tournamentSettings);
+let t;
+
 //Forks a child to handle image generation
 const imageThread = childProcess.fork("./card-gen/card-generator.js");
 
@@ -153,6 +155,14 @@ process.on("message", async (msg) => {
     switch (msg.topic) {
         case "start-game":
             console.log(chalk.green("tournament | Msg = start-game | Starting !"));
+            //do stuff to tournament setting.
+            if (use_demo === true) {
+                t = new Tournament(dummyData.tournamentID, dummyData.playerList, dummyData.tournamentSettings);
+            } else {
+                t = new Tournament(msg.configs.tournamentID, msg.configs.playerList, msg.configs.tournamentSettings);
+            }
+
+
             await t.start();
             break;
         case "pause-game":
@@ -194,21 +204,42 @@ const dataRouter = (data) => {
     if (data.type === 'setup') {
         //Beginning of the set up
         // 1) Make child thread to make card-pairs
-        console.log(chalk.bold("Sending card pairs to child to handle------------"))
-        console.log(data.players)
+        // console.log(chalk.bold("Sending card pairs to child to handle------------"))
+        // console.log(data.players)
         imageThread.send({ topic: "card-pairs", data: data.players });
+
+        /*      Patch data to send out to start tournament      */
         data.bigBlindPosition = t.gamestate.bigBlindPosition;
         data.smallBlindPosition = data.bigBlindPosition - 1 >= 0 ? data.bigBlindPosition - 1 : data.players.length - 1;
         data.dealerPosition = data.smallBlindPosition - 1 >= 0 ? data.smallBlindPosition - 1 : data.players.length - 1;
-
+        data.nextBetPosition = data.bigBlindPosition + 1 === data.players.length ? 0 : data.bigBlindPosition + 1;
         commonCardsFromGameState = t.gamestate.deck.slice(0, 5);
+
+        // #debug ----------------------------
+        // console.log("\n-------------- tournament2.js -> dataRouter(data) case = setup ------------------");
+        // console.log("t.gamestate = ");
+        // console.log(t.gamestate);
     }
     else if (data.type === 'cards') {
         //Cards Should be back by now, first card = first roll.
         console.log(chalk.cyan('CURRENT CARD LIST :'))
         console.log(commonURL)
         console.log(chalk.cyan('--------------------'))
+        /*      Patch data to send out to start tournament      */
         data.cardImages = commonURL.shift();
+        data.nextBetPosition = t.gamestate.bigBlindPosition - 1 >= 0 ? t.gamestate.bigBlindPosition : data.players.length - 1;
+
+        // #debug ----------------------------
+        // console.log("\n-------------- tournament2.js -> dataRouter(data) case = cards ------------------");
+
+    } else if (data.type === 'showdown') {
+        // #debug ----------------------------
+        console.log("\n-------------- tournament2.js -> dataRouter(data) case = showdown ------------------");
+        console.log(t.gamestate);
+    } else if (data.type === 'bet') {
+        // #debug ----------------------------
+        console.log("\n-------------- tournament2.js -> dataRouter(data) case = bet ------------------");
+        console.log(t.gamestate);
     }
 
     pidgeon.emit("Check for image data", data);

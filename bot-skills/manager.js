@@ -341,6 +341,7 @@ async function constructAllCurrLobbyData(allLobbiesInTeam, allPlayersInTeam) {
 
 const axiosGet = async (currPlayer) => {
 
+
     const config = {
         params: {
             user: currPlayer.slack_id,
@@ -360,7 +361,8 @@ const axiosGet = async (currPlayer) => {
     }
     let user_profile = await getData(url, config);
 
-    //let name = user_profile.display_name_normalized === '' ? user_profile.real_name_normalized : user_profile.display_name_normalized;
+
+    // backup function -> //let name = user_profile.display_name_normalized === '' ? user_profile.real_name_normalized : user_profile.display_name_normalized;
     let name = currPlayer.name;
     let dp = 'https://pbs.twimg.com/profile_images/1087888631442874370/X5KNCAVj_400x400.jpg';
     if (user_profile.ok === true) {

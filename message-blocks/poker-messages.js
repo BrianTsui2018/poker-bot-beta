@@ -379,6 +379,7 @@ const update_cards = (msg) => {
 
 const update_showdown = msg => {
     let this_block_message = SHOWDOWN(msg.data);
+
     return this_block_message;
 }
 
@@ -748,8 +749,8 @@ const makeBet = (data) => {
         data.curr_top_bet
         data.min_bet
     */
-    data.wallet = 100001;
-    data.curr_top_bet = 100000;
+    if (!data.wallet) { data.wallet = 100001; }
+    if (!data.curr_top_bet) { data.curr_top_bet = 100000; }
 
     /*      Display information     */
     let message_block = [
@@ -1034,11 +1035,11 @@ const show_down_user =
 
 const SHOWDOWN = (data) => {
     let showdown_array = [...show_down_template];
+    /*      Loop through each "showdown" player        */
     for (let idx = 0; idx < data.ranks.length; idx++) {
         showdown_array.push(show_down_user);
-        showdown_array[showdown_array.length - 1].text.text = `*<@${data.ranks[idx].playyerId}>*\n :black_small_square: Best Cards : ${data.ranks[idx].bestCardInfo.name} .`;
-        showdown_array[showdown_array.length - 1].accessory.image_url = data.cardImages[idx].url;
-
+        showdown_array[showdown_array.length - 1].text.text = `*<@${data.ranks[idx].playerId}>*\n :black_small_square: Best Cards : ${data.ranks[idx].bestCardsInfo.name} .`;
+        showdown_array[showdown_array.length - 1].accessory.image_url = data.ranks[idx].bestCardsInfo.url;
     }
     showdown_array.push({ "type": "divider" })
 
