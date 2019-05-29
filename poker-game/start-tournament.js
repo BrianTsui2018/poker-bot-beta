@@ -154,14 +154,14 @@ const startTournament = async (bot, data) => {
                     }
 
                     /*          Gather data and send message to the first player            */
-                    let data;
+                    let betting_data;
                     let firstBetPlayer = players.find(P => P.index === 0);
-                    data.lobby_id = firstBetPlayer.lastLobby;
+                    betting_data.lobby_id = firstBetPlayer.lastLobby;
 
                     /*      message block       */
-                    let message_block = makeBet(data);
-                    // console.log("\n------ data -----");
-                    // console.log(data);
+                    let message_block = makeBet(betting_data);
+                    // console.log("\n------ betting_data -----");
+                    // console.log(betting_data);
                     // console.log("\n----- message_block------");
                     // console.log(message_block);
                     /*      ping each user      */
