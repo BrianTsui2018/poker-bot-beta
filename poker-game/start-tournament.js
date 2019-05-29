@@ -137,8 +137,13 @@ const startTournament = async (bot, data) => {
                     console.log(msg.data.cardImages);
 
                     let imgArr = msg.data.cardImages;
+                    /*  {
+                            index:
+                            id: 
+                            url: 
+                        }               */
                     for (let i = 0; i < imgArr.length; i++) {
-
+                        getOnePlayer(imgArr[i].id);
                     }
 
 

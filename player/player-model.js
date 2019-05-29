@@ -51,12 +51,7 @@ const playerSchema = new mongoose.Schema({
         trim: true,
         default: ''
     },
-    card1: {
-        type: String,
-        trim: true,
-        default: ''
-    },
-    card2: {
+    cards: {
         type: String,
         trim: true,
         default: ''
