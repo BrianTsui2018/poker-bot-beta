@@ -12,7 +12,8 @@ const {
     playerJoin,
     playerLeave,
     refreshLobbyList,
-    refreshLobbySection
+    refreshLobbySection,
+    placeBetRequest
 } = require('./bot-skills/poker-commands');
 
 const {
@@ -331,12 +332,22 @@ controller.on('block_actions', async function (bot, message) {
             "user_slack_id": message.user,
             "lobby_id": response.lobby_id,
             "user_name": message.raw_message.user.username,
-            "channel_id": message.channel
+            "channel_id": message.channel,
+            "choice": response.choice,
+            "val": response.val
         }
         //#debug ---------------
         console.log("\n--------------- incoming data from player betting")
         console.log(data);
         //----------------------
+
+        placeBetRequest(data, (body) => {
+            console.log(chalk.orange(" Controller : Bot has placed a request to util "))
+            console.log(body);
+            console.log(chalk.orange(" --------------------------------------------- "))
+        });
+
+
     }
     else if (response.topic === "JOIN_LOBBY" || response.topic === "JOIN_LOBBY_DIRECT") {
         console.log("\nCONFIRM PLAYER JOIN LOBBY!");
@@ -389,8 +400,8 @@ controller.on('block_actions', async function (bot, message) {
         console.log("\nPLAYER CANCEL JOIN LOBBY!");
         bot.reply(message, `<@${message.user}> :ok_hand: `);
 
-    }else if(message.actions[0].block_id === 'turnbuttons'){
-        switch(message.actions[0].value){
+    } else if (message.actions[0].block_id === 'turnbuttons') {
+        switch (message.actions[0].value) {
             case 'fold':
                 bot.reply(message, `${message.raw_message.user.name} folds`);
                 break;

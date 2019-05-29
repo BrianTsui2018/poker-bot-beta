@@ -43,6 +43,13 @@ pidgeon_index.on("recieved acknowledgement", () => {
  * pidgeon_index catches this event and sends all data to index.js
  *  */
 pidgeon_index.on("Data ready", (data) => {
+
+    console.log(chalk.bgRed("GameState"));
+    console.log(t.gamestate)
+    console.log(chalk.bgRed("--------------------------------------------------"))
+    console.log(chalk.bgRed("Data"));
+    console.log(data);
+
     process.send({ topic: "updates", data }, () => {
         //Runs when confirmation is recv'ed
         console.log("Process sent updates to index.js");
@@ -95,7 +102,6 @@ t.on("TOURNAMENT:updated", (data, done) => {
     console.log(chalk.bgCyan('Tournament | Updated!'));
 
     dataRouter(data);
-
     pidgeon.once("Proceed Tournament", (msg) => {
         console.log(warning("Tournament | Got the message!"));
         //Done() kicks the tournament to the next step.
@@ -201,6 +207,13 @@ const dataRouter = (data) => {
         data.dealerPosition = data.smallBlindPosition - 1 >= 0 ? data.smallBlindPosition - 1 : data.players.length - 1;
 
         commonCardsFromGameState = t.gamestate.deck.slice(0, 5);
+
+
+        // console.log(chalk.bgRed("GameState"));
+        // console.log(t.gamestate)
+        // console.log(chalk.bgRed("--------------------------------------------------"))
+        // console.log(chalk.bgRed("Data"));
+        // console.log(data);
     }
     else if (data.type === 'cards') {
         //Cards Should be back by now, first card = first roll.
