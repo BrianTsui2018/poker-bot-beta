@@ -383,9 +383,6 @@ controller.on('block_actions', async function (bot, message) {
                 startTournament(bot, { "channel": response.channel, "ts": response.message.ts });
             });
 
-
-
-
         }
     }
     else if (response.topic === "CREATE_LOBBY") {

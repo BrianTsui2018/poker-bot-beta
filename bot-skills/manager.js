@@ -273,6 +273,9 @@ const getOneLobbyData = async (thisLobby) => {
     return data;
 }
 
+const updatePlayerWallet = async (player) => {
+
+}
 
 const assignChip = async (player_data, amount) => {
     /*      Adds chips to user's bank (DB) by Slack user ID     */
