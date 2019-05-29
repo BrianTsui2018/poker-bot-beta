@@ -13,7 +13,7 @@ const {
     playerLeave,
     refreshLobbyList,
     refreshLobbySection,
-    placeBetRequest
+    placeBet
 } = require('./bot-skills/poker-commands');
 
 const {
@@ -343,11 +343,12 @@ controller.on('block_actions', async function (bot, message) {
         //----------------------
 
 
-        placeBet(data, (body) => {
-            console.log(chalk.orange(" Controller : Bot has placed a request to util "))
-            console.log(body);
-            console.log(chalk.orange(" --------------------------------------------- "))
-        });
+        let body = await placeBet(data) //, (body) => {
+        //#debug ---------------
+        console.log(" Controller : Bot has placed a request to util ")
+        console.log(body);
+        console.log(" --------------------------------------------- ")
+        //});
 
 
 

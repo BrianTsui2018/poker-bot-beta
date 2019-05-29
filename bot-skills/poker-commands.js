@@ -406,18 +406,19 @@ const newPlayerChips = async (bot, data) => {
     }
 }
 
-const placeBet = (data, cb) => {
-    if (data.choice !== fold) {
+const placeBet = async (data) => {
+    if (data.choice !== "fold") {
 
         let betData = {
             action: data.val,
             userID: data.user_slack_id
         }
 
-        axiosPUT(betData, (body) => {
-
-            cb(body);
-        });
+        let body = await axiosPUT(betData);
+        return body.data;
+    }
+    else {
+        return 0;
     }
 }
 
