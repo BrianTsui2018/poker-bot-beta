@@ -162,7 +162,13 @@ const checkOut = async (data) => {
 |																	*/
 const getOnePlayer = async (data) => {
     try {
-        const thisPlayer = await player.findOne({ slack_id: data.slack_id, team_id: data.team_id });
+        let thisPlayer
+        if (data.tean_id) {
+            thisPlayer = await player.findOne({ slack_id: data.slack_id, team_id: data.team_id });
+        }
+        else {
+            thisPlayer = await player.findOne({ slack_id: data.slack_id, isInLobby: true });
+        }
         return thisPlayer;
     } catch (e) {
         console.log(e);

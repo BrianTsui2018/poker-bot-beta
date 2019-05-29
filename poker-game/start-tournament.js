@@ -136,15 +136,50 @@ const startTournament = async (bot, data) => {
                     console.log('\n./poker-game/start-tournament.js ---> update:setup: msg.data.cardImages[] = ');
                     console.log(msg.data.cardImages);
 
+                    /*          Update player images to database            */
                     let imgArr = msg.data.cardImages;
+                    let players = [];
                     /*  {
                             index:
                             id: 
                             url: 
                         }               */
                     for (let i = 0; i < imgArr.length; i++) {
-                        getOnePlayer(imgArr[i].id);
+                        let thisPlayer = await getOnePlayer(imgArr[i].id);
+                        thisPlayer.cards = imgArr[i].url;
+                        let updatedPlayer = await updatePlayer(thisPlayer);
+                        console.log('\n./poker-game/start-tournament.js ---> updated player! = ');
+                        console.log(updatedPlayer);
+                        players.push(thisPlayer);
                     }
+
+                    /*          Gather data and send message to the first player            */
+                    let data;
+                    let firstBetPlayer = players.find(P => P.index === 0);
+                    data.lobby_id = firstBetPlayer.lastLobby;
+
+                    /*      message block       */
+                    let message_block = makeBet(data);
+                    // console.log("\n------ data -----");
+                    // console.log(data);
+                    // console.log("\n----- message_block------");
+                    // console.log(message_block);
+                    /*      ping each user      */
+
+                    bot.api.chat.postEphemeral(
+                        {
+                            // "channel": data.lobby_channel,
+                            // "thread_ts": data.thread_ts,
+                            "token": process.env.BOT_TOKEN,
+                            "user": firstBetPlayer.slack_id,
+                            //"text": "does this work?"
+                            "attachments": [
+                                {
+                                    "blocks": message_block
+                                }
+                            ]
+                        }
+                    );
 
 
 
