@@ -23,6 +23,7 @@ const {
     assignChip,
     withdrawChip,
     patchPlayerDP,
+    updatePlayerWallet,
     axiosPUT
 } = require('./manager.js');
 
@@ -415,6 +416,10 @@ const placeBet = async (data) => {
         }
 
         let body = await axiosPUT(betData);
+
+        data.spent = body.action;
+
+        await updatePlayerWallet(data);
         return body.data;
     }
     else {

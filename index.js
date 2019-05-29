@@ -350,8 +350,6 @@ controller.on('block_actions', async function (bot, message) {
         console.log(" --------------------------------------------- ")
         //});
 
-
-
     }
     else if (response.topic === "JOIN_LOBBY" || response.topic === "JOIN_LOBBY_DIRECT") {
         console.log("\nCONFIRM PLAYER JOIN LOBBY!");
