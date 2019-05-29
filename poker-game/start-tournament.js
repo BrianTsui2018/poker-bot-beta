@@ -54,12 +54,19 @@ const startTournament = async (bot, data) => {
         const dummyLobbyID = await getLobbyIdByName(dummyData.lobbyName);
         player_lobby_data = await getAllPlayerInLobby(dummyLobbyID);
         READY_TO_START = true;
-    } else {                                                            //  Note:   Possible error is when two users got here at the same time, and thought themselves to be 2nd player joinng the lobby
+    } else {
+        console.log("\n./poker-game/start-tournament.js -> Tournament start with REAL players-------");
+        console.log(data);
+        //                                                              //  Note:   Possible error is when two users got here at the same time, and thought themselves to be 2nd player joinng the lobby
         /*       REAL PLAYERS           */                              //          Suppose if and only if the player joining is the 2nd one, then a new tournament would start (a new thread would be created).
         /*      Retrieve Lobby data         */                          //          For now, the expected recovery is the users to either ignore the 2nd thread(game) or start a new one if glitched terribly.
         let thisLobby = await getOneLobby(data.lobby_id);               //--------------------------------------- Between these two lines is where possible duplication game error may occur
+        if (!thisLobby) {
+            console.log("\nERROR! start-tournament.js -> Real Players mode -> could not get the lobby");
+        }
         /*      Game Start Validation      */
         if (thisLobby.is_playing === false) {
+            console.log("\n./poker-game/start-tournament.js -> This lobby is not playing at the moment-------");
             /*      Check for lobby status first to block off risk of duplicate-game error         */
             thisLobby.is_playing = true;
             /*      Update ASAP incase another player is joining simutaneously      */
@@ -68,10 +75,13 @@ const startTournament = async (bot, data) => {
             /*      Retrieve players data       */
             player_lobby_data = await getAllPlayerInLobby(data.lobby_id);
             if (player_lobby_data.length < 2) {
+                console.log("\n./poker-game/start-tournament.js -> This lobby will not start because there is only 1 player in lobby-------");
                 /*      Reset to false      */
                 thisLobby.is_playing = false;
                 updateLobby(thisLobby);
                 READY_TO_START = false;
+            } else {
+                console.log("\n./poker-game/start-tournament.js -> This lobby is not playing and is ready to start!-------");
             }
 
         }

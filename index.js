@@ -331,12 +331,27 @@ controller.on('block_actions', async function (bot, message) {
             "user_slack_id": message.user,
             "lobby_id": response.lobby_id,
             "user_name": message.raw_message.user.username,
-            "channel_id": message.channel
+            "channel_id": message.channel,
+            "choice": response.choice,
+            "val": response.val,
         }
         //#debug ---------------
         console.log("\n--------------- incoming data from player betting")
         console.log(data);
         //----------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
     else if (response.topic === "JOIN_LOBBY" || response.topic === "JOIN_LOBBY_DIRECT") {
         console.log("\nCONFIRM PLAYER JOIN LOBBY!");
@@ -367,10 +382,11 @@ controller.on('block_actions', async function (bot, message) {
             console.log("\nindex.js : case JOINED\n");
             bot.reply(message, `<@${message.user}>, you have joined the lobby *${result.name}*.\nPlease await in the lobby's thread.:clubs:`);
 
-
-            bot.reply(convo.source_message, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:", function (err, response) {
-                startTournament(bot, { "channel": response.channel, "ts": response.message.ts });
+            /*      Start Tournament automatically      */
+            bot.reply(message, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:", function (err, response) {
+                startTournament(bot, { "channel": response.channel, "ts": response.message.ts, "lobby_id": data.lobby_id, "use_demo": false });
             });
+
 
 
 
@@ -389,8 +405,8 @@ controller.on('block_actions', async function (bot, message) {
         console.log("\nPLAYER CANCEL JOIN LOBBY!");
         bot.reply(message, `<@${message.user}> :ok_hand: `);
 
-    }else if(message.actions[0].block_id === 'turnbuttons'){
-        switch(message.actions[0].value){
+    } else if (message.actions[0].block_id === 'turnbuttons') {
+        switch (message.actions[0].value) {
             case 'fold':
                 bot.reply(message, `${message.raw_message.user.name} folds`);
                 break;
