@@ -13,7 +13,7 @@ const {
     playerLeave,
     refreshLobbyList,
     refreshLobbySection,
-    placeBetRequest
+    placeBet
 } = require('./bot-skills/poker-commands');
 
 const {
@@ -335,17 +335,21 @@ controller.on('block_actions', async function (bot, message) {
             "channel_id": message.channel,
             "choice": response.choice,
             "val": response.val
+
         }
         //#debug ---------------
         console.log("\n--------------- incoming data from player betting")
         console.log(data);
         //----------------------
 
-        placeBet(data, (body) => {
-            console.log(chalk.orange(" Controller : Bot has placed a request to util "))
-            console.log(body);
-            console.log(chalk.orange(" --------------------------------------------- "))
-        });
+
+        let body = await placeBet(data) //, (body) => {
+        //#debug ---------------
+        console.log(" Controller : Bot has placed a request to util ")
+        console.log(body);
+        console.log(" --------------------------------------------- ")
+        //});
+
 
 
     }
@@ -378,10 +382,14 @@ controller.on('block_actions', async function (bot, message) {
             console.log("\nindex.js : case JOINED\n");
             bot.reply(message, `<@${message.user}>, you have joined the lobby *${result.name}*.\nPlease await in the lobby's thread.:clubs:`);
 
-
-            bot.reply(convo.source_message, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:", function (err, response) {
-                startTournament(bot, { "channel": response.channel, "ts": response.message.ts });
+            /*      Start Tournament automatically      */
+            bot.reply(message, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:", function (err, response) {
+                startTournament(bot, { "channel": response.channel, "ts": response.message.ts, "lobby_id": data.lobby_id, "use_demo": false });
             });
+
+
+
+
 
         }
     }
