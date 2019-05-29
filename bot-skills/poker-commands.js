@@ -22,7 +22,8 @@ const {
     getPlayerBank,
     assignChip,
     withdrawChip,
-    patchPlayerDP
+    patchPlayerDP,
+    axiosPUT
 } = require('./manager.js');
 
 const {
@@ -405,26 +406,16 @@ const newPlayerChips = async (bot, data) => {
     }
 }
 
-const placeBetRequest = (data, cb) => {
+const placeBet = (data, cb) => {
     if (data.choice !== fold) {
-        //set the bet request:
-        let options = {
-            method: 'PUT',
-            url: `https://imai-poker-utils.herokuapp.com/ua/${data.user_slack_id}/action`,
-            headers: {
-                'cache-control': 'no-cache',
-                'Content-Type': 'application/json'
-            },
-            body: data.val,
-            json: true
-        };
-        request(options, function (error, response, body) {
-            if (error) {
-                console.log(chalk.bgRed("Error in PUTing a new bet to util app."));
-            }
-            //console.log(response);
-            console.log(chalk.magenta("BET BODY ! "));
-            //console.log(body);
+
+        let betData = {
+            action: data.val,
+            userID: data.user_slack_id
+        }
+
+        axiosPUT(betData, (body) => {
+
             cb(body);
         });
     }
@@ -438,5 +429,5 @@ module.exports = {
     playerLeave,
     refreshLobbyList,
     refreshLobbySection,
-    placeBetRequest
+    placeBet
 }
