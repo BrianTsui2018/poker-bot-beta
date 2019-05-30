@@ -441,7 +441,7 @@ const start_game = (data) => {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:"
+                "text": ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:\n(Click on this thread to enter game :diamonds:)"
             },
             "accessory": {
                 "type": "image",

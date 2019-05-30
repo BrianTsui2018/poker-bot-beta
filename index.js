@@ -290,7 +290,7 @@ controller.hears(['demo', 'demonstrate'], 'direct_message,direct_mention, mentio
                 {
                     pattern: "yes",
                     callback: function (reply, convo) {
-                        bot.reply(convo.source_message, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:", function (err, response) {
+                        bot.reply(convo.source_message, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:\n(Click on this thread to enter game :diamonds:)", function (err, response) {
                             startTournament(bot, { "channel": response.channel, "ts": response.message.ts });
                         });
                         // bot.reply(convo, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:", function (err, response) {

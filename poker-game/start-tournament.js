@@ -139,6 +139,10 @@ const startTournament = async (bot, data) => {
 
     /*     Start Tounarment      */
     const startT = () => {
+
+        /*      Ready message to establish the thread       */
+        // allow player to enter the game thread early      //
+
         /*      Thread      */
         let configs = [JSON.stringify(tournament_configuration)];
         const thread = childProcess.fork("tournament2.js", configs);         //Immediately fork a child process to start to run tournament

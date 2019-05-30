@@ -212,7 +212,7 @@ const handleSlash = async (bot, message) => {
             console.log("\n... slash-commands/js : Start demo tournament---------------\n");
             //--------------------------------------------------------
 
-            bot.reply(message, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:",
+            bot.reply(message, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:\n(Click on this thread to enter game :diamonds:)",
                 function (err, response) {
                     // #debug-----
                     // console.log("\n---------- /start -------\n");
