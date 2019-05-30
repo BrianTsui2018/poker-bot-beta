@@ -134,7 +134,7 @@ const startTournament = async (bot, data) => {
     /*         Variables          */
     let num_players = players_in_lobby.length;
     let count_idx = 0;
-    let this_team_id = players_in_lobby[0].team_id;
+    let this_team_id = thisLobby.team_id;
     let next_player_idx = -1;
 
     /*     Start Tounarment      */
@@ -232,9 +232,11 @@ const startTournament = async (bot, data) => {
 
                     //If this_block_message does not contain the image URL :
                     if (!this_block_message[1].image_url) {
-                        console.log("!! -- IMAGE NOT FOUND -- !! Starting backup measures")
-                        this_block_message = await retryGetCommonCards(data, this_block_message)
+                        console.log("!! -- IMAGE NOT FOUND -- !! Starting backup measures");
+                        this_block_message = await retryGetCommonCards(data, this_block_message);
                     }
+
+                    thisLobby.common_cards_url = this_block_message[1].image_url;
 
                     console.log('\n');
                     console.log(this_block_message);
@@ -252,10 +254,11 @@ const startTournament = async (bot, data) => {
                     console.log(JSON.stringify(msg.data.ranks));
 
                     for (let i = 0; i < msg.data.ranks.length; i++) {
-                        let thisPlayer = await getOnePlayer(msg.data.ranks[i].playerId)
+                        let thisPlayer = await getOnePlayer({ slack_id: msg.data.ranks[i].playerId, team_id: this_team_id });
                         msg.data.ranks[i].bestCardsInfo.url = thisPlayer.cards;
                     }
-                    this_block_message = update_showdown(msg);
+
+                    this_block_message = update_showdown(msg, thisLobby.common_cards_url);
 
                     console.log('\n');
                     console.log(this_block_message);
@@ -280,7 +283,7 @@ const startTournament = async (bot, data) => {
 
                             /*      The player      */
                             let betting_data = {};
-                            if (next_player_idx > num_players) { next_player_idx = 0; }
+                            if (next_player_idx === num_players) { next_player_idx = 0; }
                             let next_player = players_in_lobby.find(P => P.idx === next_player_idx);
 
                             /*      The lobby       */
@@ -288,6 +291,9 @@ const startTournament = async (bot, data) => {
                             betting_data.lobby_id = next_player.lastLobby;
 
                             /*      Message block       */
+                            betting_data.wallet = msg.data.nextPlayerStatus.chips;
+                            betting_data.curr_top_bet = msg.data.callAmount;
+                            betting_data.chips_already_bet = msg.data.nextPlayerStatus.chipsBet;
                             let private_message_block = makeBet(betting_data);
 
                             console.log("\n------ msg.data.type === " + msg.data.type + " ----------\n    ----- betting_data -----");

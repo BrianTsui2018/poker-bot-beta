@@ -208,6 +208,11 @@ const dataRouter = (data) => {
         data.dealerPosition = data.smallBlindPosition - 1 >= 0 ? data.smallBlindPosition - 1 : data.players.length - 1;
         data.nextBetPosition = data.bigBlindPosition + 1 === data.players.length ? 0 : data.bigBlindPosition + 1;
         commonCardsFromGameState = t.gamestate.deck.slice(0, 5);
+        data.nextPlayerStatus = t.gamestate.players[data.nextBetPosition];
+        data.callAmount = t.gamestate.callAmount;
+        data.pot = t.gamestate.pot;
+        data.dispots = t.gamestate.sidepots;
+
 
         // #debug ----------------------------
         // console.log("\n-------------- tournament2.js -> dataRouter(data) case = setup ------------------");
@@ -221,7 +226,11 @@ const dataRouter = (data) => {
         console.log(chalk.cyan('--------------------'))
         /*      Patch data to send out to start tournament      */
         data.cardImages = commonURL.shift();
-        data.nextBetPosition = t.gamestate.bigBlindPosition - 1 >= 0 ? t.gamestate.bigBlindPosition : data.players.length - 1;
+        data.nextBetPosition = t.gamestate.bigBlindPosition - 1 >= 0 ? t.gamestate.bigBlindPosition : t.gamestate.players.length - 1;
+        data.nextPlayerStatus = t.gamestate.players[data.nextBetPosition];
+        data.callAmount = t.gamestate.callAmount;
+        data.pot = t.gamestate.pot;
+        data.dispots = t.gamestate.sidepots;
 
         // #debug ----------------------------
         // console.log("\n-------------- tournament2.js -> dataRouter(data) case = cards ------------------");
@@ -230,10 +239,15 @@ const dataRouter = (data) => {
         // #debug ----------------------------
         console.log("\n-------------- tournament2.js -> dataRouter(data) case = showdown ------------------");
         console.log(t.gamestate);
-    } else if (data.type === 'bet') {
+    } else if (data.type === 'bet' || data.type === "state") {
         // #debug ----------------------------
         console.log("\n-------------- tournament2.js -> dataRouter(data) case = bet ------------------");
         console.log(t.gamestate);
+        data.nextBetPosition = t.gamestate.bigBlindPosition - 1 >= 0 ? t.gamestate.bigBlindPosition : t.gamestate.players.length - 1;
+        data.nextPlayerStatus = t.gamestate.players[data.nextBetPosition];
+        data.callAmount = t.gamestate.callAmount;
+        data.pot = t.gamestate.pot;
+        data.dispots = t.gamestate.sidepots;
     }
 
     pidgeon.emit("Check for image data", data);
