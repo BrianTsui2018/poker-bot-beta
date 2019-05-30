@@ -280,7 +280,7 @@ const startTournament = async (bot, data) => {
 
                             /*      The player      */
                             let betting_data = {};
-                            if (next_player_idx > num_players) { next_player_idx = 0; }
+                            if (next_player_idx === num_players) { next_player_idx = 0; }
                             let next_player = players_in_lobby.find(P => P.idx === next_player_idx);
 
                             /*      The lobby       */
