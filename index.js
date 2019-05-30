@@ -253,7 +253,7 @@ controller.hears(['quit', 'leave', 'done', 'check-out', 'check out', 'cash out',
         bot.reply(message, `<@${message.user}> has left the game.\nYour balance will be updated shortly.`, async () => {
             let user = { slack_id: message.user, team_id: message.team };
             let res = await playerLeave(user);
-            refreshLobbySection(bot, message, data.lobby_id);
+            refreshLobbySection(bot, message, user.lobby_id);
             return res;
         });
     });

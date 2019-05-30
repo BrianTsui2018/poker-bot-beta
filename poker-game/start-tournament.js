@@ -96,13 +96,13 @@ const startT = (bot, local_data) => {
             if (msg.data.type === 'win') {
 
                 //set is_playing to false.
-                thisLobby.is_playing = false;
-                thisLobby = await updateLobby(thisLobby);
+                local_data.thisLobby.is_playing = false;
+                local_data.thisLobby = await updateLobby(local_data.thisLobby);
                 console.log(chalk.yellow("New lobby updated after end game--"));
-                console.log(thisLobby);
+                console.log(local_data.thisLobby);
 
                 //End game player list : group everything in one array that has { playerId , chips}
-                let playerList = calculateWinnings(data.playersEndGame, data.winners);
+                let playerList = calculateWinnings(msg.data.playersEndGame, msg.data.winners);
 
                 //Update everyone's wallet with playerList
                 await updatePlayerWallet(playerList, local_data.thisLobby.team_id);

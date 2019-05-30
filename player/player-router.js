@@ -231,13 +231,16 @@ const deposit = async (data, chips) => {
 const calculateWinnings = (playersEndGame, winners) => {
 
     let playerWallets = []; // { playerId : x , chips : y}
-
-    for (w of winners) {
+    console.log("-------------------pr.js | winners----------------")
+    console.log(winners)
+    for (let w of winners) {
         let thisWinner = { playerId: w.playerId, chips: w.amount };
         playerWallets.push(thisWinner);
     }
 
-    for (player of playersEndGame) {
+    console.log("-------------------pr.js | all ----------------")
+    console.log(playersEndGame)
+    for (let player of playersEndGame) {
         let exist = playerWallets.findIndex(p => p.playerId === player.id);
         if (exist === -1) {
             //not in list yet
@@ -249,8 +252,11 @@ const calculateWinnings = (playersEndGame, winners) => {
         }
 
     }
+    console.log("-------------------pr.js | playerWallets ----------------")
 
-    return playersWallets;
+    console.log(playerWallets);
+
+    return playerWallets;
 }
 
 /**
@@ -259,18 +265,26 @@ const calculateWinnings = (playersEndGame, winners) => {
  * @param {String} team_id
  */
 const updatePlayerWallet = async (playerList, team_id) => {
+    console.log("----------------plist-------------------------");
+    console.log(playerList)
     async.each(playerList, async (player, callback) => {
 
         try {
             // { playerId : x , chips : y}
+            console.log("!!! PLAYER ID ", player.playerId);
+            console.log("!!! team ID ", team_id);
             let thisPlayer = await getOnePlayer({ slack_id: player.playerId, team_id });
+
+            console.log("FOUND PLAYER ", thisPlayer);
             thisPlayer.wallet = player.chips;
             await thisPlayer.save();
 
             callback();
 
         } catch (error) {
+            console.log(error);
             throw new Error("Could not find player nor update!")
+
         }
 
         //callback()

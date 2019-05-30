@@ -274,7 +274,7 @@ const dataRouter = (data) => {
         //Grab everyone's chips and shove to data.
         let playerAndChips = [];
         let pIdx = 0;
-        for (player of t.gamestate.players) {
+        for (let player of t.gamestate.players) {
             let thisPlayer = { playerId: configs.playerList[pIdx].id, chips: player.chips, chipsBet: player.chipsBet }
             playerAndChips.push(thisPlayer);
         }
