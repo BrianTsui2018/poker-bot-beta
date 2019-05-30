@@ -119,6 +119,13 @@ const checkIn = async (data) => {
 |   - Update: bank, wallet, lastLobby, isInLobby
 |   - Does not check if lobby exist (no error, but may oversee bugs)
 |	 																				*/
+/**
+ * 
+ * @param {Object} data             Contains a slack_id and team_id
+ * @param {String} data.slack_id    User's slack ID
+ * @param {String} data.team_id     User's slack team ID
+ * @returns {Object}                Player object from database
+ */
 const checkOut = async (data) => {
     try {
         let thisPlayer = await player.findOne({ slack_id: data.slack_id, team_id: data.team_id });
@@ -154,12 +161,14 @@ const checkOut = async (data) => {
 }
 //----------------------------------------------------------------------------------
 
-/*--------------------------------------------------------------------
-|	[Player / Player-Router.js] Get Player
-|
-|	Description:
-|	- Returns one player if exist
-|																	*/
+
+/**
+ * [Player / Player-Router.js] Get Player - Returns one player if exist
+ * @param {Object} data             Contains a slack_id and team_id
+ * @param {String} data.slack_id    User's slack ID
+ * @param {String} data.team_id     User's slack team ID
+ * @returns {Object}                Player object from database
+ */
 const getOnePlayer = async (data) => {
     try {
         let thisPlayer;
@@ -215,12 +224,12 @@ const deposit = async (data, chips) => {
 
 
 
-/*--------------------------------------------------------------------
-|	[Player / Player-Router.js] Get Player
-|
-|	Description:
-|	- Returns an array of players
-|																	*/
+
+/**-------------------------------------------------------------------
+ * [Player / Player-Router.js] Get Player
+ * @param {String} lobby_id Mongoose Schema ObjectId
+ * @returns {Array}         An array of players in that lobby
+ */
 const getAllPlayerInLobby = async (lobby_id) => {
     try {
         const playerList = await player.find({ lastLobby: lobby_id, isInLobby: true });
@@ -254,12 +263,13 @@ const deletePlayerAll = async () => {
 }
 //--------------------------------------------------------------------
 
+
 /*--------------------------------------------------------------------
-|	[Player / Player-Router.js] Get All Currently playing Players in team
-|
-|	Description:
-|	- Returns an array of players
-|																	*/
+ * [Player / Player-Router.js] Get All Currently playing Players in team
+ * @param   {Object}    data         bject that contains team_id
+ * @param   {String}    data.team_id Used to search for a team in slack
+ * @returns {Array}     An array of players in the team.
+ */
 const getAllCurrentPlayersInTeam = async (data) => {
     try {
         const playerList = await player.find({ team_id: data.team_id, isInLobby: true });
@@ -273,6 +283,14 @@ const getAllCurrentPlayersInTeam = async (data) => {
 
 }
 
+
+/**
+ * [Player / Player-Router.js] Takes an entire player object and replaces its entry in the database
+ * @param {Object} thisPlayer           Data to be updated. Is the entire entry
+ * @param {String} thisPlayer.slack_id  Slack ID stored in database
+ * @param {String} thisPlayer.team_id   Team ID stored in database
+ * @returns {Object}                    Updated player
+ */
 const updatePlayer = async (thisPlayer) => {
     try {
         const updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer, { new: true });

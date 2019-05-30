@@ -91,6 +91,13 @@ const startT = (bot, local_data) => {
             /*          Wait or no wait               */
             if (msg.data.type === 'win') {
 
+                //set is_playing to false.
+                thisLobby.is_playing = false;
+                thisLobby = await updateLobby(thisLobby);
+                console.log(chalk.yellow("New lobby updated after end game--"));
+                console.log(thisLobby);
+                //update all players wallet.
+
                 /*      One game ended, kill thread       */
                 thread.send({ topic: "quit-game" });
                 thread.kill();
@@ -306,7 +313,7 @@ const eventHandler = async (local_data, msg) => {
 
             /*      Backup Card images          */
             if (!msg.data.cardImages[0].url) {
-                console.log("!! -- IMAGE NOT FOUND @ PAIR CARDS-- !! Starting backup measures");
+                console.log(chalk.red("!! -- IMAGE NOT FOUND @ PAIR CARDS-- !! Starting backup measures"));
                 local_data.this_block_message = await retryGetPairCards(local_data);
             }
         }
@@ -329,7 +336,7 @@ const eventHandler = async (local_data, msg) => {
 
             /*      Backup Card images          */
             if (!local_data.this_block_message[1].image_url) {
-                console.log("!! -- IMAGE NOT FOUND -- !! Starting backup measures");
+                console.log(chalk.red("!! -- IMAGE NOT FOUND -- !! Starting backup measures"));
                 local_data.this_block_message = await retryGetCommonCards(local_data);
             }
 
