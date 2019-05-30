@@ -269,12 +269,24 @@ const dataRouter = (data) => {
         data.pot = t.gamestate.pot;
         data.dispots = t.gamestate.sidepots;
     } else if (data.type === 'win') {
+
+
+        //Grab everyone's chips and shove to data.
+        let playerAndChips = [];
+        let pIdx = 0;
+        for (player of t.gamestate.players) {
+            let thisPlayer = { playerId: configs.playerList[pIdx].id, chips: player.chips, chipsBet: player.chipsBet }
+            playerAndChips.push(thisPlayer);
+        }
+        data.playersEndGame = [...playerAndChips];
+
         // #debug ----------------------------
         // console.log("\n-------------- tournament2.js -> dataRouter(data) case = win  ------------------");
         // console.log("\n---- gamestate ----");
         // console.log(t.gamestate);
         // console.log("\n---- data ----");
         // console.log(data);
+
     }
 
     pidgeon.emit("Check for image data", data);

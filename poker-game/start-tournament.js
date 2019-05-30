@@ -1,3 +1,5 @@
+"use strict";
+
 /*          Chalk           */
 const chalk = require('chalk');
 const error = chalk.bold.red;
@@ -35,6 +37,8 @@ const {
     withdraw,
     deposit,
     getOnePlayer,
+    calculateWinnings,
+    updatePlayerWallet,
     getAllPlayerInLobby,
     deletePlayerAll,
     updatePlayer
@@ -90,6 +94,18 @@ const startT = (bot, local_data) => {
 
             /*          Wait or no wait               */
             if (msg.data.type === 'win') {
+
+                //set is_playing to false.
+                thisLobby.is_playing = false;
+                thisLobby = await updateLobby(thisLobby);
+                console.log(chalk.yellow("New lobby updated after end game--"));
+                console.log(thisLobby);
+
+                //End game player list : group everything in one array that has { playerId , chips}
+                let playerList = calculateWinnings(data.playersEndGame, data.winners);
+
+                //Update everyone's wallet with playerList
+                await updatePlayerWallet(playerList, local_data.thisLobby.team_id);
 
                 /*      One game ended, kill thread       */
                 thread.send({ topic: "quit-game" });
@@ -308,7 +324,7 @@ const eventHandler = async (local_data, msg) => {
 
             /*      Backup Card images          */
             if (!msg.data.cardImages[0].url) {
-                console.log("!! -- IMAGE NOT FOUND @ PAIR CARDS-- !! Starting backup measures");
+                console.log(chalk.red("!! -- IMAGE NOT FOUND @ PAIR CARDS-- !! Starting backup measures"));
                 local_data.this_block_message = await retryGetPairCards(local_data);
             }
         }
@@ -336,8 +352,10 @@ const eventHandler = async (local_data, msg) => {
 
             /*      Backup Card images          */
             if (!local_data.this_block_message[1].image_url) {
-                console.log("!! -- IMAGE NOT FOUND -- !! Starting backup measures");
-                local_data.this_block_message = await retryGetCommonCards(msg.data);
+
+                console.log(chalk.red("!! -- IMAGE NOT FOUND -- !! Starting backup measures"));
+                local_data.this_block_message = await retryGetCommonCards(local_data);
+
             }
 
             /*          Save common cards image url in thisLobby         */

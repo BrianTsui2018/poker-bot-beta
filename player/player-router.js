@@ -25,7 +25,7 @@
 */
 
 const player = require('./player-model');
-
+const async = require('async');
 
 /*----------------------------------------------------------------------------------
 |	[Player / Player-Router.js] Create Player
@@ -91,7 +91,7 @@ const checkIn = async (data) => {
             //------------------------------------
 
             /*        Push Player updates        */
-            const updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer);
+            const updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer, { new: true });
             // #debug -----------------
             // console.log("\n------------- player-routers.js -> checkIn() ---------------");
             // console.log(updatedPlayer);
@@ -119,6 +119,13 @@ const checkIn = async (data) => {
 |   - Update: bank, wallet, lastLobby, isInLobby
 |   - Does not check if lobby exist (no error, but may oversee bugs)
 |	 																				*/
+/**
+ * 
+ * @param {Object} data             Contains a slack_id and team_id
+ * @param {String} data.slack_id    User's slack ID
+ * @param {String} data.team_id     User's slack team ID
+ * @returns {Object}                Player object from database
+ */
 const checkOut = async (data) => {
     try {
         let thisPlayer = await player.findOne({ slack_id: data.slack_id, team_id: data.team_id });
@@ -138,7 +145,7 @@ const checkOut = async (data) => {
             //------------------------------------
 
             /*        Push Player updates        */
-            let updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer);
+            let updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer, { new: true });
             updatedPlayer.isInLobby = false;
             return updatedPlayer;
         }
@@ -154,12 +161,14 @@ const checkOut = async (data) => {
 }
 //----------------------------------------------------------------------------------
 
-/*--------------------------------------------------------------------
-|	[Player / Player-Router.js] Get Player
-|
-|	Description:
-|	- Returns one player if exist
-|																	*/
+
+/**
+ * [Player / Player-Router.js] Get Player - Returns one player if exist
+ * @param {Object} data             Contains a slack_id and team_id
+ * @param {String} data.slack_id    User's slack ID
+ * @param {String} data.team_id     User's slack team ID
+ * @returns {Object}                Player object from database
+ */
 const getOnePlayer = async (data) => {
     try {
         let thisPlayer;
@@ -206,21 +215,84 @@ const deposit = async (data, chips) => {
     //------------------------------------
 
     /*       Push Player updates        */
-    let updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer);
+    let updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer, { new: true });
     updatedPlayer = await player.findById(updatedPlayer._id);
 
     return updatedPlayer;
 }
 //--------------------------------------------------------------------
 
+/**
+ * 
+ * @param {Object []} playersEndGame   Ones that just get remaining chips
+ * @param {Object []} winners  Ones that remaining chips + winning amount.
+ * @returns [] An array of playerIds and chips to be updated.
+ */
+const calculateWinnings = (playersEndGame, winners) => {
+
+    let playerWallets = []; // { playerId : x , chips : y}
+
+    for (w of winners) {
+        let thisWinner = { playerId: w.playerId, chips: w.amount };
+        playerWallets.push(thisWinner);
+    }
+
+    for (player of playersEndGame) {
+        let exist = playerWallets.findIndex(p => p.playerId === player.id);
+        if (exist === -1) {
+            //not in list yet
+            let thisPlayer = { playerId: player.id, chips: player.chips };
+            playerWallets.push(thisPlayer);
+        } else {
+            //already in list, add their remainder back.
+            playerWallets[exist].chips += player.chips
+        }
+
+    }
+
+    return playersWallets;
+}
+
+/**
+ * Updates player wallet. Needs playerId and chips from EACH player in playerList.
+ * @param {Object} playerList 
+ * @param {String} team_id
+ */
+const updatePlayerWallet = async (playerList, team_id) => {
+    async.each(playerList, async (player, callback) => {
+
+        try {
+            // { playerId : x , chips : y}
+            let thisPlayer = await getOnePlayer({ slack_id: player.playerId, team_id });
+            thisPlayer.wallet = player.chips;
+            await thisPlayer.save();
+
+            callback();
+
+        } catch (error) {
+            throw new Error("Could not find player nor update!")
+        }
+
+        //callback()
+    }, (err, res) => {
+        if (err) {
+            console.log("Player-router.js | updatePlayerWallet ERROR | ")
+            console.log(err);
+        }
+
+        if (res) {
+            console.log("Updated wallet successfully.")
+        }
+
+    })
+}
 
 
-/*--------------------------------------------------------------------
-|	[Player / Player-Router.js] Get Player
-|
-|	Description:
-|	- Returns an array of players
-|																	*/
+/**-------------------------------------------------------------------
+ * [Player / Player-Router.js] Get Player
+ * @param {String} lobby_id Mongoose Schema ObjectId
+ * @returns {Array}         An array of players in that lobby
+ */
 const getAllPlayerInLobby = async (lobby_id) => {
     try {
         const playerList = await player.find({ lastLobby: lobby_id, isInLobby: true });
@@ -254,12 +326,13 @@ const deletePlayerAll = async () => {
 }
 //--------------------------------------------------------------------
 
+
 /*--------------------------------------------------------------------
-|	[Player / Player-Router.js] Get All Currently playing Players in team
-|
-|	Description:
-|	- Returns an array of players
-|																	*/
+ * [Player / Player-Router.js] Get All Currently playing Players in team
+ * @param   {Object}    data         bject that contains team_id
+ * @param   {String}    data.team_id Used to search for a team in slack
+ * @returns {Array}     An array of players in the team.
+ */
 const getAllCurrentPlayersInTeam = async (data) => {
     try {
         const playerList = await player.find({ team_id: data.team_id, isInLobby: true });
@@ -273,6 +346,14 @@ const getAllCurrentPlayersInTeam = async (data) => {
 
 }
 
+
+/**
+ * [Player / Player-Router.js] Takes an entire player object and replaces its entry in the database
+ * @param {Object} thisPlayer           Data to be updated. Is the entire entry
+ * @param {String} thisPlayer.slack_id  Slack ID stored in database
+ * @param {String} thisPlayer.team_id   Team ID stored in database
+ * @returns {Object}                    Updated player
+ */
 const updatePlayer = async (thisPlayer) => {
     try {
         const updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer, { new: true });
@@ -292,6 +373,8 @@ module.exports = {
     withdraw,
     deposit,
     getOnePlayer,
+    calculateWinnings,
+    updatePlayerWallet,
     getAllPlayerInLobby,
     deletePlayerAll,
     getAllCurrentPlayersInTeam,

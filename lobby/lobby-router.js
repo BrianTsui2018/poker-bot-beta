@@ -131,18 +131,17 @@ const createLobby = async (data) => {
 }
 //----------------------------------------------------------------------------------
 
-/*------------------------------------------------------------------------------------
-|	[Lobby / Lobby-Router.js] Edit(Update) a Lobby
-|
-|	Description:
-|	- Uses Mongoose function findOneAndUpdate 
-|	- to update the lobby data with the matching lobby name provided
-|	- returns the updated lobby model
-|
-|	 																				*/
+
+/**---------------------------------------------------------------------------------
+ * [Lobby / Lobby-Router.js] Edit(Update) a Lobby
+ * Uses Mongoose function findOneAndUpdate to update the lobby data with the matching lobby name provided returns the updated lobby model
+ * @param 	{Object} this_lobby 	Mongoose schema
+ * @param	{Number} this_lobby._id
+ * @return 	{Object}				Returns an updated lobby
+ */
 const updateLobby = async (this_lobby) => {
 	try {
-		const updated_lobby = await lobby.findOneAndUpdate({ _id: this_lobby._id }, this_lobby);			// Potential problem with atomicity.
+		const updated_lobby = await lobby.findOneAndUpdate({ _id: this_lobby._id }, this_lobby, { new: true });			// Potential problem with atomicity.
 		return updated_lobby;
 	} catch (e) {
 		console.log(e);
