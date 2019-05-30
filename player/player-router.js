@@ -91,7 +91,7 @@ const checkIn = async (data) => {
             //------------------------------------
 
             /*        Push Player updates        */
-            const updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer);
+            const updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer, { new: true });
             // #debug -----------------
             // console.log("\n------------- player-routers.js -> checkIn() ---------------");
             // console.log(updatedPlayer);
@@ -138,7 +138,7 @@ const checkOut = async (data) => {
             //------------------------------------
 
             /*        Push Player updates        */
-            let updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer);
+            let updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer, { new: true });
             updatedPlayer.isInLobby = false;
             return updatedPlayer;
         }
@@ -206,7 +206,7 @@ const deposit = async (data, chips) => {
     //------------------------------------
 
     /*       Push Player updates        */
-    let updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer);
+    let updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer, { new: true });
     updatedPlayer = await player.findById(updatedPlayer._id);
 
     return updatedPlayer;
