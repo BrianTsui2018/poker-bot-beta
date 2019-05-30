@@ -1,6 +1,4 @@
-const {
-    nameGen
-} = require('../lobby/lobby-name-gen')
+const { nameGen } = require('../lobby/lobby-name-gen')
 
 const genLobbyNames = (n) => {
     if (!n) {
@@ -19,6 +17,7 @@ const genLobbyNames = (n) => {
     }
     return nameList;
 }
+
 
 const askForBuyin = () => {
     let message_block = [
@@ -58,63 +57,62 @@ const askForBuyin = () => {
 }
 
 
-const showdown_mockup = () => {
+// const showdown_mockup = () => {
 
-    let message_block = [
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": "SHOW DOWN."
-            }
-        },
-        {
-            "type": "image",
-            "title": {
-                "type": "plain_text",
-                "text": "All cards revealed!",
-                "emoji": true
-            },
-            "image_url": "https://i.imgur.com/ceTQ9vF.jpg",
-            "alt_text": "All cards revealed! "
-        },
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": "*Your Best Combo:*\n Stephanie : *TWO PAIRS*"
-            },
-            "accessory": {
-                "type": "image",
-                "image_url": "https://i.imgur.com/rqxxJsZ.jpg",
-                "alt_text": "computer thumbnail"
-            }
-        },
-        {
-            "type": "divider"
-        },
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": "*Game Over!* Stephanie has lost the game to Noah, who had *ROYAL FLUSH* !"
-            }
-        },
-        {
-            "type": "section",
-            "text": {
-                "type": "plain_text",
-                "text": "Until the next game! :smile: :beer:",
-                "emoji": true
-            }
-        }
-    ];
-    return message_block;
-}
+//     let message_block = [
+//         {
+//             "type": "section",
+//             "text": {
+//                 "type": "mrkdwn",
+//                 "text": "SHOW DOWN."
+//             }
+//         },
+//         {
+//             "type": "image",
+//             "title": {
+//                 "type": "plain_text",
+//                 "text": "All cards revealed!",
+//                 "emoji": true
+//             },
+//             "image_url": "https://i.imgur.com/ceTQ9vF.jpg",
+//             "alt_text": "All cards revealed! "
+//         },
+//         {
+//             "type": "section",
+//             "text": {
+//                 "type": "mrkdwn",
+//                 "text": "*Your Best Combo:*\n Stephanie : *TWO PAIRS*"
+//             },
+//             "accessory": {
+//                 "type": "image",
+//                 "image_url": "https://i.imgur.com/rqxxJsZ.jpg",
+//                 "alt_text": "computer thumbnail"
+//             }
+//         },
+//         {
+//             "type": "divider"
+//         },
+//         {
+//             "type": "section",
+//             "text": {
+//                 "type": "mrkdwn",
+//                 "text": "*Game Over!* Stephanie has lost the game to Noah, who had *ROYAL FLUSH* !"
+//             }
+//         },
+//         {
+//             "type": "section",
+//             "text": {
+//                 "type": "plain_text",
+//                 "text": "Until the next game! :smile: :beer:",
+//                 "emoji": true
+//             }
+//         }
+//     ];
+//     return message_block;
+// }
 
 
 const update_setup_msg_data_debug = (msg) => {
-
     let message_block = [
         {
             "type": "section",
@@ -274,10 +272,10 @@ const update_state = (msg) => {
 
     let update;
     if (msg.data.state) {
-        update = `:spades: *${msg.data.player.name}* has decided to *${msg.data.state}* ...`;
+        update = `:spades: *<@${msg.data.player.slack_id}>* has decided to *${msg.data.state}* ...`;
     }
     else if (msg.data.session) {
-        update = `:moneybag: *${msg.data.player.name} has decided to bet :heavy_dollar_sign:*${msg.data.amount}* !`;
+        update = `:moneybag: *<@${msg.data.player.slack_id}> has decided to bet :heavy_dollar_sign:*${msg.data.amount}* !`;
     }
     else {
         throw new Error(" poker-message.js | data is neither STATE nor BET. Please check files.");
@@ -340,11 +338,11 @@ const update_setup = (msg) => {
             "fields": [
                 {
                     "type": "mrkdwn",
-                    "text": `*Big Blind:*\n${msg.data.players[msg.data.bigBlindPosition].name}`
+                    "text": `*Big Blind:*\n <@${msg.data.players[msg.data.bigBlindPosition].id}>`
                 },
                 {
                     "type": "mrkdwn",
-                    "text": `*Small Blind:*\n${msg.data.players[msg.data.smallBlindPosition].name}`
+                    "text": `*Small Blind:*\n<@${msg.data.players[msg.data.smallBlindPosition].id}>`
                 },
                 {
                     "type": "mrkdwn",
@@ -390,7 +388,7 @@ const update_win = (msg) => {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": `:medal:*Winner: ${msg.data.winners[0].playerName}* :medal: \n ${msg.data.winners[0].playerName} has won *${msg.data.winners[0].amount}* from the pot!`
+                "text": `:medal:*Winner: <@${msg.data.winners[0].playerId}>* :medal: \n ${msg.data.winners[0].playerId} has won *${msg.data.winners[0].amount}* from the pot!`
             },
             "accessory": {
                 "type": "image",
@@ -398,32 +396,6 @@ const update_win = (msg) => {
                 "alt_text": " "
             }
         },
-
-        // {
-        //     "type": "actions",
-        //     "elements": [
-        //         {
-        //             "type": "button",
-        //             "text": {
-        //                 "type": "plain_text",
-        //                 "emoji": true,
-        //                 "text": "Rematch"
-        //             },
-        //             "style": "primary",
-        //             "value": "click_me_123"
-        //         },
-        //         {
-        //             "type": "button",
-        //             "text": {
-        //                 "type": "plain_text",
-        //                 "emoji": true,
-        //                 "text": "Leave"
-        //             },
-        //             "style": "danger",
-        //             "value": "click_me_123"
-        //         }
-        //     ]
-        // },
         {
             "type": "divider"
         }
