@@ -25,7 +25,7 @@
 */
 
 const player = require('./player-model');
-
+const async = require('async');
 
 /*----------------------------------------------------------------------------------
 |	[Player / Player-Router.js] Create Player
@@ -222,7 +222,70 @@ const deposit = async (data, chips) => {
 }
 //--------------------------------------------------------------------
 
+/**
+ * 
+ * @param {Object []} playersEndGame   Ones that just get remaining chips
+ * @param {Object []} winners  Ones that remaining chips + winning amount.
+ * @returns [] An array of playerIds and chips to be updated.
+ */
+const calculateWinnings = (playersEndGame, winners) => {
 
+    let playerWallets = []; // { playerId : x , chips : y}
+
+    for (w of winners) {
+        let thisWinner = { playerId: w.playerId, chips: w.amount };
+        playerWallets.push(thisWinner);
+    }
+
+    for (player of playersEndGame) {
+        let exist = playerWallets.findIndex(p => p.playerId === player.id);
+        if (exist === -1) {
+            //not in list yet
+            let thisPlayer = { playerId: player.id, chips: player.chips };
+            playerWallets.push(thisPlayer);
+        } else {
+            //already in list, add their remainder back.
+            playerWallets[exist].chips += player.chips
+        }
+
+    }
+
+    return playersWallets;
+}
+
+/**
+ * Updates player wallet. Needs playerId and chips from EACH player in playerList.
+ * @param {Object} playerList 
+ * @param {String} team_id
+ */
+const updatePlayerWallet = async (playerList, team_id) => {
+    async.each(playerList, async (player, callback) => {
+
+        try {
+            // { playerId : x , chips : y}
+            let thisPlayer = await getOnePlayer({ slack_id: player.playerId, team_id });
+            thisPlayer.wallet = player.chips;
+            await thisPlayer.save();
+
+            callback();
+
+        } catch (error) {
+            throw new Error("Could not find player nor update!")
+        }
+
+        //callback()
+    }, (err, res) => {
+        if (err) {
+            console.log("Player-router.js | updatePlayerWallet ERROR | ")
+            console.log(err);
+        }
+
+        if (res) {
+            console.log("Updated wallet successfully.")
+        }
+
+    })
+}
 
 
 /**-------------------------------------------------------------------
@@ -310,6 +373,8 @@ module.exports = {
     withdraw,
     deposit,
     getOnePlayer,
+    calculateWinnings,
+    updatePlayerWallet,
     getAllPlayerInLobby,
     deletePlayerAll,
     getAllCurrentPlayersInTeam,

@@ -1,3 +1,5 @@
+"use strict";
+
 /*          Chalk           */
 const chalk = require('chalk');
 const error = chalk.bold.red;
@@ -35,6 +37,8 @@ const {
     withdraw,
     deposit,
     getOnePlayer,
+    calculateWinnings,
+    updatePlayerWallet,
     getAllPlayerInLobby,
     deletePlayerAll,
     updatePlayer
@@ -96,7 +100,12 @@ const startT = (bot, local_data) => {
                 thisLobby = await updateLobby(thisLobby);
                 console.log(chalk.yellow("New lobby updated after end game--"));
                 console.log(thisLobby);
-                //update all players wallet.
+
+                //End game player list : group everything in one array that has { playerId , chips}
+                let playerList = calculateWinnings(data.playersEndGame, data.winners);
+
+                //Update everyone's wallet with playerList
+                await updatePlayerWallet(playerList, local_data.thisLobby.team_id);
 
                 /*      One game ended, kill thread       */
                 thread.send({ topic: "quit-game" });

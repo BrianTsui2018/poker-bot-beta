@@ -248,6 +248,16 @@ const dataRouter = (data) => {
         data.callAmount = t.gamestate.callAmount;
         data.pot = t.gamestate.pot;
         data.dispots = t.gamestate.sidepots;
+    } else if (data.type === 'win') {
+
+        //Grab everyone's chips and shove to data.
+        let playerAndChips = [];
+        let pIdx = 0;
+        for (player of t.gamestate.players) {
+            let thisPlayer = { playerId: configs.playerList[pIdx].id, chips: player.chips, chipsBet: player.chipsBet }
+            playerAndChips.push(thisPlayer);
+        }
+        data.playersEndGame = [...playerAndChips];
     }
 
     pidgeon.emit("Check for image data", data);
