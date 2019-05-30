@@ -250,9 +250,11 @@ controller.hears(['quit', 'leave', 'done', 'check-out', 'check out', 'cash out',
         // console.log("\nPlayer leaving game---------------- print message:");
         // console.log(message);
         //---------------------------
-        bot.reply(message, `<@${message.user}> has left the game.\nYour balance will be updated shortly.`, () => {
+        bot.reply(message, `<@${message.user}> has left the game.\nYour balance will be updated shortly.`, async () => {
             let user = { slack_id: message.user, team_id: message.team };
-            playerLeave(user);
+            let res = await playerLeave(user);
+            refreshLobbySection(bot, message, data.lobby_id);
+            return res;
         });
     });
 });
@@ -291,6 +293,15 @@ controller.hears(['demo', 'demonstrate'], 'direct_message,direct_mention, mentio
                     pattern: "yes",
                     callback: function (reply, convo) {
                         bot.reply(convo.source_message, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:\n(Click on this thread to enter game :diamonds:)", function (err, response) {
+
+                            let payload = {
+                                "token": process.env.BOT_TOKEN,
+                                "channel": response.channel,
+                                "ts": response.message.ts,
+                                "text": "spades: :hearts: *Starting Poker Holdem Engine!*:clubs::diamonds:"
+                            }
+                            bot.api.chat.postMessage(payload);
+
                             startTournament(bot, { "channel": response.channel, "ts": response.message.ts });
                         });
                         // bot.reply(convo, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:", function (err, response) {
@@ -384,9 +395,6 @@ controller.on('block_actions', async function (bot, message) {
             bot.reply(message, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:", function (err, response) {
                 startTournament(bot, { "channel": response.channel, "ts": response.message.ts, "lobby_id": data.lobby_id, "use_demo": false });
             });
-
-
-
 
 
         }
