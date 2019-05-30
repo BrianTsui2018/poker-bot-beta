@@ -221,9 +221,9 @@ const dataRouter = (data) => {
     }
     else if (data.type === 'cards') {
         //Cards Should be back by now, first card = first roll.
-        console.log(chalk.cyan('CURRENT CARD LIST :'))
-        console.log(commonURL)
-        console.log(chalk.cyan('--------------------'))
+        // console.log(chalk.cyan('CURRENT CARD LIST :'))
+        // console.log(commonURL)
+        // console.log(chalk.cyan('--------------------'))
         /*      Patch data to send out to start tournament      */
         data.cardImages = commonURL.shift();
         data.nextBetPosition = t.gamestate.bigBlindPosition - 1 >= 0 ? t.gamestate.bigBlindPosition : t.gamestate.players.length - 1;
@@ -237,12 +237,12 @@ const dataRouter = (data) => {
 
     } else if (data.type === 'showdown') {
         // #debug ----------------------------
-        console.log("\n-------------- tournament2.js -> dataRouter(data) case = showdown ------------------");
-        console.log(t.gamestate);
+        // console.log("\n-------------- tournament2.js -> dataRouter(data) case = showdown ------------------");
+        // console.log(t.gamestate);
     } else if (data.type === 'bet' || data.type === "state") {
         // #debug ----------------------------
-        console.log("\n-------------- tournament2.js -> dataRouter(data) case = bet ------------------");
-        console.log(t.gamestate);
+        // console.log("\n-------------- tournament2.js -> dataRouter(data) case = bet ------------------");
+        // console.log(t.gamestate);
         data.nextBetPosition = t.gamestate.bigBlindPosition - 1 >= 0 ? t.gamestate.bigBlindPosition : t.gamestate.players.length - 1;
         data.nextPlayerStatus = t.gamestate.players[data.nextBetPosition];
         data.callAmount = t.gamestate.callAmount;

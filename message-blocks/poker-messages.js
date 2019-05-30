@@ -764,7 +764,7 @@ const makeBet = (data) => {
         },
         {
             "type": "image",
-            "image_url": "https://i.imgur.com/rqxxJsZ.jpg",     //data.cards_url
+            "image_url": data.P.cards,     //data.cards_url
             "alt_text": "Your cards"
         },
         {

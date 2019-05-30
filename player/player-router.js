@@ -275,8 +275,9 @@ const getAllCurrentPlayersInTeam = async (data) => {
 
 const updatePlayer = async (thisPlayer) => {
     try {
-        const updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer);
+        const updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer, { new: true });
         return updatedPlayer;
+
     } catch (error) {
         console.log(error);
         return error;
