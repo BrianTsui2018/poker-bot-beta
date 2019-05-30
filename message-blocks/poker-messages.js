@@ -377,8 +377,8 @@ const update_cards = (msg) => {
     return this_block_message;
 }
 
-const update_showdown = msg => {
-    let this_block_message = SHOWDOWN(msg.data);
+const update_showdown = (msg, url) => {
+    let this_block_message = SHOWDOWN(msg.data, url);
 
     return this_block_message;
 }
@@ -748,6 +748,7 @@ const makeBet = (data) => {
         data.wallet
         data.curr_top_bet
         data.min_bet
+        data.chips_already_bet
     */
     if (!data.wallet) { data.wallet = 100001; }
     if (!data.curr_top_bet) { data.curr_top_bet = 100000; }
@@ -763,7 +764,7 @@ const makeBet = (data) => {
         },
         {
             "type": "image",
-            "image_url": "https://i.imgur.com/rqxxJsZ.jpg",     //data.cards_url
+            "image_url": data.P.cards,     //data.cards_url
             "alt_text": "Your cards"
         },
         {
@@ -777,10 +778,10 @@ const makeBet = (data) => {
 
     /*      Call/check and Fold     */
     let bet_elemenets = [];
-
+    let chips_to_match = data.curr_top_bet - data.chips_already_bet;
     /*      Player has enough to call / check      */
-    if (data.curr_top_bet < data.wallet) {
-        data.val = data.curr_top_bet;
+    if (chips_to_match < data.wallet) {
+        data.val = chips_to_match;
         bet_elemenets.push(
             button_check_call(data)
         );
@@ -855,7 +856,7 @@ const button_raise = (data) => {
         "type": "button",
         "text": {
             "type": "plain_text",
-            "text": val.toString(10),
+            "text": data.val.toString(10),
             "emoji": true
         },
         "value": JSON.stringify({ "topic": "BET", "choice": "raise", "val": data.val, "lobby_id": data.lobby_id })
@@ -923,8 +924,6 @@ const card_name_translator = (cards) => {
 
     translatedCards = []
     for (let idx = 0; idx < cards.length; idx++) {
-        console.log("\n-------------------- poker-messages.js ------ card_name_translator(cards) ----> card[idx]/rank = ");
-        console.log(cards[idx].rank);
         let thisCard = "";
         switch (cards[idx].rank) {
             case 'K': thisCard = "King of ";
@@ -937,8 +936,6 @@ const card_name_translator = (cards) => {
                 break;
             default: thisCard = parseInt(cards[idx].rank) + " of ";
         }
-        console.log("\n---- thisCard =", thisCard);
-        console.log("\n----------------------------------\n\n");
 
         switch (cards[idx].type) {
             case 'D': thisCard += 'Diamonds';
@@ -993,8 +990,8 @@ const TURN = (data) => {
     return turn_block;
 }
 
-const show_down_template =
-    [
+const get_show_down_template = (url) => {
+    return [
         {
             "type": "section",
             "text": {
@@ -1009,37 +1006,42 @@ const show_down_template =
                 "text": "Example Image",
                 "emoji": true
             },
-            "image_url": "https://i.imgur.com/ceTQ9vF.jpg",
+            "image_url": url,
             "alt_text": "Example Image"
         },
         {
             "type": "divider"
         }
     ];
+}
 
-const show_down_user =
-{
-    "type": "section",
-    "text":
-    {
-        "type": "mrkdwn",
-        "text": "" //replace with :black_medium_square:*[User 1]* \n :black_small_square:Best Cards : [bestCards] \n :black_small_square:Info : [bestCardsInfo Obj]
-    },
-    "accessory":
-    {
-        "type": "image",
-        "image_url": "", //Fill with image url
-        "alt_text": "Card pairs"
-    }
-};
 
-const SHOWDOWN = (data) => {
-    let showdown_array = [...show_down_template];
+const get_show_down_user = (playerId, bestCardsInfo) => {
+    return {
+        "type": "section",
+        "text":
+        {
+            "type": "mrkdwn",
+            "text": `*<@${playerId}>*\n :black_small_square: Best Cards : *${bestCardsInfo.name}* !` //replace with :black_medium_square:*[User 1]* \n :black_small_square:Best Cards : [bestCards] \n :black_small_square:Info : [bestCardsInfo Obj]
+        },
+        "accessory":
+        {
+            "type": "image",
+            "image_url": `${bestCardsInfo.url}`, //Fill with image url
+            "alt_text": "Card pairs"
+        }
+    };
+}
+
+
+const SHOWDOWN = (data, url) => {
+    let showdown_array = get_show_down_template(url);
     /*      Loop through each "showdown" player        */
     for (let idx = 0; idx < data.ranks.length; idx++) {
+        let show_down_user = get_show_down_user(data.ranks[idx].playerId, data.ranks[idx].bestCardsInfo)
         showdown_array.push(show_down_user);
-        showdown_array[showdown_array.length - 1].text.text = `*<@${data.ranks[idx].playerId}>*\n :black_small_square: Best Cards : ${data.ranks[idx].bestCardsInfo.name} .`;
-        showdown_array[showdown_array.length - 1].accessory.image_url = data.ranks[idx].bestCardsInfo.url;
+        // showdown_array[showdown_array.length - 1].text.text = `*<@${data.ranks[idx].playerId}>*\n :black_small_square: Best Cards : ${data.ranks[idx].bestCardsInfo.name} .`;
+        // showdown_array[showdown_array.length - 1].accessory.image_url = data.ranks[idx].bestCardsInfo.url;
     }
     showdown_array.push({ "type": "divider" })
 

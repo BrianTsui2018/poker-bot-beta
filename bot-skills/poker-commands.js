@@ -426,6 +426,7 @@ const placeBet = async (data) => {
         try {
             let body = await axiosPUT(betData);
             data.spent = body.action;
+            return body.data;
             //await updatePlayerWallet(data); - temp remove, gamestate seems to track player wallet!
         } catch (error) {
             console.log("poker-command.js | Place bet error. | Returning ing 0")
@@ -433,7 +434,7 @@ const placeBet = async (data) => {
             return 0;
         }
 
-        return body.data;
+
     }
     else {
         return 0;

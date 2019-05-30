@@ -89,24 +89,24 @@ const textBasedCards = (cardArray) => {
  * @param {object} data Contains card names. Using card names to generate file name and make another attempt to grab the image url.
  * @returns {object} returns the data object with either a url or a text base card.
  */
-const retryGetCommonCards = async (data, this_block_message) => {
+const retryGetCommonCards = async (data) => {
 
     //Generate file name
-    let imageURL = generateCardPayload(data.card)
+    let imageURL = generateCardPayload(data.cards)
     let url = `https://imai-poker-utils.herokuapp.com/iu/${imageURL.cardName}`;
     try {
         let img = await axios.get(url);
         console.log("Got img back!");
         console.log(img);
 
-        this_block_message[1].image_url = img.url;
-        return this_block_message;
+        data.this_block_message[1].image_url = img.url;
+        return data.this_block_message;
     } catch (error) {
         console.log("Error logged, could not get img..");
         console.log(error);
-        let text = this_block_message[3].text.text.slice();
+        let text = data.this_block_message[3].text.text.slice();
         //Generate text base card name.
-        this_block_message[3].text.text = "```" + `${textBaseCard(data.cards)}` + "``` \n" + text;
+        data.this_block_message[3].text.text = "```" + `${textBaseCard(data.cards)}` + "``` \n" + text;
     }
 }
 
@@ -127,14 +127,14 @@ const retryGetPairCards = async (data) => {
             console.log("Got img back!");
             console.log(img);
 
-            this_block_message[1].image_url = img.url;
-            return this_block_message;
+            data.this_block_message[1].image_url = img.url;
+            return data.this_block_message;
         } catch (error) {
             console.log("Error logged, could not get img..");
             console.log(error);
-            let text = this_block_message[3].text.text.slice();
+            let text = data.this_block_message[3].text.text.slice();
             //Generate text base card name.
-            this_block_message[3].text.text = "```" + `${textBaseCard(data.cards)}` + "``` \n" + text;
+            data.this_block_message[3].text.text = "```" + `${textBaseCard(data.cards)}` + "``` \n" + text;
         }
 
         callback1();
