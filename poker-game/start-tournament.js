@@ -274,7 +274,7 @@ const startTournament = async (bot, data) => {
                         console.log(err);
                     }
                     else {
-                        /*          Gather data and send message to the first player            */
+                        /*          Gather data and send message to the player            */
 
                         if (msg.data.type === "setup" || (msg.data.type === "bet") || msg.data.type === "cards") {
 
