@@ -706,8 +706,6 @@ const one_lobby_info = async (data) => {
 |
 |                                                                                   */
 const makeBet = (data) => {
-    // console.log("\n---- sample data ----");
-    console.log(data);
 
     /*
         data.lobby_id
@@ -769,9 +767,10 @@ const makeBet = (data) => {
     let raise_elements = [];
     let base_raise_amount = 0;
 
-    console.log("\n--- makeBet() > input\ndata.amount_in_short = ", data.amount_in_short);
+    console.log("\n--- makeBet() > input");
+    console.log("data.amount_in_short = ", data.amount_in_short);
     console.log("data.min_bet = ", data.min_bet);
-    console.log("--------------------------\n")
+
     if (data.amount_in_short === 0) { base_raise_amount = data.min_bet; } // case that no one has raised yet
     else if (data.amount_in_short <= data.min_bet) { base_raise_amount = data.min_bet * 2; }  // case of small blind need to match up in Pre-Flop
     else { base_raise_amount = data.amount_in_short; }  // case that there's already a raise, or Pre-Flop call/check for non-BB/SB players
@@ -780,7 +779,9 @@ const makeBet = (data) => {
         data.val = base_raise_amount * i;
         if (data.val < data.wallet) { raise_elements.push(button_raise(data)); }
     }
+
     console.log("base_raise_amount = ", base_raise_amount);
+    console.log("--------------------------\n")
 
     /*          Raise: All in          */
     data.val = data.wallet;
