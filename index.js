@@ -13,7 +13,8 @@ const {
     playerLeave,
     refreshLobbyList,
     refreshLobbySection,
-    placeBet
+    placeBet,
+    getPlayerBankBalance
 } = require('./bot-skills/poker-commands');
 
 const {
@@ -256,6 +257,27 @@ controller.hears(['quit', 'leave', 'done', 'check-out', 'check out', 'cash out',
         });
     });
 });
+
+
+controller.hears(['poker-balance', 'poker-bank', 'poker-money', 'How much money is in my bank'], 'direct_message,direct_mention, mention', async function (bot, message) {
+    bot.replyAcknowledge();
+    try {
+        let bankMsg = await getPlayerBankBalance(message);
+        if (!bankMsg) throw new Error("index.js | controller.hears poker-balance | Could not get user balance")
+    } catch (error) {
+        console.log(error)
+    }
+
+    bot.sendWebhook({
+        blocks: bankMsg,
+        channel: message.channel_id,
+    }, function (err, res) {
+        if (err) {
+            console.log(err);
+        }
+    });
+});
+
 
 
 controller.hears(['demo', 'demonstrate'], 'direct_message,direct_mention, mention', function (bot, message) {
