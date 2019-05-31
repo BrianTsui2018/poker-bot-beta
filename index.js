@@ -255,29 +255,36 @@ controller.hears(['quit', 'leave', 'done', 'check-out', 'check out', 'cash out',
         bot.reply(message, `<@${message.user}> has left the game.\nYour balance will be updated shortly.`, async () => {
             let user = { slack_id: message.user, team_id: message.team };
             let thisPlayer = await playerLeave(user);
-            refreshLobbyList(bot, message);
         });
     });
 });
 
 
-controller.hears(['bank-balance', 'money', 'How much money is in my bank'], 'direct_message,direct_mention, mention', async function (bot, message) {
+controller.hears(['bank', 'balance', 'money', 'How much money is in my bank'], 'direct_message,direct_mention, mention', async function (bot, message) {
     bot.replyAcknowledge();
     try {
-        let bankMsg = await getPlayerBankBalance(message);
-        if (!bankMsg) throw new Error("index.js | controller.hears poker-balance | Could not get user balance")
+
+        bot.startConversation(message, async function (err, convo) {
+            convo.say('');
+            convo.next();
+            convo.say('');
+            convo.next();
+            let bankMsg = await getPlayerBankBalance({ slack_id: message.user, team_id: message.team });
+            if (!bankMsg) throw new Error("index.js | controller.hears poker-balance | Could not get user balance")
+            bot.sendWebhook({
+                blocks: bankMsg,
+                channel: message.channel_id,
+            }, function (err, res) {
+                if (err) {
+                    console.log(err);
+                }
+            });
+        });
     } catch (error) {
         console.log(error)
     }
 
-    bot.sendWebhook({
-        blocks: bankMsg,
-        channel: message.channel_id,
-    }, function (err, res) {
-        if (err) {
-            console.log(err);
-        }
-    });
+
 });
 
 controller.hears(['I am broke', 'I need money', 'money please', 'poker charge up'], 'direct_message,direct_mention, mention', async function (bot, message) {
