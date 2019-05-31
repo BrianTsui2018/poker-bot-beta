@@ -204,7 +204,8 @@ const dataRouter = (data) => {
         data.nextPlayerStatus.already_bet = false;
         data.callAmount = t.gamestate.callAmount;
         data.pot = t.gamestate.pot;
-        data.dispots = t.gamestate.sidepots;
+        data.sidepots = t.gamestate.sidepots;
+        data.minBet = t.gamestate.sb * 2;
 
 
         // #debug ----------------------------
@@ -219,12 +220,21 @@ const dataRouter = (data) => {
         // console.log(chalk.cyan('--------------------'))
         /*      Patch data to send out to start tournament      */
         data.cardImages = commonURL.shift();
-        data.nextBetPosition = t.gamestate.bigBlindPosition - 1 >= 0 ? t.gamestate.bigBlindPosition : t.gamestate.players.length - 1;
+        data.nextBetPosition = t.gamestate.bigBlindPosition - 1 >= 0 ? t.gamestate.bigBlindPosition - 1 : t.gamestate.players.length - 1;
         data.nextPlayerStatus = t.gamestate.players[data.nextBetPosition];
         data.nextPlayerStatus.already_bet = false;
         data.callAmount = t.gamestate.callAmount;
         data.pot = t.gamestate.pot;
-        data.dispots = t.gamestate.sidepots;
+        data.sidepots = t.gamestate.sidepots;
+        data.minBet = t.gamestate.sb * 2;
+        // patch in symbols for players
+        // for (let i = 0; i < t.gamestate.players.length; i++) {
+        //     if (t.gamestate.players[i][Symbol.for("already-bet")] === true || t.gamestate.players[i][Symbol.for("all-in")] === true) {
+        //         data.allPlayersStatus[i].already_bet = true;
+        //     } else
+        //         data.allPlayersStatus[i].already_bet = false;
+        // }
+
 
         // #debug ----------------------------
         // console.log("\n-------------- tournament2.js -> dataRouter(data) case = cards ------------------");
@@ -239,12 +249,11 @@ const dataRouter = (data) => {
 
     } else if (data.type === 'bet' || data.type === "state") {
         // #debug ----------------------------
-        console.log("\n-------------- tournament2.js -> dataRouter(data) case = bet/state ------------------");
-        //console.log("\n---- gamestate ----");
-        //console.log(t.gamestate);
-        console.log("\n---- data ----");
-        console.log(data);
-
+        // console.log("\n-------------- tournament2.js -> dataRouter(data) case = bet/state ------------------");
+        // console.log("\n---- gamestate ----");
+        // console.log(t.gamestate);
+        // console.log("\n---- data ----");
+        // console.log(data);
         data.nextBetPosition = -1;
         data.nextPlayerStatus = {};
         data.allPlayersStatus = t.gamestate.players;
@@ -252,8 +261,7 @@ const dataRouter = (data) => {
         data.dispots = t.gamestate.sidepots;
         // patch in symbols for players
         for (let i = 0; i < t.gamestate.players.length; i++) {
-            if (t.gamestate.players[i][Symbol.for("already-bet")] === true) {
-                console.log(chalk.bgYellow("patched symbol!"));
+            if (t.gamestate.players[i][Symbol.for("already-bet")] === true || t.gamestate.players[i][Symbol.for("all-in")] === true) {
                 data.allPlayersStatus[i].already_bet = true;
             } else
                 data.allPlayersStatus[i].already_bet = false;
@@ -261,10 +269,12 @@ const dataRouter = (data) => {
 
         data.callAmount = t.gamestate.callAmount;
         data.pot = t.gamestate.pot;
-        data.dispots = t.gamestate.sidepots;
+        data.sidepots = t.gamestate.sidepots;
+        data.minBet = t.gamestate.sb * 2;
+        if (t.gamestate.lastRaiseAmount) { data.lastRaiseAmount = t.gamestate.lastRaiseAmount; }
+        else { data.lastRaiseAmount = 0; }
+
     } else if (data.type === 'win') {
-
-
         //Grab everyone's chips and shove to data.
         let playerAndChips = [];
         let pIdx = 0;
