@@ -1,7 +1,11 @@
 
 const generateCardPayload = require('../card-gen/card-namer');
 const async = require("async");
-
+/*          Chalk           */
+const chalk = require('chalk');
+const error = chalk.bold.red;
+const warning = chalk.keyword('orange');
+const preflop = chalk.black.bgWhite;
 
 /**
  * Back up method on generating cards in text base since multiple attempts of

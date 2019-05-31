@@ -228,8 +228,19 @@ const dataRouter = (data) => {
         // console.log(chalk.cyan('--------------------'))
         /*      Patch data to send out to start tournament      */
         data.cardImages = commonURL.shift();
-        data.nextBetPosition = t.gamestate.bigBlindPosition - 1 >= 0 ? t.gamestate.bigBlindPosition - 1 : t.gamestate.players.length - 1;
-        data.nextPlayerStatus = t.gamestate.players[data.nextBetPosition];
+        let x = t.gamestate.bigBlindPosition - 1 >= 0 ? t.gamestate.bigBlindPosition - 1 : t.gamestate.players.length - 1;
+        let n = 0;
+        data.nextPlayerStatus = t.gamestate.players[x];
+        while (data.nextPlayerStatus.state === 'fold' && n <= t.gamestate.players.length) {
+            x += 1;
+            if (x === t.gamestate.players.length) {
+                x = 0;
+                n++;
+            }
+            data.nextPlayerStatus = t.gamestate.players[x];
+        }
+        data.nextBetPosition = x;
+        data.skipped = n;
         data.nextPlayerStatus.already_bet = false;
         data.callAmount = t.gamestate.callAmount;
         data.pot = t.gamestate.pot;
@@ -255,7 +266,7 @@ const dataRouter = (data) => {
         // console.log("\n---- data ----");
         // console.log(data);
 
-    } else if (data.type === 'bet' || data.type === "state") {
+    } else if (data.type === 'bet' || data.type === 'state') {
         // #debug ----------------------------
         // console.log("\n-------------- tournament2.js -> dataRouter(data) case = bet/state ------------------");
         // console.log("\n---- gamestate ----");

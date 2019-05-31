@@ -272,7 +272,6 @@ const game_setup = async (data) => {
                 ]
             }
         }
-
     }
     // #debug------------------
     // console.log("\n./poker-game/start-tournament.js > READY TO START | players_in_lobby = ");
@@ -335,11 +334,15 @@ const eventHandler = async (local_data, msg) => {
             // potential next player is the next one after this last player
             let x = local_data.players_in_lobby[last_player_idx].idx + 1;
             if (x === local_data.num_players) { x = 0; }
-
+            let n = 0;
+            while (msg.data.allPlayersStatus[x].state === 'fold' && n < 10) {
+                x++; n++;
+                if (x === local_data.num_players) { x = 0; }
+            }
             /*          Set next player         */
             local_data.next_player_status = msg.data.allPlayersStatus[x];
             local_data.next_player_idx = x;
-
+            local_data.skipped = n;
         }
         else if (msg.data.type === "cards") {
             /*          Generate block message              */
@@ -359,6 +362,7 @@ const eventHandler = async (local_data, msg) => {
             /*      Get the next player by PHE index and status        */
             local_data.next_player_idx = msg.data.nextBetPosition;
             local_data.next_player_status = msg.data.nextPlayerStatus;
+            local_data.skipped = msg.data.skipped;
         }
         else if (msg.data.type === "showdown") {
             // #debug ---------------------------------------------------------
@@ -402,6 +406,11 @@ const getNextBet = async (msg, local_data, bot) => {
 
         console.log("\ngetNextBet() > Check next_player_status--------");
         console.log(local_data.next_player_status);
+        if (local_data.skipped) {
+            if (local_data.skipped > 0) {
+                console.log(chalk.red("! SKIPPED" + n + " folded player(s) !"));
+            }
+        }
 
         if (local_data.next_player_status.chips === 0) {
             console.log(chalk.blue("\n- makeBet() skipped > this player has all-in'd -\n"));
