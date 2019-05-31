@@ -167,9 +167,6 @@ const startT = (bot, local_data) => {
 //     }
 // }
 
-module.exports = {
-    startTournament
-};
 
 async function updatePlayerCardsImages(msg, players_in_lobby) {
     let imgArr = msg.data.cardImages;
@@ -487,4 +484,6 @@ const getNextBet = async (msg, local_data, bot) => {
     }
 }
 
-
+module.exports = {
+    startTournament
+};
