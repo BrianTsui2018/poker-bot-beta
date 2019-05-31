@@ -472,6 +472,17 @@ const getPlayerBankBalance = async (message) => {
     }
 }
 
+const giveDailyBonus = async (message) => {
+
+    //get user by id
+    let player = await getPlayerByID(message.user_slack_id);
+
+    //check time stamp if > 24 hours
+
+    //give or reject
+
+}
+
 module.exports = {
     createPoker,
     lobbyMenu,
@@ -481,5 +492,6 @@ module.exports = {
     refreshLobbyList,
     refreshLobbySection,
     placeBet,
-    getPlayerBankBalance
+    getPlayerBankBalance,
+    giveDailyBonus
 }
