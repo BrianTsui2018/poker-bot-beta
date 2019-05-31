@@ -444,10 +444,10 @@ const placeBet = async (data) => {
 
 /**
  * Retrieves user's bank balance and combine into message block.
- * @param {Object} message          message object from Slack bot
- * @param {String} user_slack_id    Slack ID to query for user
+ * @param {Object} data          message object from Slack bot
+ * @param {String} data.slack_id    Slack ID to query for user
  */
-const getPlayerBankBalance = async (message) => {
+const getPlayerBankBalance = async (data) => {
 
     let msg = [
         {
@@ -463,8 +463,8 @@ const getPlayerBankBalance = async (message) => {
     ]
 
     try {
-        let bank = await getPlayerBank(message.user_slack_id);
-        msg[0].text.text = `:currency_exchange: @<${message.user_slack_id}>Your current balance : $ *${bank}*.00 \n:hourglass_flowing_sand: Your next recharge comes in at *time*`
+        let bank = await getPlayerBank(data);
+        msg[0].text.text = `:currency_exchange: <@${data.slack_id}>Your current balance : $ *${bank}*.00 \n:hourglass_flowing_sand: Your next recharge comes in at *time*`
         return msg;
     } catch (error) {
         console.log("poker-command.js | getPlayerbankBalance | error ")

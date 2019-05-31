@@ -259,23 +259,31 @@ controller.hears(['quit', 'leave', 'done', 'check-out', 'check out', 'cash out',
 });
 
 
-controller.hears(['poker-balance', 'poker-bank', 'poker-money', 'How much money is in my bank'], 'direct_message,direct_mention, mention', async function (bot, message) {
+controller.hears(['bank', 'balance', 'money', 'How much money is in my bank'], 'direct_message,direct_mention, mention', async function (bot, message) {
     bot.replyAcknowledge();
     try {
-        let bankMsg = await getPlayerBankBalance(message);
-        if (!bankMsg) throw new Error("index.js | controller.hears poker-balance | Could not get user balance")
+
+        bot.startConversation(message, async function (err, convo) {
+            convo.say('');
+            convo.next();
+            convo.say('');
+            convo.next();
+            let bankMsg = await getPlayerBankBalance({ slack_id: message.user, team_id: message.team });
+            if (!bankMsg) throw new Error("index.js | controller.hears poker-balance | Could not get user balance")
+            bot.sendWebhook({
+                blocks: bankMsg,
+                channel: message.channel_id,
+            }, function (err, res) {
+                if (err) {
+                    console.log(err);
+                }
+            });
+        });
     } catch (error) {
         console.log(error)
     }
 
-    bot.sendWebhook({
-        blocks: bankMsg,
-        channel: message.channel_id,
-    }, function (err, res) {
-        if (err) {
-            console.log(err);
-        }
-    });
+
 });
 
 
