@@ -100,7 +100,11 @@ const lobbyIsFull = async (lobby_id) => {
     return true;
 }
 
-/*      Read the chip amount from user's bank (DB) by Slack user ID     */
+/**
+ *   Read the chip amount from user's bank (DB) by Slack user ID 
+ * @param {String} player_data  User slack ID
+ * @returns {Number} bank balance
+ */
 const getPlayerBank = async (player_data) => {
     const thisPlayer = await getPlayerByID(player_data);
     const chips = thisPlayer.bank;
