@@ -248,6 +248,8 @@ const dataRouter = (data) => {
         data.nextBetPosition = -1;
         data.nextPlayerStatus = {};
         data.allPlayersStatus = t.gamestate.players;
+        data.pot = t.gamestate.pot;
+        data.dispots = t.gamestate.sidepots;
         // patch in symbols for players
         for (let i = 0; i < t.gamestate.players.length; i++) {
             if (t.gamestate.players[i][Symbol.for("already-bet")] === true) {
