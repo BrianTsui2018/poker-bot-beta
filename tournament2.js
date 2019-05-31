@@ -276,6 +276,7 @@ const dataRouter = (data) => {
         let pIdx = 0;
         for (let player of t.gamestate.players) {
             let thisPlayer = { playerId: configs.playerList[pIdx].id, chips: player.chips, chipsBet: player.chipsBet }
+            pIdx++;
             playerAndChips.push(thisPlayer);
         }
         data.playersEndGame = [...playerAndChips];

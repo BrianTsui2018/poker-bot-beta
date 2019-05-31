@@ -230,6 +230,9 @@ const deposit = async (data, chips) => {
  */
 const calculateWinnings = (playersEndGame, winners) => {
 
+    console.log("-------------------pr.js | all ----------------")
+    console.log(playersEndGame)
+
     let playerWallets = []; // { playerId : x , chips : y}
     console.log("-------------------pr.js | winners----------------")
     console.log(winners)
@@ -237,18 +240,19 @@ const calculateWinnings = (playersEndGame, winners) => {
         let thisWinner = { playerId: w.playerId, chips: w.amount };
         playerWallets.push(thisWinner);
     }
+    console.log("-------------------pr.js | playerWallets Before----------------")
+    console.log(playerWallets);
 
-    console.log("-------------------pr.js | all ----------------")
-    console.log(playersEndGame)
+
     for (let player of playersEndGame) {
-        let exist = playerWallets.findIndex(p => p.playerId === player.id);
+        let exist = playerWallets.findIndex(p => p.playerId === player.playerId);
         if (exist === -1) {
             //not in list yet
-            let thisPlayer = { playerId: player.id, chips: player.chips };
+            let thisPlayer = { playerId: player.playerId, chips: player.chips };
             playerWallets.push(thisPlayer);
         } else {
             //already in list, add their remainder back.
-            playerWallets[exist].chips += player.chips
+            playerWallets[exist].chips += player.chips;
         }
 
     }
@@ -267,25 +271,37 @@ const calculateWinnings = (playersEndGame, winners) => {
 const updatePlayerWallet = async (playerList, team_id) => {
     console.log("----------------plist-------------------------");
     console.log(playerList)
-    async.each(playerList, async (player, callback) => {
+    async.each(playerList, (player, callback) => {
 
-        try {
-            // { playerId : x , chips : y}
-            console.log("!!! PLAYER ID ", player.playerId);
-            console.log("!!! team ID ", team_id);
-            let thisPlayer = await getOnePlayer({ slack_id: player.playerId, team_id });
+        // try {
+        // { playerId : x , chips : y}
+        console.log("!!! PLAYER ID ", player.playerId);
+        console.log("!!! team ID ", team_id);
+        //let thisPlayer = await getOnePlayer({ slack_id: player.playerId, team_id });
 
-            console.log("FOUND PLAYER ", thisPlayer);
-            thisPlayer.wallet = player.chips;
-            await thisPlayer.save();
+        getOnePlayer({ slack_id: player.playerId, team_id })
+            .then(thisPlayer => {
+                console.log("FOUND PLAYER ", thisPlayer);
+                thisPlayer.wallet = player.chips;
+                thisPlayer.save();
+            }).then(() => {
+                callback();
+            }).catch((err) => {
+                console.log(err);
+                throw new Error("Could not save or get");
+            })
 
-            callback();
+        // console.log("FOUND PLAYER ", thisPlayer);
+        // thisPlayer.wallet = player.chips;
+        //await thisPlayer.save();
 
-        } catch (error) {
-            console.log(error);
-            throw new Error("Could not find player nor update!")
 
-        }
+
+        // } catch (error) {
+        //     console.log(error);
+        //     throw new Error("Could not find player nor update!")
+
+        // }
 
         //callback()
     }, (err, res) => {

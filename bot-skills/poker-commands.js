@@ -384,7 +384,8 @@ const refreshLobbySection = async (bot, message, lobby_id) => {
 }
 
 const playerLeave = (user) => {
-    lobbyRemovePlayer(user);
+    let thisPlayer = lobbyRemovePlayer(user);
+    return thisPlayer;
 }
 
 
