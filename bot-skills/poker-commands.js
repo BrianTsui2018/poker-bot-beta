@@ -33,16 +33,12 @@ const {
 
 
 
-//const Botkit = require('botkit');
 
-
-/*------------------------------------------------------------------------------------
-|   Create New User
-|
-|   Description:
-|   Takes in a conversation object and the user data
-|   Creates a new user according to input data and returns the player object
-|                                                                                   */
+/**
+ * Creates a new user according to input data and returns the player object
+ * @param {Object}  user_data 
+ * @returns         updated user data
+ */
 const createNewUser = async (user_data) => {
     try {
         if (!user_data) {
@@ -67,13 +63,15 @@ const createNewUser = async (user_data) => {
     }
 }
 
-/*------------------------------------------------------------------------------------
-|   Setup Lobby
-|
-|   Description:
-|   This is a callback function.
-|   Assumes the necessary inputs have been recieved in convo.vars
-|                                                                                   */
+
+/**
+ * Setup Lobby
+ * @param {Botkit Object}   convo                       Botkit object
+ * @param {Number}          convo.vars.lobby_buyin
+ * @param {String}          convo.vars.lobby_name
+ * @param {Object}          user                        Contains slack ID and user ID
+ * @returns {Object|null}
+ */
 const setupLobby = async (convo, user) => {
 
     convo.say('');
@@ -120,6 +118,14 @@ const setupLobby = async (convo, user) => {
     }
 }
 
+
+/**
+ * Gets buy in from user.
+ * @param {Botkit Object}   convo       Botkit object
+ * @param {Object}          user 
+ * @param {Number}          user.bank   
+ * @returns {true|false}
+ */
 const getLobbyBuyinFromUser = async (convo, user) => {
     /*      Get the lobby buy-in from user      */
     let actionsList = await askForBuyin();
@@ -154,13 +160,12 @@ const getLobbyBuyinFromUser = async (convo, user) => {
     );
 }
 
-/*------------------------------------------------------------------------------------
-|   Get Lobby Name from User
-|
-|   Description:
-|   This is a callback function.
-|   Gets a lobby name from user
-|                                                                                   */
+
+/**
+ * Get Lobby Name from User
+ * @param {Botkit object}   convo 
+ * @param {Object}          user    Contains slack id and team id
+ */
 const getLobbyNameFromUser = async (convo, user) => {
 
     let actionsList = await genLobbyNames(5);
@@ -416,14 +421,19 @@ const newPlayerChips = async (bot, data) => {
     }
 }
 
+/**
+ * Constructs an object to make a bet request.
+ * @param {Object} data 
+ * @param {Number} data.val             Bet amount
+ * @param {String} data.user_slack_id   SlackID of the user who's betting
+ * @returns {Object|0}                  Returns an object of bet info on success
+ */
 const placeBet = async (data) => {
     if (data.choice !== "fold") {
-
         let betData = {
             action: data.val,
             userID: data.user_slack_id
         }
-
         try {
             let body = await axiosPUT(betData);
             data.spent = body.action;
@@ -434,8 +444,6 @@ const placeBet = async (data) => {
             console.log(error);
             return 0;
         }
-
-
     }
     else {
         return 0;
@@ -444,8 +452,9 @@ const placeBet = async (data) => {
 
 /**
  * Retrieves user's bank balance and combine into message block.
- * @param {Object} data          message object from Slack bot
+ * @param {Object} data             message object from Slack bot
  * @param {String} data.slack_id    Slack ID to query for user
+ * @returns                         Block builder message
  */
 const getPlayerBankBalance = async (data) => {
 
@@ -474,7 +483,7 @@ const getPlayerBankBalance = async (data) => {
 
 
 /**
- * 
+ *  Slack bot to give a daily bonus of 1M to the player who asked for it.
  * @param {Object} data 
  * @param {String} data.user
  * @param {String} data.team

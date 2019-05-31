@@ -732,7 +732,7 @@ const makeBet = (data) => {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": `*Wallet*: :heavy_dollar_sign: ${data.wallet} \n:arrow_forward: Current Call Amount : ${data.call_amount}"`
+                "text": `Wallet: :heavy_dollar_sign: *${data.wallet}* \n:arrow_forward: Current Call Amount : ${data.call_amount}`
             }
         },
         {

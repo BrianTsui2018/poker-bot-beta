@@ -138,6 +138,13 @@ const getLobbyPlayers = async (lobby_id) => {
     return { num_players, playerList };
 }
 
+
+/**
+ * 
+ * @param {Object} user_data    Object contains slack id and team id
+ * @param {String} lobby_id     Lobby id
+ * @returns {lobby|null}        returns lobby or null if something wrong.
+ */
 const playerJoinLobby = async (user_data, lobby_id) => {
     const thisPlayer = await getPlayerByID(user_data);
     let thisLobby = await getLobbyByID(lobby_id);
@@ -204,17 +211,12 @@ const playerJoinLobby = async (user_data, lobby_id) => {
 }
 
 
-/*----------------------------------------------------------------------
-|	[Manager.js] Get Curr Lobby Data
-|
-|	Description:
-|   -  Input: a player object
-|	-  Output: an [array] of 
-|           {   
-|               {lobby object}, 
-|               [currPlayers ID, ID, ID] 
-|           }
-|	 																	*/
+
+/**
+ * [Manager.js] Get Curr Lobby Data
+ * @param {Object} thisPlayer 
+ * @returns Array of { {lobby object}, currentPlayers [id, id, ...]}
+ */
 const getCurrLobbyData = async (thisPlayer) => {
 
     // #debug -------------
@@ -266,6 +268,11 @@ const getCurrLobbyData = async (thisPlayer) => {
     return data;
 }
 
+/**
+ * 
+ * @param {Object} thisLobby 
+ * @param {String} thisLobby._id    lobby ID used to locate the lobby from datapase.
+ */
 const getOneLobbyData = async (thisLobby) => {
     let data = [];
     /*      Get all the active players in lobby     */
@@ -306,6 +313,12 @@ const updatePlayerWallet = async (data) => {
 
 }
 
+
+/**
+ * 
+ * @param {Object} player_data  Player data containing slack id and team id
+ * @param {Number} amount       Amount of chips to be added to user bank
+ */
 const assignChip = async (player_data, amount) => {
     /*      Adds chips to user's bank (DB) by Slack user ID     */
     if (amount < 0) {
@@ -322,6 +335,15 @@ const withdrawChip = async (user_id, amount) => {
     // cannot be more than bank's ammount
 }
 
+
+
+/**
+ *  Creates a lobby with lobbies in a particular team and players in said team.
+ * @param {Object []}   allLobbiesInTeam 
+ * @param {Number}      allLobbiesInTeam.length
+ * @param {Object []}   allPlayersInTeam
+ * @param {Number}      allPlayersInTeam.length
+ */
 async function constructAllCurrLobbyData(allLobbiesInTeam, allPlayersInTeam) {
     let data = [];
     let N = allLobbiesInTeam.length;
@@ -349,9 +371,13 @@ async function constructAllCurrLobbyData(allLobbiesInTeam, allPlayersInTeam) {
     return data;
 };
 
+
+/**
+ * Makes a get request to utils app via axios
+ * @param {Object} currPlayer           contains slack ID
+ * @param {String} currPlayer.slack_id
+ */
 const axiosGet = async (currPlayer) => {
-
-
     const config = {
         params: {
             user: currPlayer.slack_id,
@@ -384,6 +410,11 @@ const axiosGet = async (currPlayer) => {
     return player_data;
 }
 
+/**
+ * Makes a PUT request to the utils app via Axios
+ * @param {Object} betData          Contains userID and bet amount
+ * @param {String} betData.userID
+ */
 const axiosPUT = async (betData) => {
 
     let url = `https://imai-poker-utils.herokuapp.com/ua/${betData.userID}/action`;
