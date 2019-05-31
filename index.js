@@ -14,7 +14,8 @@ const {
     refreshLobbyList,
     refreshLobbySection,
     placeBet,
-    getPlayerBankBalance
+    getPlayerBankBalance,
+    giveDailyBonus
 } = require('./bot-skills/poker-commands');
 
 const {
@@ -110,16 +111,6 @@ controller.hears('hi', 'direct_message, direct_mention, mention', (bot, message)
     });
 });
 
-controller.hears('I am hungry', 'direct_message, direct_mention, mention', (bot, message) => {
-    bot.replyAcknowledge();
-    bot.startConversation(message, function (err, convo) {
-        convo.say('');
-        convo.next();
-        convo.say("Me too.");
-        convo.next();
-        // convo.say("Wonder what's for dinner?");
-    });
-})
 //------------------------------------------------------------------------------------//
 
 //----------------------------------------
@@ -286,6 +277,40 @@ controller.hears(['bank', 'balance', 'money', 'How much money is in my bank'], '
 
 });
 
+controller.hears(['I am broke', 'I need money', 'money please', 'charge up',], 'direct_message,direct_mention, mention', async function (bot, message) {
+    bot.replyAcknowledge();
+    try {
+        bot.startConversation(message, async function (err, convo) {
+            convo.say('');
+            convo.next();
+            convo.say('');
+            convo.next();
+            let bonusMessage = await giveDailyBonus({ slack_id: message.user, team_id: message.team });
+            if (!bonusMessage) throw new Error("index.js | controller.hears give bonus | Could not finish bonus function")
+            bot.sendWebhook({
+                blocks: bonusMessage,
+                channel: message.channel_id,
+            }, function (err, res) {
+                if (err) {
+                    console.log(err);
+                }
+            });
+        });
+    } catch (error) {
+        console.log(error)
+    }
+
+});
+
+controller.hears(['money'], 'direct_message,direct_mention, mention', async function (bot, message) {
+    bot.startConversation(message, function (err, convo) {
+        convo.say('');
+        convo.next();
+        convo.say("Hello!");
+        convo.next();
+        convo.say("Say please.");
+    });
+});
 
 
 controller.hears(['demo', 'demonstrate'], 'direct_message,direct_mention, mention', function (bot, message) {

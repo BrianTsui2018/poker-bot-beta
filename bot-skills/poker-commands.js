@@ -472,6 +472,58 @@ const getPlayerBankBalance = async (data) => {
     }
 }
 
+
+/**
+ * 
+ * @param {Object} data 
+ * @param {String} data.user
+ * @param {String} data.team
+ */
+const giveDailyBonus = async (data) => {
+
+    let bonusMsg = [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": ""
+            }
+        },
+        {
+            "type": "divider"
+        }
+    ]
+    try {
+        //get user by id
+        let playerData = { slack_id: data.user, team_id: data.team }
+        let player = await getPlayerByID(playerData);
+        let msg;
+        //check time stamp if > 24 hours
+        //give or reject
+        const oneday = 60 * 60 * 24 * 1000;
+        const now = Date.now();
+        console.log('pk command .js | checking Date.now() ', now);
+        console.log('same, player.updatedAt', player.updatedAt)
+        if (now - player.updatedAt > oneDay) {
+            //more than a day
+            msg = `Ok.\n:yen::pound: <@${data.user}>'s got their daily bonus.:dollar::euro:`;
+            bonusmsg[0].text.text = accepted;
+
+            player = await assignChip(playerData, 1000000);
+            //let bankMsg = getPlayerBankBalance(playerData)
+
+        } else {
+            msg = `:x::timer_clock: <@${data.user}>, your next bonus is at ${player.updatedAt}* \n Go do some work for now. :wink:`
+        }
+
+        bonusMsg[0].text.text = msg;
+        return bonusMsg;
+    } catch (error) {
+        console.log("poker-commands.js | giveDailyBonus | error")
+        console.log(error)
+    }
+}
+
 module.exports = {
     createPoker,
     lobbyMenu,
@@ -481,5 +533,6 @@ module.exports = {
     refreshLobbyList,
     refreshLobbySection,
     placeBet,
-    getPlayerBankBalance
+    getPlayerBankBalance,
+    giveDailyBonus
 }

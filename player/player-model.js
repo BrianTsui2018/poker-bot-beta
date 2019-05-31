@@ -56,7 +56,12 @@ const playerSchema = new mongoose.Schema({
         trim: true,
         default: ''
     }
-});
+}, {
+        timestamps: {
+            createdAt: 'created_at',
+            updatedAt: 'updated_at'
+        }
+    });
 
 
 const player = mongoose.model('player', playerSchema);
