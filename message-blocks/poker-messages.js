@@ -706,17 +706,20 @@ const one_lobby_info = async (data) => {
 |
 |                                                                                   */
 const makeBet = (data) => {
+    console.log("\n---- sample data ----");
+    console.log(data);
+
     /*
         data.lobby_id
         data.cards
         data.cards_url
         data.wallet
-        data.curr_top_bet
+        data.call_amount
         data.min_bet
         data.chips_already_bet
     */
     if (!data.wallet) { data.wallet = 100001; }
-    if (!data.curr_top_bet) { data.curr_top_bet = 100000; }
+    if (!data.call_amount) { data.call_amount = 10; }
 
     /*      Display information     */
     let message_block = [
@@ -743,24 +746,18 @@ const makeBet = (data) => {
 
     /*      Call/check and Fold     */
     let bet_elemenets = [];
-    let chips_to_match = data.curr_top_bet - data.chips_already_bet;
+
     /*      Player has enough to call / check      */
-    if (chips_to_match < data.wallet) {
-        data.val = chips_to_match;
-        bet_elemenets.push(
-            button_check_call(data)
-        );
+    if (data.amount_in_short < data.wallet) {
+        data.val = data.amount_in_short;
+        bet_elemenets.push(button_check_call(data));
     } else {
         data.val = data.wallet;
-        bet_elemenets.push(
-            button_all_in(data)
-        );
+        bet_elemenets.push(button_all_in(data));
     }
 
     /*      Player can always fold        */
-    bet_elemenets.push(
-        button_fold(data)
-    );
+    bet_elemenets.push(button_fold(data));
     message_block.push(
         {
             "type": "actions",
@@ -768,25 +765,28 @@ const makeBet = (data) => {
         }
     );
 
-    let raise_elements = [];
     /*      Up to 8 raise buttons   */
-    for (let i = 0; i < 7; i++) {
-        if (data.curr_top_bet * (i + 2) < data.wallet) {
-            data.val = data.curr_top_bet * (i + 2);
-            raise_elements.push(
-                button_raise(data)
-            );
-        }
+    let raise_elements = [];
+    let base_raise_amount = 0;
+
+    console.log("\n--- makeBet() > input\ndata.amount_in_short = ", data.amount_in_short);
+    console.log("data.min_bet = ", data.min_bet);
+    if (data.amount_in_short === 0) { base_raise_amount = data.min_bet; } // case that no one has raised yet
+    else if (data.amount_in_short <= data.min_bet) { base_raise_amount = data.min_bet * 2; }  // case of small blind need to match up in Pre-Flop
+    else { base_raise_amount = data.amount_in_short; }  // case that there's already a raise, or Pre-Flop call/check for non-BB/SB players
+
+    for (let i = 1; i <= 8; i++) {
+        data.val = base_raise_amount * i;
+        if (data.val < data.wallet) { raise_elements.push(button_raise(data)); }
     }
+    console.log("base_raise_amount = ", base_raise_amount);
 
     /*          Raise: All in          */
     data.val = data.wallet;
-    raise_elements.push(
-        button_all_in(data)
-    );
+    raise_elements.push(button_all_in(data));
 
     /*      Player raise        */
-    if (data.curr_top_bet < data.wallet) {
+    if (data.call_amount < data.wallet) {
         message_block.push(
             {
                 "type": "section",
@@ -837,7 +837,7 @@ const button_check_call = (data) => {
             "emoji": true
         },
         "style": "primary",
-        "value": JSON.stringify({ "topic": "BET", "choice": "call", "val": data.val, "lobby_id": data.lobby_id }) //data.curr_top_bet
+        "value": JSON.stringify({ "topic": "BET", "choice": "call", "val": data.val, "lobby_id": data.lobby_id }) //data.call_amount
     };
 }
 

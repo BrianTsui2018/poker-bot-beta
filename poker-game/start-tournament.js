@@ -408,61 +408,78 @@ const getNextBet = async (msg, local_data, bot) => {
         console.log("\ngetNextBet() > Check next_player_status--------");
         console.log(local_data.next_player_status);
 
-        /*          Unset if player already bet         */
-        if (local_data.next_player_status.already_bet === true) {
-            console.log("\n");
-            console.log(chalk.bgCyan("This player already bet! Betting round done!"));
-            console.log(local_data.players_in_lobby[local_data.next_player_idx]);
-            console.log(chalk.bgCyan("------------------------\n"));
-        }
-        /*          Unset if player is not in active state (fold/all-in)         */
-        else if (local_data.next_player_status.state !== "active") {
-            console.log(chalk.blue("\n- makeBet() skipped > this player has already bet -\n"));
+        if (local_data.next_player_status.chips === 0) {
+            console.log(chalk.blue("\n- makeBet() skipped > this player has all-in'd -\n"));
         }
         else {
-            /*      The player      */
-            let betting_data = {};
-            if (local_data.next_player_idx === local_data.num_players) { local_data.next_player_idx = 0; }
-            let next_player = local_data.players_in_lobby.find(P => P.idx === local_data.next_player_idx);
-            betting_data.P = next_player;
-
-            // #debug ------------------
-            // console.log("\n--------- ./poker-game/start-tournament.js ------- next player to bet --------- ");
-            // console.log(next_player);
-            // console.log("-------------------------\n");
-            //-------------------------
-
-            /*      The lobby       */
-            betting_data.lobby_id = next_player.lastLobby;
-
-            /*      Message block       */
-            betting_data.wallet = local_data.next_player_status.chips;
-            betting_data.curr_top_bet = msg.data.callAmount;
-            betting_data.chips_already_bet = local_data.next_player_status.chipsBet;
-            let private_message_block = makeBet(betting_data);
-
-            // #debug ------------------
-            // console.log("\n------ msg.data.type === " + msg.data.type + " ----------\n    ----- betting_data -----");
-            // console.log(betting_data);
-            // console.log("\n------ msg.data.type === " + msg.data.type + " ----------\n    ----- message_block------");
-            // console.log(private_message_block);
-            //-------------------------
-
-            /*      Prepare payload     */
-            let bet_message_payload = {
-                "channel": local_data.channel,
-                "thread_ts": local_data.ts,
-                "token": process.env.BOT_TOKEN,
-                "user": next_player.slack_id,
-                "attachments": [
-                    {
-                        "blocks": private_message_block
-                    }
-                ]
+            /*          Unset if player already bet         */
+            if (local_data.next_player_status.already_bet === true) {
+                console.log("\n");
+                console.log(chalk.bgCyan("This player already bet! Betting round done!"));
+                console.log(local_data.players_in_lobby[local_data.next_player_idx]);
+                console.log(chalk.bgCyan("------------------------\n"));
             }
+            /*          Unset if player is not in active state (fold/all-in)         */
+            else if (local_data.next_player_status.state !== "active") {
+                console.log(chalk.blue("\n- makeBet() skipped > this player has already bet -\n"));
+            }
+            else {
 
-            /*      Send to one player       */
-            bot.api.chat.postEphemeral(bet_message_payload);
+                /*      The player      */
+                let betting_data = {};
+                if (local_data.next_player_idx === local_data.num_players) { local_data.next_player_idx = 0; }
+                let next_player = local_data.players_in_lobby.find(P => P.idx === local_data.next_player_idx);
+                betting_data.P = next_player;
+
+                /*      The lobby       */
+                betting_data.lobby_id = next_player.lastLobby;
+
+                /*      Message block       */
+                if (msg.data.amount) { betting_data.amount_in_short = msg.data.amount; }
+                else {
+                    betting_data.amount_in_short = msg.data.callAmount - local_data.next_player_status.chipsBet;
+                }
+
+                betting_data.wallet = local_data.next_player_status.chips;
+                betting_data.call_amount = msg.data.callAmount;
+                betting_data.chips_already_bet = local_data.next_player_status.chipsBet;
+                betting_data.min_bet = msg.data.minBet;
+
+
+                // #debug ------------------
+                console.log(chalk.bgYellow("\n----- [", next_player.name, "] is going to bet NOW!--------"));
+                // console.log("\n--------- ./poker-game/start-tournament.js ------- next player to bet --------- ");
+                // console.log(next_player);
+                console.log("-------------- msg.data : data supplied from tournament2.js ----------");
+                console.log(msg.data);
+                console.log("-------------- betting_data: data to be passed into makeBet() ------------");
+                console.log(betting_data);
+                //-------------------------
+                let private_message_block = makeBet(betting_data);
+
+                // #debug ------------------
+                // console.log("\n------ msg.data.type === " + msg.data.type + " ----------\n    ----- betting_data -----");
+                // console.log(betting_data);
+                // console.log("\n------ msg.data.type === " + msg.data.type + " ----------\n    ----- message_block------");
+                // console.log(private_message_block);
+                //-------------------------
+
+                /*      Prepare payload     */
+                let bet_message_payload = {
+                    "channel": local_data.channel,
+                    "thread_ts": local_data.ts,
+                    "token": process.env.BOT_TOKEN,
+                    "user": next_player.slack_id,
+                    "attachments": [
+                        {
+                            "blocks": private_message_block
+                        }
+                    ]
+                }
+
+                /*      Send to one player       */
+                bot.api.chat.postEphemeral(bet_message_payload);
+            }
         }
     }
 
