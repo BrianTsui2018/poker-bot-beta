@@ -279,100 +279,28 @@ const getOneLobbyData = async (thisLobby) => {
     return data;
 }
 
-/*--------------------------------------------------------------------
-|	[Player / Player-Router.js] Deposit
-|
-|	Description:
-|	- Special usage, deposit chips directly
-|   - chips ensured to be positive or atleast zero
-|																	*/
-const deposit = async (data, chips) => {
-    let thisPlayer = await getOnePlayer(data);
-    if (!thisPlayer) {
-        console.log('\n--------------------\nERROR! player-routers.js->deposit() could not find the player according to player_data\n--------------------------\n');
-        return null;
-    }
-    /*       Update Player data         */
-    thisPlayer.bank += chips;
-    //------------------------------------
-
-    /*       Push Player updates        */
-    let updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer, { new: true });
-    updatedPlayer = await player.findById(updatedPlayer._id);
-
-    return updatedPlayer;
-}
-//--------------------------------------------------------------------
-
 /**
- * 
- * @param {Object []} playersEndGame   Ones that just get remaining chips
- * @param {Object []} winners  Ones that remaining chips + winning amount.
- * @returns [] An array of playerIds and chips to be updated.
+ * Seeks for a player base on slack id and team id. Updates the wallet and saves.
+ * @param {object} data     Object contains a user_slack_id and team_id
  */
-const calculateWinnings = (playersEndGame, winners) => {
+const updatePlayerWallet = async (data) => {
 
-    let playerWallets = []; // { playerId : x , chips : y}
-    for (let w of winners) {
-        let thisWinner = { playerId: w.playerId, chips: w.amount };
-        playerWallets.push(thisWinner);
+    let playerinfo = { slack_id: data.user_slack_id, team_id: data.team_id };
+    try {
+        let player = await getOnePlayer(playerinfo);
+
+        console.log("Manager API | Wallet update !---------------");
+        console.log("Was : ", player.wallet)
+        player.wallet -= data.spent;
+        await player.save();
+        console.log("Now : ", player.wallet)
+
+    } catch (error) {
+        console.log("Manager API | Wallet update ERROR!---------------");
+        console.log(error);
     }
 
-    for (let player of playersEndGame) {
-        let exist = playerWallets.findIndex(p => p.playerId === player.playerId);
-        if (exist === -1) {
-            //not in list yet
-            let thisPlayer = { playerId: player.playerId, chips: player.chips };
-            playerWallets.push(thisPlayer);
-        } else {
-            //already in list, add their remainder back.
-            playerWallets[exist].chips += player.chips;
-        }
-
-    }
-    return playerWallets;
 }
-
-/**
- * Updates player wallet. Needs playerId and chips from EACH player in playerList.
- * @param {Object} playerList 
- * @param {String} team_id
- */
-const updatePlayerWallet = async (playerList, team_id) => {
-    async.each(playerList, (player, callback) => {
-
-        // try {
-        // { playerId : x , chips : y}
-        console.log("!!! PLAYER ID ", player.playerId);
-        console.log("!!! team ID ", team_id);
-        //let thisPlayer = await getOnePlayer({ slack_id: player.playerId, team_id });
-
-        getOnePlayer({ slack_id: player.playerId, team_id })
-            .then(thisPlayer => {
-                console.log("FOUND PLAYER ", thisPlayer);
-                thisPlayer.wallet = player.chips;
-                thisPlayer.save();
-            }).then(() => {
-                callback();
-            }).catch((err) => {
-                console.log(err);
-                throw new Error("Could not save or get");
-            })
-
-    }, (err, res) => {
-        if (err) {
-            console.log("Player-router.js | updatePlayerWallet ERROR | ")
-            console.log(err);
-        }
-
-        if (res) {
-            console.log("Manger.js | Updated wallet successfully.")
-        }
-
-    })
-}
-
-
 
 const assignChip = async (player_data, amount) => {
     /*      Adds chips to user's bank (DB) by Slack user ID     */
@@ -474,7 +402,6 @@ module.exports = {
     assignChip,
     withdrawChip,
     patchPlayerDP,
-    calculateWinnings,
     updatePlayerWallet,
     axiosGet,            // input only needs {name, slack_id}, returns { slack_id, display_name, dp_url }
     axiosPUT

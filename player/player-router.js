@@ -222,6 +222,100 @@ const deposit = async (data, chips) => {
 }
 //--------------------------------------------------------------------
 
+/**
+ * 
+ * @param {Object []} playersEndGame   Ones that just get remaining chips
+ * @param {Object []} winners  Ones that remaining chips + winning amount.
+ * @returns [] An array of playerIds and chips to be updated.
+ */
+const calculateWinnings = (playersEndGame, winners) => {
+
+    console.log("-------------------pr.js | all ----------------")
+    console.log(playersEndGame)
+
+    let playerWallets = []; // { playerId : x , chips : y}
+    console.log("-------------------pr.js | winners----------------")
+    console.log(winners)
+    for (let w of winners) {
+        let thisWinner = { playerId: w.playerId, chips: w.amount };
+        playerWallets.push(thisWinner);
+    }
+    console.log("-------------------pr.js | playerWallets Before----------------")
+    console.log(playerWallets);
+
+
+    for (let player of playersEndGame) {
+        let exist = playerWallets.findIndex(p => p.playerId === player.playerId);
+        if (exist === -1) {
+            //not in list yet
+            let thisPlayer = { playerId: player.playerId, chips: player.chips };
+            playerWallets.push(thisPlayer);
+        } else {
+            //already in list, add their remainder back.
+            playerWallets[exist].chips += player.chips;
+        }
+
+    }
+    console.log("-------------------pr.js | playerWallets ----------------")
+
+    console.log(playerWallets);
+
+    return playerWallets;
+}
+
+/**
+ * Updates player wallet. Needs playerId and chips from EACH player in playerList.
+ * @param {Object} playerList 
+ * @param {String} team_id
+ */
+const updatePlayerWallet = async (playerList, team_id) => {
+    console.log("----------------plist-------------------------");
+    console.log(playerList)
+    async.each(playerList, (player, callback) => {
+
+        // try {
+        // { playerId : x , chips : y}
+        console.log("!!! PLAYER ID ", player.playerId);
+        console.log("!!! team ID ", team_id);
+        //let thisPlayer = await getOnePlayer({ slack_id: player.playerId, team_id });
+
+        getOnePlayer({ slack_id: player.playerId, team_id })
+            .then(thisPlayer => {
+                console.log("FOUND PLAYER ", thisPlayer);
+                thisPlayer.wallet = player.chips;
+                thisPlayer.save();
+            }).then(() => {
+                callback();
+            }).catch((err) => {
+                console.log(err);
+                throw new Error("Could not save or get");
+            })
+
+        // console.log("FOUND PLAYER ", thisPlayer);
+        // thisPlayer.wallet = player.chips;
+        //await thisPlayer.save();
+
+
+
+        // } catch (error) {
+        //     console.log(error);
+        //     throw new Error("Could not find player nor update!")
+
+        // }
+
+        //callback()
+    }, (err, res) => {
+        if (err) {
+            console.log("Player-router.js | updatePlayerWallet ERROR | ")
+            console.log(err);
+        }
+
+        if (res) {
+            console.log("Updated wallet successfully.")
+        }
+
+    })
+}
 
 
 /**-------------------------------------------------------------------
@@ -263,7 +357,7 @@ const deletePlayerAll = async () => {
 //--------------------------------------------------------------------
 
 
-/** 
+/*--------------------------------------------------------------------
  * [Player / Player-Router.js] Get All Currently playing Players in team
  * @param   {Object}    data         bject that contains team_id
  * @param   {String}    data.team_id Used to search for a team in slack
@@ -309,6 +403,8 @@ module.exports = {
     withdraw,
     deposit,
     getOnePlayer,
+    calculateWinnings,
+    updatePlayerWallet,
     getAllPlayerInLobby,
     deletePlayerAll,
     getAllCurrentPlayersInTeam,
