@@ -34,7 +34,6 @@ let commonCardsFromGameState = [];                  //Stores card objects genera
  * proceed the tournament to the next stage.
  *  */
 pidgeon_index.on("recieved acknowledgement", () => {
-    console.log("PIDGEON: Index acknlowedged! Proceeding to done.")
     pidgeon.emit("Proceed Tournament");
 });
 
@@ -54,7 +53,6 @@ pidgeon_index.on("Data ready", (data) => {
  * pidgeon_image catches this event and sets the data to the corresponding variables.
  *  */
 pidgeon_image.on("recieved images", (message, imgData) => {
-    console.log("PIDGEON IMAGE: I have new images!");
     if (message === "pairs") {
         pairsURL = imgData;
     }
@@ -73,7 +71,7 @@ pidgeon.on("Check for image data", (data) => {
     if (data.type === 'setup') {
         setTimeout(() => {
             if (pairsURL) {
-                console.log(chalk.grey.bold("Found the images, adding to data."))
+                //console.log(chalk.grey.bold("Found the images, adding to data."))
                 data.cardImages = pairsURL;
                 pairsURL = null;
             }
@@ -96,7 +94,7 @@ const imageThread = childProcess.fork("./card-gen/card-generator.js");
 
 //Each time when PHE/Tournament.js has an update, this will catch it
 t.on("TOURNAMENT:updated", (data, done) => {
-    console.log(chalk.bgCyan('Tournament | Updated!'));
+    //console.log(chalk.bgCyan('Tournament | Updated!'));
 
     dataRouter(data);
 
@@ -113,33 +111,29 @@ t.on("TOURNAMENT:updated", (data, done) => {
 imageThread.on("message", (msg) => {
     switch (msg.topic) {
         case "pairs":
-            console.log(chalk.green("Image Thread : Got images back"));
+            //console.log(chalk.green("Image Thread : Got images back"));
             console.log(chalk.bgCyan('-------IMAGES---PAIRS-----------'))
             console.log(msg.data);
             console.log(chalk.bgCyan('--------------xxxxxx------------'))
-            //////////// PIDGEON
             pidgeon_image.emit("recieved images", msg.topic, msg.data);
-            //////////// PIDGEON
             let firstThreeCards = commonCardsFromGameState.splice(0, 3);
-            console.log('First Three Cards to Child : ', JSON.stringify(firstThreeCards));
+            //console.log('First Three Cards to Child : ', JSON.stringify(firstThreeCards));
             imageThread.send({ topic: "common-cards", data: firstThreeCards });
 
             break;
         case "common":
-            console.log(chalk.green("Image Thread : Got images back"));
+            //console.log(chalk.green("Image Thread : Got images back"));
             console.log(chalk.bgCyan('-------IMAGES--!COMMON!----------'))
             console.log(msg.data);
             console.log(chalk.bgCyan('--------------xxxxxx------------'))
-            //////////// PIDGEON
             pidgeon_image.emit("recieved images", msg.topic, msg.data);
-            //////////// PIDGEON
             if (commonCardsFromGameState.length > 0) {
                 console.log(chalk.cyan('Got common cards back, and common cards obj list has '));
                 console.log(commonCardsFromGameState)
                 imageThread.send({ topic: "common-cards", data: [commonCardsFromGameState.shift()] })
             } else {
                 console.log(chalk.cyan('commonCardsFromGameState.length is now ', commonCardsFromGameState.length));
-                console.log(chalk.cyan("Removing Image thread!"));
+                //console.log(chalk.cyan("Removing Image thread!"));
                 imageThread.kill();
                 console.log(chalk.cyan("Child thread removed"));
             }
@@ -179,9 +173,7 @@ process.on("message", async (msg) => {
             break;
         case "acknowledgement":
             console.log(error("tournament | Msg = acknowledgement. Attemping to leave loop......."));
-            //////////// PIDGEON
             pidgeon_index.emit("recieved acknowledgement");
-            //////////// PIDGEON
             console.log(warning("------------------------------------------"))
             break;
         default:
@@ -265,6 +257,8 @@ const dataRouter = (data) => {
         data.nextBetPosition = -1;
         data.nextPlayerStatus = {};
         data.allPlayersStatus = t.gamestate.players;
+        data.pot = t.gamestate.pot;
+        data.dispots = t.gamestate.sidepots;
         // patch in symbols for players
         for (let i = 0; i < t.gamestate.players.length; i++) {
             if (t.gamestate.players[i][Symbol.for("already-bet")] === true || t.gamestate.players[i][Symbol.for("all-in")] === true) {
