@@ -280,8 +280,8 @@ const game_setup = async (data) => {
 
     }
     // #debug------------------
-    console.log("\n./poker-game/start-tournament.js > READY TO START | players_in_lobby = ");
-    console.log(players_in_lobby);
+    // console.log("\n./poker-game/start-tournament.js > READY TO START | players_in_lobby = ");
+    // console.log(players_in_lobby);
 
     /*          Return this             */
     let return_data = {
@@ -379,17 +379,17 @@ const eventHandler = async (local_data, msg) => {
 
             local_data.this_block_message = update_showdown(msg, local_data.thisLobby.common_cards_url);
 
-            console.log('\n');
-            console.log(local_data.this_block_message);
+            // console.log('\n');
+            // console.log(local_data.this_block_message);
         }
         else if (msg.data.type === "win") {
             local_data.this_block_message = update_win(msg);
             // #debug --------------------------------------------------------
-            console.log('\n------------- WIN: -----------------\n');
-            console.log("\n---- local_data.thisLobby ----");
-            console.log(local_data.thisLobby);
-            console.log("\n---- local_data.players_in_lobby ----");
-            console.log(local_data.players_in_lobby);
+            // console.log('\n------------- WIN: -----------------\n');
+            // console.log("\n---- local_data.thisLobby ----");
+            // console.log(local_data.thisLobby);
+            // console.log("\n---- local_data.players_in_lobby ----");
+            // console.log(local_data.players_in_lobby);
             //----------------------------------------------------------------
         }
         else {
