@@ -34,7 +34,7 @@ let commonCardsFromGameState = [];                  //Stores card objects genera
  * proceed the tournament to the next stage.
  *  */
 pidgeon_index.on("recieved acknowledgement", () => {
-    console.log("PIDGEON: Index acknlowedged! Proceeding to done.")
+    // console.log("PIDGEON: Index acknlowedged! Proceeding to done.")
     pidgeon.emit("Proceed Tournament");
 });
 
@@ -178,7 +178,7 @@ process.on("message", async (msg) => {
             console.log(warning("-----------------------------------------"))
             break;
         case "acknowledgement":
-            console.log(error("tournament | Msg = acknowledgement. Attemping to leave loop......."));
+            //console.log(error("tournament | Msg = acknowledgement. Attemping to leave loop......."));
             //////////// PIDGEON
             pidgeon_index.emit("recieved acknowledgement");
             //////////// PIDGEON

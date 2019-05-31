@@ -230,19 +230,11 @@ const deposit = async (data, chips) => {
  */
 const calculateWinnings = (playersEndGame, winners) => {
 
-    console.log("-------------------pr.js | all ----------------")
-    console.log(playersEndGame)
-
     let playerWallets = []; // { playerId : x , chips : y}
-    console.log("-------------------pr.js | winners----------------")
-    console.log(winners)
     for (let w of winners) {
         let thisWinner = { playerId: w.playerId, chips: w.amount };
         playerWallets.push(thisWinner);
     }
-    console.log("-------------------pr.js | playerWallets Before----------------")
-    console.log(playerWallets);
-
 
     for (let player of playersEndGame) {
         let exist = playerWallets.findIndex(p => p.playerId === player.playerId);
@@ -256,10 +248,6 @@ const calculateWinnings = (playersEndGame, winners) => {
         }
 
     }
-    console.log("-------------------pr.js | playerWallets ----------------")
-
-    console.log(playerWallets);
-
     return playerWallets;
 }
 
@@ -275,13 +263,9 @@ const updatePlayerWallet = async (playerList, team_id) => {
 
         // try {
         // { playerId : x , chips : y}
-        console.log("!!! PLAYER ID ", player.playerId);
-        console.log("!!! team ID ", team_id);
-        //let thisPlayer = await getOnePlayer({ slack_id: player.playerId, team_id });
 
         getOnePlayer({ slack_id: player.playerId, team_id })
             .then(thisPlayer => {
-                console.log("FOUND PLAYER ", thisPlayer);
                 thisPlayer.wallet = player.chips;
                 thisPlayer.save();
             }).then(() => {

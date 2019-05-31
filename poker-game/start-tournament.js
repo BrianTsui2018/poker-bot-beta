@@ -98,8 +98,6 @@ const startT = (bot, local_data) => {
                 //set is_playing to false.
                 local_data.thisLobby.is_playing = false;
                 local_data.thisLobby = await updateLobby(local_data.thisLobby);
-                console.log(chalk.yellow("New lobby updated after end game--"));
-                console.log(local_data.thisLobby);
 
                 //End game player list : group everything in one array that has { playerId , chips}
                 let playerList = calculateWinnings(msg.data.playersEndGame, msg.data.winners);
@@ -114,9 +112,9 @@ const startT = (bot, local_data) => {
             else {
                 //Replace with actions for this state!
                 setTimeout(() => {
-                    console.log(chalk.bold("Attemting to end wait"));
+                    // console.log(chalk.bold("Attempting to end wait"));
                     thread.send({ topic: "acknowledgement" });
-                }, 8000);
+                }, 6000);
                 //----------------end replacement.
             }
         }
@@ -385,11 +383,11 @@ const eventHandler = async (local_data, msg) => {
         else if (msg.data.type === "win") {
             local_data.this_block_message = update_win(msg);
             // #debug --------------------------------------------------------
-            console.log('\n------------- WIN: -----------------\n');
-            console.log("\n---- local_data.thisLobby ----");
-            console.log(local_data.thisLobby);
-            console.log("\n---- local_data.players_in_lobby ----");
-            console.log(local_data.players_in_lobby);
+            // console.log('\n------------- WIN: -----------------\n');
+            // console.log("\n---- local_data.thisLobby ----");
+            // console.log(local_data.thisLobby);
+            // console.log("\n---- local_data.players_in_lobby ----");
+            // console.log(local_data.players_in_lobby);
             //----------------------------------------------------------------
         }
         else {
