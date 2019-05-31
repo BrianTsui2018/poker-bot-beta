@@ -30,10 +30,10 @@ const data_sample = {
         idx: 0
     },
     lobby_id: '5cf0fbcc832a4f4e0ca591d0',
-    amount_in_short: undefined,
+    amount_in_short: 1000,
     wallet: 99800,
-    call_amount: 2200,
-    chips_already_bet: 200,
+    call_amount: 2000,
+    chips_already_bet: 1000,
     min_bet: 2000
 }
 

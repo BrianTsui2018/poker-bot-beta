@@ -114,7 +114,7 @@ const startT = (bot, local_data) => {
                 setTimeout(() => {
                     // console.log(chalk.bold("Attempting to end wait"));
                     thread.send({ topic: "acknowledgement" });
-                }, 6000);
+                }, 8000);
                 //----------------end replacement.
             }
         }
@@ -437,7 +437,12 @@ const getNextBet = async (msg, local_data, bot) => {
                 else {
                     betting_data.amount_in_short = msg.data.callAmount - local_data.next_player_status.chipsBet;
                 }
-
+                // if (msg.data.type === "setup" || msg.data.type === "cards") {
+                //     betting_data.last_call_amount = msg.data.callAmount;
+                // }
+                // else {
+                //     console.log(chalk.cyan("To match currently is = ", betting_data.call_amount - betting_data.last_call_amount));
+                // }
                 betting_data.wallet = local_data.next_player_status.chips;
                 betting_data.call_amount = msg.data.callAmount;
                 betting_data.chips_already_bet = local_data.next_player_status.chipsBet;
@@ -445,7 +450,7 @@ const getNextBet = async (msg, local_data, bot) => {
 
 
                 // #debug ------------------
-                console.log(chalk.bgYellow("\n----- [", next_player.name, "] is going to bet NOW!--------"));
+                console.log(chalk.green("\n----- [", next_player.name, "] is going to bet NOW!--------"));
                 // console.log("\n--------- ./poker-game/start-tournament.js ------- next player to bet --------- ");
                 // console.log(next_player);
                 console.log("-------------- msg.data : data supplied from tournament2.js ----------");
@@ -485,6 +490,7 @@ const getNextBet = async (msg, local_data, bot) => {
         // Don't make bet messages in these updates
         console.log(chalk.blue("\n- makeBet() skipped > This is not an update:state that should be betting -\n"));
     }
+
 }
 
 

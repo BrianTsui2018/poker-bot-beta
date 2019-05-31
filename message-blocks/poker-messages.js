@@ -772,9 +772,7 @@ const makeBet = (data) => {
     console.log("data.min_bet = ", data.min_bet);
 
     if (data.amount_in_short === 0) { base_raise_amount = data.min_bet; } // case that no one has raised yet
-    else if (data.amount_in_short <= data.min_bet) { base_raise_amount = data.min_bet * 2; }  // case of small blind need to match up in Pre-Flop
-    else { base_raise_amount = data.amount_in_short; }  // case that there's already a raise, or Pre-Flop call/check for non-BB/SB players
-
+    else { base_raise_amount = (data.amount_in_short + data.chips_already_bet) * 2; }  // case that there's already a raise, or Pre-Flop call/check for non-BB/SB players
     for (let i = 1; i <= 8; i++) {
         data.val = base_raise_amount * i;
         if (data.val < data.wallet) { raise_elements.push(button_raise(data)); }
