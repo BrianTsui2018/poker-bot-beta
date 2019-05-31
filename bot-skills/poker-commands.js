@@ -492,25 +492,26 @@ const giveDailyBonus = async (data) => {
         {
             "type": "divider"
         }
-    ]
+    ];
     try {
         //get user by id
-        let playerData = { slack_id: data.user, team_id: data.team }
-        let player = await getPlayerByID(playerData);
+
+        let player = await getPlayerByID(data);
         let msg;
         //check time stamp if > 24 hours
         //give or reject
         const oneday = 60 * 60 * 24 * 1000;
         const now = Date.now();
         console.log('pk command .js | checking Date.now() ', now);
-        console.log('same, player.updatedAt', player.updatedAt)
-        if (now - player.updatedAt > oneDay) {
+        //console.log('same, player.updatedAt', player.updatedAt)
+        //now - player.updatedAt > oneDay
+        if (true) {
             //more than a day
-            msg = `Ok.\n:yen::pound: <@${data.user}>'s got their daily bonus.:dollar::euro:`;
-            bonusmsg[0].text.text = accepted;
+            msg = `Ok.\n:yen::pound: <@${data.slack_id}>'s got their daily bonus.:dollar::euro:`;
+            bonusMsg[0].text.text = msg;
 
-            player = await assignChip(playerData, 1000000);
-            //let bankMsg = getPlayerBankBalance(playerData)
+            player = await assignChip(data, 1000000);
+            //let bankMsg = getPlayerBankBalance(data)
 
         } else {
             msg = `:x::timer_clock: <@${data.user}>, your next bonus is at ${player.updatedAt}* \n Go do some work for now. :wink:`

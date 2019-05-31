@@ -277,7 +277,7 @@ controller.hears(['bank', 'balance', 'money', 'How much money is in my bank'], '
 
 });
 
-controller.hears(['I am broke', 'I need money', 'money please', 'charge up',], 'direct_message,direct_mention, mention', async function (bot, message) {
+controller.hears(['I am broke', 'recharge', 'bonus', 'charge up'], 'direct_message,direct_mention, mention', async function (bot, message) {
     bot.replyAcknowledge();
     try {
         bot.startConversation(message, async function (err, convo) {
@@ -287,6 +287,10 @@ controller.hears(['I am broke', 'I need money', 'money please', 'charge up',], '
             convo.next();
             let bonusMessage = await giveDailyBonus({ slack_id: message.user, team_id: message.team });
             if (!bonusMessage) throw new Error("index.js | controller.hears give bonus | Could not finish bonus function")
+            convo.say('');
+            convo.next();
+            convo.say('');
+            convo.next();
             bot.sendWebhook({
                 blocks: bonusMessage,
                 channel: message.channel_id,
@@ -301,17 +305,6 @@ controller.hears(['I am broke', 'I need money', 'money please', 'charge up',], '
     }
 
 });
-
-controller.hears(['money'], 'direct_message,direct_mention, mention', async function (bot, message) {
-    bot.startConversation(message, function (err, convo) {
-        convo.say('');
-        convo.next();
-        convo.say("Hello!");
-        convo.next();
-        convo.say("Say please.");
-    });
-});
-
 
 controller.hears(['demo', 'demonstrate'], 'direct_message,direct_mention, mention', function (bot, message) {
 
