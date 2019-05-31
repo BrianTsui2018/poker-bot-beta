@@ -1,6 +1,6 @@
 
-const generateCardPayload = require('../card-gen/card-namer')
-
+const generateCardPayload = require('../card-gen/card-namer');
+const async = require("async");
 
 
 /**
@@ -118,7 +118,7 @@ const retryGetPairCards = async (data) => {
     //console.log(chalk.magenta('CARDS ARRAY -'));
     //console.log(card_array);
     let image_url_array = [];
-    async.eachOf(card_array, async (p, idx, callback1) => {
+    async.eachOf(data.cards, async (p, idx, callback1) => {
         let cards = generateCardPayload(p);
         let url = `https://imai-poker-utils.herokuapp.com/iu/${cards.cardName}`;
 

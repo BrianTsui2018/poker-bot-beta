@@ -96,13 +96,13 @@ const startT = (bot, local_data) => {
             if (msg.data.type === 'win') {
 
                 //set is_playing to false.
-                thisLobby.is_playing = false;
-                thisLobby = await updateLobby(thisLobby);
+                local_data.thisLobby.is_playing = false;
+                local_data.thisLobby = await updateLobby(local_data.thisLobby);
                 console.log(chalk.yellow("New lobby updated after end game--"));
-                console.log(thisLobby);
+                console.log(local_data.thisLobby);
 
                 //End game player list : group everything in one array that has { playerId , chips}
-                let playerList = calculateWinnings(data.playersEndGame, data.winners);
+                let playerList = calculateWinnings(msg.data.playersEndGame, msg.data.winners);
 
                 //Update everyone's wallet with playerList
                 await updatePlayerWallet(playerList, local_data.thisLobby.team_id);
@@ -129,45 +129,45 @@ const startT = (bot, local_data) => {
 }
 
 /*      Not used debug function     */
-const testConfigSetupMsg = async (msg, bot) => {
-    console.log('\n------------ Testing dummy fetch ----------------\n');
-    try {
-        /*      Retrieve players data       */
-        const dummyLobbyID = await getLobbyIdByName("Test_Lobby_777");
-        const player_lobby_data = await getAllPlayerInLobby(dummyLobbyID);
+// const testConfigSetupMsg = async (msg, bot) => {
+//     console.log('\n------------ Testing dummy fetch ----------------\n');
+//     try {
+//         /*      Retrieve players data       */
+//         const dummyLobbyID = await getLobbyIdByName("Test_Lobby_777");
+//         const player_lobby_data = await getAllPlayerInLobby(dummyLobbyID);
 
-        /*      Convert DB JSON data into a suitable structure      */
-        let players = [];
-        let N = player_lobby_data.length;
-        for (let i = 0; i < N; i++) {
-            let player = player_lobby_data[i];
-            let P = {
-                id: player.slack_id,
-                name: player.name,
-                serviceUrl: "(missing)"
-            };
-            players.push(P);
-        }
-        console.log('\n------------ msg from tournament instance ----------------\n');
-        // console.log(players);
-        console.log(msg);
-        console.log('-------------------------------------------\n');
-        /*      Build the block message with the player data and topic      */
-        const blockmsg = require('./configSetupMsg')(players, msg.topic);
-        /*      Bot send block message to slack        */
-        bot.sendWebhook({
-            blocks: blockmsg,
-            channel: message.channel_id,
-        }, function (err, res) {
-            if (err) {
-                console.log(err);
-            }
-        });
-    }
-    catch (error) {
-        console.log(error);
-    }
-}
+//         /*      Convert DB JSON data into a suitable structure      */
+//         let players = [];
+//         let N = player_lobby_data.length;
+//         for (let i = 0; i < N; i++) {
+//             let player = player_lobby_data[i];
+//             let P = {
+//                 id: player.slack_id,
+//                 name: player.name,
+//                 serviceUrl: "(missing)"
+//             };
+//             players.push(P);
+//         }
+//         console.log('\n------------ msg from tournament instance ----------------\n');
+//         // console.log(players);
+//         console.log(msg);
+//         console.log('-------------------------------------------\n');
+//         /*      Build the block message with the player data and topic      */
+//         const blockmsg = require('./configSetupMsg')(players, msg.topic);
+//         /*      Bot send block message to slack        */
+//         bot.sendWebhook({
+//             blocks: blockmsg,
+//             channel: message.channel_id,
+//         }, function (err, res) {
+//             if (err) {
+//                 console.log(err);
+//             }
+//         });
+//     }
+//     catch (error) {
+//         console.log(error);
+//     }
+// }
 
 module.exports = {
     startTournament
@@ -231,6 +231,7 @@ const game_setup = async (data) => {
 
             /*      Retrieve players data       */
             players_in_lobby = await getAllPlayerInLobby(data.lobby_id);
+
             if (players_in_lobby.length < 2) {
                 console.log("\n./poker-game/start-tournament.js -> This lobby will not start because there is only 1 player in lobby-------");
                 /*      Reset to false      */
@@ -317,8 +318,9 @@ const eventHandler = async (local_data, msg) => {
                 console.log(local_data.players_in_lobby[0].cards);
             }
 
-            /*      Get the next player by PHE index        */
+            /*      Get the next player by PHE index and status        */
             local_data.next_player_idx = msg.data.nextBetPosition;
+            local_data.next_player_status = msg.data.nextPlayerStatus;
 
             /*      Backup Card images          */
             if (!msg.data.cardImages[0].url) {
@@ -328,41 +330,48 @@ const eventHandler = async (local_data, msg) => {
         }
         else if (msg.data.type === "state" || msg.data.type === "bet") {
             /*          Report the last player's bet        */
-            let last_player = local_data.players_in_lobby.find(P => P.slack_id === msg.data.playerId);
+            let last_player_idx = local_data.players_in_lobby.findIndex(P => P.slack_id === msg.data.playerId);
 
             /*          Generate block message              */
-            msg.data.player = last_player;
+            msg.data.player = local_data.players_in_lobby[last_player_idx];
             local_data.this_block_message = update_state(msg);
 
             /*      Get the next player by PHE index        */
-            local_data.next_player_idx = last_player.idx + 1;
+            // potential next player is the next one after this last player
+            let x = local_data.players_in_lobby[last_player_idx].idx + 1;
+            if (x === local_data.num_players) { x = 0; }
+
+            /*          Set next player         */
+            local_data.next_player_status = msg.data.allPlayersStatus[x];
+            local_data.next_player_idx = x;
 
         }
-
         else if (msg.data.type === "cards") {
             /*          Generate block message              */
             local_data.this_block_message = update_cards(msg);
 
             /*      Backup Card images          */
             if (!local_data.this_block_message[1].image_url) {
+
                 console.log(chalk.red("!! -- IMAGE NOT FOUND -- !! Starting backup measures"));
                 local_data.this_block_message = await retryGetCommonCards(local_data);
+
             }
 
             /*          Save common cards image url in thisLobby         */
             local_data.thisLobby.common_cards_url = local_data.this_block_message[1].image_url;
 
-            /*      Get the next player by PHE index        */
+            /*      Get the next player by PHE index and status        */
             local_data.next_player_idx = msg.data.nextBetPosition;
-
+            local_data.next_player_status = msg.data.nextPlayerStatus;
         }
         else if (msg.data.type === "showdown") {
-            // #debug ---------------
-            console.log('\n------------- SHOWDOWN: -----------------\n');
-            console.log(msg);
-            console.log("\n------------ msg.data.ranks");
-            console.log(JSON.stringify(msg.data.ranks));
-
+            // #debug ---------------------------------------------------------
+            // console.log('\n------------- SHOWDOWN: -----------------\n');
+            // console.log(msg);
+            // console.log("\n------------ msg.data.ranks");
+            // console.log(JSON.stringify(msg.data.ranks));
+            //----------------------------------------------------------------
             for (let i = 0; i < msg.data.ranks.length; i++) {
                 let thisPlayer = await getOnePlayer({ slack_id: msg.data.ranks[i].playerId, team_id: local_data.this_team_id });
                 msg.data.ranks[i].bestCardsInfo.url = thisPlayer.cards;
@@ -375,6 +384,13 @@ const eventHandler = async (local_data, msg) => {
         }
         else if (msg.data.type === "win") {
             local_data.this_block_message = update_win(msg);
+            // #debug --------------------------------------------------------
+            console.log('\n------------- WIN: -----------------\n');
+            console.log("\n---- local_data.thisLobby ----");
+            console.log(local_data.thisLobby);
+            console.log("\n---- local_data.players_in_lobby ----");
+            console.log(local_data.players_in_lobby);
+            //----------------------------------------------------------------
         }
         else {
             console.log(chalk.red("DEBUG: Uncaught message from child! ", msg.topic));
@@ -385,55 +401,74 @@ const eventHandler = async (local_data, msg) => {
 
 
 const getNextBet = async (msg, local_data, bot) => {
+
     /*          Gather data and send message to the player            */
-    if (msg.data.type === "setup" || (msg.data.type === "bet") || msg.data.type === "cards") {
+    if (msg.data.type === "setup" || msg.data.type === "bet" || msg.data.type === "cards" || msg.data.type === "state") {
 
-        /*      The player      */
-        let betting_data = {};
-        if (local_data.next_player_idx === local_data.num_players) { local_data.next_player_idx = 0; }
-        let next_player = local_data.players_in_lobby.find(P => P.idx === local_data.next_player_idx);
-        betting_data.P = next_player;
+        console.log("\ngetNextBet() > Check next_player_status--------");
+        console.log(local_data.next_player_status);
 
-        // #debug ------------------
-        // console.log("\n--------- ./poker-game/start-tournament.js ------- next player to bet --------- ");
-        // console.log(next_player);
-        // console.log("-------------------------\n");
-        //-------------------------
-
-        /*      The lobby       */
-        betting_data.lobby_id = next_player.lastLobby;
-
-        /*      Message block       */
-        betting_data.wallet = msg.data.nextPlayerStatus.chips;
-        betting_data.curr_top_bet = msg.data.callAmount;
-        betting_data.chips_already_bet = msg.data.nextPlayerStatus.chipsBet;
-        let private_message_block = makeBet(betting_data);
-
-        // #debug ------------------
-        // console.log("\n------ msg.data.type === " + msg.data.type + " ----------\n    ----- betting_data -----");
-        // console.log(betting_data);
-        // console.log("\n------ msg.data.type === " + msg.data.type + " ----------\n    ----- message_block------");
-        // console.log(private_message_block);
-        //-------------------------
-
-        /*      Prepare payload     */
-        let bet_message_payload = {
-            "channel": local_data.channel,
-            "thread_ts": local_data.ts,
-            "token": process.env.BOT_TOKEN,
-            "user": next_player.slack_id,
-            "attachments": [
-                {
-                    "blocks": private_message_block
-                }
-            ]
+        /*          Unset if player already bet         */
+        if (local_data.next_player_status.already_bet === true) {
+            console.log("\n");
+            console.log(chalk.bgCyan("This player already bet! Betting round done!"));
+            console.log(local_data.players_in_lobby[local_data.next_player_idx]);
+            console.log(chalk.bgCyan("------------------------\n"));
         }
+        /*          Unset if player is not in active state (fold/all-in)         */
+        else if (local_data.next_player_status.state !== "active") {
+            console.log(chalk.blue("\n- makeBet() skipped > this player has already bet -\n"));
+        }
+        else {
+            /*      The player      */
+            let betting_data = {};
+            if (local_data.next_player_idx === local_data.num_players) { local_data.next_player_idx = 0; }
+            let next_player = local_data.players_in_lobby.find(P => P.idx === local_data.next_player_idx);
+            betting_data.P = next_player;
 
-        /*      Send to one player       */
-        bot.api.chat.postEphemeral(bet_message_payload);
+            // #debug ------------------
+            // console.log("\n--------- ./poker-game/start-tournament.js ------- next player to bet --------- ");
+            // console.log(next_player);
+            // console.log("-------------------------\n");
+            //-------------------------
+
+            /*      The lobby       */
+            betting_data.lobby_id = next_player.lastLobby;
+
+            /*      Message block       */
+            betting_data.wallet = local_data.next_player_status.chips;
+            betting_data.curr_top_bet = msg.data.callAmount;
+            betting_data.chips_already_bet = local_data.next_player_status.chipsBet;
+            let private_message_block = makeBet(betting_data);
+
+            // #debug ------------------
+            // console.log("\n------ msg.data.type === " + msg.data.type + " ----------\n    ----- betting_data -----");
+            // console.log(betting_data);
+            // console.log("\n------ msg.data.type === " + msg.data.type + " ----------\n    ----- message_block------");
+            // console.log(private_message_block);
+            //-------------------------
+
+            /*      Prepare payload     */
+            let bet_message_payload = {
+                "channel": local_data.channel,
+                "thread_ts": local_data.ts,
+                "token": process.env.BOT_TOKEN,
+                "user": next_player.slack_id,
+                "attachments": [
+                    {
+                        "blocks": private_message_block
+                    }
+                ]
+            }
+
+            /*      Send to one player       */
+            bot.api.chat.postEphemeral(bet_message_payload);
+        }
     }
+
     else {
         // Don't make bet messages in these updates
+        console.log(chalk.blue("\n- makeBet() skipped > This is not an update:state that should be betting -\n"));
     }
 }
 

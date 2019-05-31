@@ -57,59 +57,59 @@ const askForBuyin = () => {
 }
 
 
-// const showdown_mockup = () => {
+const showdown_mockup = () => {
 
-//     let message_block = [
-//         {
-//             "type": "section",
-//             "text": {
-//                 "type": "mrkdwn",
-//                 "text": "SHOW DOWN."
-//             }
-//         },
-//         {
-//             "type": "image",
-//             "title": {
-//                 "type": "plain_text",
-//                 "text": "All cards revealed!",
-//                 "emoji": true
-//             },
-//             "image_url": "https://i.imgur.com/ceTQ9vF.jpg",
-//             "alt_text": "All cards revealed! "
-//         },
-//         {
-//             "type": "section",
-//             "text": {
-//                 "type": "mrkdwn",
-//                 "text": "*Your Best Combo:*\n Stephanie : *TWO PAIRS*"
-//             },
-//             "accessory": {
-//                 "type": "image",
-//                 "image_url": "https://i.imgur.com/rqxxJsZ.jpg",
-//                 "alt_text": "computer thumbnail"
-//             }
-//         },
-//         {
-//             "type": "divider"
-//         },
-//         {
-//             "type": "section",
-//             "text": {
-//                 "type": "mrkdwn",
-//                 "text": "*Game Over!* Stephanie has lost the game to Noah, who had *ROYAL FLUSH* !"
-//             }
-//         },
-//         {
-//             "type": "section",
-//             "text": {
-//                 "type": "plain_text",
-//                 "text": "Until the next game! :smile: :beer:",
-//                 "emoji": true
-//             }
-//         }
-//     ];
-//     return message_block;
-// }
+    let message_block = [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "SHOW DOWN."
+            }
+        },
+        {
+            "type": "image",
+            "title": {
+                "type": "plain_text",
+                "text": "All cards revealed!",
+                "emoji": true
+            },
+            "image_url": "https://i.imgur.com/ceTQ9vF.jpg",
+            "alt_text": "All cards revealed! "
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "*Your Best Combo:*\n Stephanie : *TWO PAIRS*"
+            },
+            "accessory": {
+                "type": "image",
+                "image_url": "https://i.imgur.com/rqxxJsZ.jpg",
+                "alt_text": "computer thumbnail"
+            }
+        },
+        {
+            "type": "divider"
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "*Game Over!* Stephanie has lost the game to Noah, who had *ROYAL FLUSH* !"
+            }
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "plain_text",
+                "text": "Until the next game! :smile: :beer:",
+                "emoji": true
+            }
+        }
+    ];
+    return message_block;
+}
 
 
 const update_setup_msg_data_debug = (msg) => {
@@ -306,9 +306,9 @@ const update_state = (msg) => {
 const update_setup = (msg) => {
     /*          Build Players Name List           */
     const num_players = msg.data.players.length;
-    let playerNameList = msg.data.players[0].name;
+    let playerNameList = '<@' + msg.data.players[0].name + '>';
     for (let i = 1; i < num_players; i++) {
-        playerNameList = playerNameList.concat(', ', msg.data.players[i].name);
+        playerNameList = playerNameList.concat(', <@', msg.data.players[i].name, '>');
     }
     // #debug -----------
     // console.log('\n--------- poker-messages.js -> update_setup() ----------');
@@ -318,13 +318,6 @@ const update_setup = (msg) => {
     //---------------------
 
     let message_block = [
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": ":spades: :hearts: *Starting Poker Holdem Engine!*:clubs::diamonds: "
-            }
-        },
         {
             "type": "section",
             "text": {
@@ -388,7 +381,7 @@ const update_win = (msg) => {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": `:medal:*Winner: <@${msg.data.winners[0].playerId}>* :medal: \n ${msg.data.winners[0].playerId} has won *${msg.data.winners[0].amount}* from the pot!`
+                "text": `:medal:*Winner: <@${msg.data.winners[0].playerId}>* :medal: \n <@${msg.data.winners[0].playerId}> has won *${msg.data.winners[0].amount}* from the pot!`
             },
             "accessory": {
                 "type": "image",
