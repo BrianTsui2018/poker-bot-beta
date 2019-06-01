@@ -543,7 +543,7 @@ const giveDailyBonus = async (data) => {
             await updateLastBonus(player, now);
 
         } else {
-            msg = `:x::timer_clock: <@${data.slack_id}>, your next bonus is at ${player.updatedAt}* \n Go do some work for now. :wink:`
+            msg = `:x::timer_clock: <@${data.slack_id}>, your next bonus is at ${player.lastBonus}* \n Go do some work for now. :wink:`
         }
 
         bonusMsg[0].text.text = msg;

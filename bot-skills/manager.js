@@ -307,12 +307,12 @@ const getOneLobbyData = async (thisLobby) => {
  */
 const updateLastBonus = async (data, time) => {
 
-    let playerinfo = { slack_id: data.user_slack_id, team_id: data.team_id };
     try {
-        let player = await getOnePlayer(playerinfo);
 
         console.log("Manager API | lastBonus !---------------");
-        console.log("Was : ", player.lastBonus);
+        let oldtime = getLastBonusAt(data);
+        console.log("Was : ", oldtime);
+        let player = await getOnePlayer(data);
         player.lastBonus = time;
         await player.save();
         console.log("Now : ", player.lastBonus);
@@ -469,7 +469,6 @@ module.exports = {
     getPlayerByID,
     getPlayerBank,
     assignChip,
-    getLastBonusAt,
     withdrawChip,
     patchPlayerDP,
     updatePlayerWallet,
