@@ -110,6 +110,16 @@ const getPlayerBank = async (player_data) => {
     const chips = thisPlayer.bank;
     return chips;
 }
+/**
+ *   Read the updated at date from user's bank (DB) by Slack user ID
+ * @param {String} player_data  User slack ID
+ * @returns {Number} bank balance
+ */
+const getLastBonusAt = async (player_data) => {
+    const thisPlayer = await getPlayerByID(player_data);
+    const updatedTime = thisPlayer.timestamp.updateUpdatedAt();
+    return updatedTime;
+}
 
 const patchPlayerDP = async (newPlayer) => {
     let extra_data = await axiosGet({ "slack_id": newPlayer.slack_id, "name": newPlayer.name });            // input only needs {name, slack_id}, returns { slack_id, display_name, dp_url }
@@ -290,6 +300,28 @@ const getOneLobbyData = async (thisLobby) => {
     return data;
 }
 
+ /*
+ * Seeks for a player based on slack id and team id. Updates the timeStamp.udatedAt and saves.
+ * @param {object} data     Object contains a user_slack_id and team_id
+ */
+const updateUpdatedAt = async (data, time) => {
+
+    let playerinfo = { slack_id: data.user_slack_id, team_id: data.team_id };
+    try {
+        let player = await getOnePlayer(playerinfo);
+
+        console.log("Manager API | timestampupdate !---------------");
+        console.log("Was : ", player.timestamp.updatedAt);
+        player.timestamp.updatedAt = time;
+        await player.save();
+        console.log("Now : ", player.timestamp.updatedAt);
+
+    } catch (error) {
+        console.log("Manager API | timestamp update ERROR!---------------");
+        console.log(error);
+    }
+
+}
 /**
  * Seeks for a player base on slack id and team id. Updates the wallet and saves.
  * @param {object} data     Object contains a user_slack_id and team_id
@@ -312,6 +344,7 @@ const updatePlayerWallet = async (data) => {
     }
 
 }
+
 
 
 /**
@@ -435,9 +468,11 @@ module.exports = {
     getPlayerByID,
     getPlayerBank,
     assignChip,
+    getLastBonusAt,
     withdrawChip,
     patchPlayerDP,
     updatePlayerWallet,
+    updateUpdatedAt,
     axiosGet,            // input only needs {name, slack_id}, returns { slack_id, display_name, dp_url }
     axiosPUT
 };

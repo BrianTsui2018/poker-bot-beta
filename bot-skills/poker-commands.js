@@ -21,8 +21,10 @@ const {
     getPlayerByID,
     getPlayerBank,
     assignChip,
+    getLastBonusAt,
     withdrawChip,
     patchPlayerDP,
+    updateUpdatedAt,
     updatePlayerWallet,
     axiosPUT
 } = require('./manager.js');
@@ -485,11 +487,12 @@ const getPlayerBankBalance = async (data) => {
         {
             "type": "divider"
         }
-    ]
-
+    ];
     try {
         let bank = await getPlayerBank(data);
-        msg[0].text.text = `:currency_exchange: <@${data.slack_id}>Your current balance : $ *${bank}*.00 \n:hourglass_flowing_sand: Your next recharge comes in at *time*`
+        let lastBonusAt = await getLastBonusTime(data);
+        let timeToGo = Math.ceil(Date.now()- lastBonusAt) / 36000000;
+        msg[0].text.text = `:currency_exchange: <@${data.slack_id}>Your current balance : $ *${bank}*.00 \n:hourglass_flowing_sand: Your next recharge comes in ${timeToGo} hours`;
         return msg;
     } catch (error) {
         console.log("poker-command.js | getPlayerbankBalance | error ")
@@ -536,6 +539,8 @@ const giveDailyBonus = async (data) => {
 
             player = await assignChip(data, 1000000);
             //let bankMsg = getPlayerBankBalance(data)
+            player.now = now;
+            await updateUpdatedAt(player, now);
 
         } else {
             msg = `:x::timer_clock: <@${data.user}>, your next bonus is at ${player.updatedAt}* \n Go do some work for now. :wink:`
