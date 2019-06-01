@@ -393,7 +393,15 @@ const playerLeave = (user) => {
     return thisPlayer;
 }
 
-
+/**
+ * Creates a new user, stores name, team id and stuff'em up with chips.
+ * @param {Botkit object}   bot 
+ * @param {Object}          data    Contains slack id, team id, user_name, team_domain
+ * @param {String}          data.user_slack_id
+ * @param {String}          data.team_id
+ * @param {String}          data.team_domain
+ * @param {String}          data.channel_id
+ */
 const newPlayerChips = async (bot, data) => {
     let thisPlayer = await getPlayerByID({ slack_id: data.user_slack_id, team_id: data.team_id });
 
