@@ -310,7 +310,7 @@ const updateLastBonus = async (data, time) => {
     try {
 
         console.log("Manager API | lastBonus !---------------");
-        let oldtime = getLastBonusAt(data);
+        let oldtime = await getLastBonusAt(data);
         console.log("Was : ", oldtime);
         let player = await getOnePlayer(data);
         player.lastBonus = time;
@@ -472,6 +472,7 @@ module.exports = {
     withdrawChip,
     patchPlayerDP,
     updatePlayerWallet,
+    getLastBonusAt,
     updateLastBonus,
     axiosGet,            // input only needs {name, slack_id}, returns { slack_id, display_name, dp_url }
     axiosPUT
