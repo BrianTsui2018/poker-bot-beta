@@ -578,7 +578,7 @@ const joinedAndStartGame = async (lobby_id) => {
         "text": ":spades: :hearts: *Starting Texas Holdem' Poker!*:clubs::diamonds:\nPlayers in *" + thisLobby.name + "* :\n:small_orange_diamond:" + names_str + ", please enter this game thread:small_orange_diamond:\n(Click below)"
     }
     bot.api.chat.postMessage(head_payload, function (err, response) {
-        console.log(`this response= ${response}`);
+        console.log(response);
         thisTS = response.message.ts;
 
         let thread_payload = {
