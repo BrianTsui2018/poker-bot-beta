@@ -1092,7 +1092,7 @@ const get_show_down_user = (playerId, bestCardsInfo) => {
         "accessory":
         {
             "type": "image",
-            "image_url": `${bestCardsInfo.url} `, //Fill with image url
+            "image_url": `${bestCardsInfo.url}`, //Fill with image url
             "alt_text": "Card pairs"
         }
     };
@@ -1101,9 +1101,13 @@ const get_show_down_user = (playerId, bestCardsInfo) => {
 
 const SHOWDOWN = (data, url) => {
     let showdown_array = get_show_down_template(url);
+    console.log("!!!!!!!!!!!!pkmsgjs | SHOWDOWN!!!!!!!!!!!!")
+    console.log(showdown_array);
+    console.log(JSON.stringify(showdown_array))
     /*      Loop through each "showdown" player        */
     for (let idx = 0; idx < data.ranks.length; idx++) {
         let show_down_user = get_show_down_user(data.ranks[idx].playerId, data.ranks[idx].bestCardsInfo)
+        console.log(show_down_user)
         showdown_array.push(show_down_user);
         // showdown_array[showdown_array.length - 1].text.text = `*<@${ data.ranks[idx].playerId }>*\n: black_small_square: Best Cards: ${ data.ranks[idx].bestCardsInfo.name } .`;
         // showdown_array[showdown_array.length - 1].accessory.image_url = data.ranks[idx].bestCardsInfo.url;
@@ -1112,6 +1116,7 @@ const SHOWDOWN = (data, url) => {
 
     return showdown_array;
 }
+
 module.exports = {
     askForBuyin,
     genLobbyNames,

@@ -45,7 +45,9 @@ const {
     updatePlayer
 } = require('../player/player-router');
 
-const { retryGetCommonCards, retryGetPairCards } = require('../utils/cards');
+
+/*        Requirement         */
+const childProcess = require("child_process");
 
 const startTournament = async (bot, data) => {
 
@@ -63,10 +65,6 @@ const startTournament = async (bot, data) => {
 }
 
 const startT = (bot, local_data) => {
-
-    /*        Requirement         */
-    const childProcess = require("child_process");
-
     /*       Variables         */
     let configs = [JSON.stringify(local_data.tournament_configuration)];
     local_data.next_player_idx = -1;
@@ -82,7 +80,8 @@ const startT = (bot, local_data) => {
         else {
             /*        Build update message block + set next player to bet       */
             local_data = await eventHandler(local_data, msg);
-
+            console.log(chalk.cyan("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"))
+            console.log(local_data.this_block_message)
             /*        Send update to Slack            */
             bot.sendWebhook(getUpdatePayload(local_data), async function (err, res) {
                 if (err) {
@@ -107,8 +106,10 @@ const startT = (bot, local_data) => {
                 await updatePlayerWallet(playerList, local_data.thisLobby.team_id);
 
                 /*      One game ended, kill thread       */
-                thread.send({ topic: "quit-game" });
-                thread.kill();
+                // thread.send({ topic: "quit-game" });
+                // thread.kill();
+                thread.send({ topic: "continue" })
+
             }
             else {
                 //Replace with actions for this state!
@@ -363,7 +364,10 @@ const eventHandler = async (local_data, msg) => {
                 msg.data.ranks[i].bestCardsInfo.url = thisPlayer.cards;
             }
 
+            console.log("!!!!!!!!------showdown!!!!!!!!!!!!!!!!!!");
+            console.log("")
             local_data.this_block_message = update_showdown(msg, local_data.thisLobby.common_cards_url);
+            //local_data.this_block_message = showdown_mockup();
         }
         else if (msg.data.type === "win") {
             local_data.this_block_message = update_win(msg);
