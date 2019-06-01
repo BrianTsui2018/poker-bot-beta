@@ -545,7 +545,7 @@ const giveDailyBonus = async (data) => {
         } else {
             let timeToGo = Math.ceil(24 -((Date.now()- player.lastBonus) / (3600000)));
             if(timeToGo <= 1){
-                timeToGo = Math.ceil(1400 -((Date.now()- player.lastBonus) / (60000)));
+                timeToGo = Math.ceil(1440 -((Date.now()- player.lastBonus) / (60000)));
                 msg = `:x::timer_clock: <@${data.slack_id}>, your next bonus is in less than ${timeToGo} minutes. \n Go do some work. :wink:`
             }else{
                 msg = `:x::timer_clock: <@${data.slack_id}>, your next bonus is in less than ${timeToGo} hours. \n Go do some work. :wink:`
