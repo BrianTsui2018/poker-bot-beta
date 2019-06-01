@@ -7,10 +7,6 @@ const warning = chalk.keyword('orange');
 const preflop = chalk.black.bgWhite;
 
 
-//Debug
-//const HAVE_CARDS = false;
-
-
 const {
     showdown_mockup,
     update_state_msg_data_debug,

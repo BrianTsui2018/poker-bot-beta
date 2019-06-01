@@ -18,9 +18,8 @@ const warning = chalk.keyword('orange');
 // Boolean to track if cards are processed or not:
 // let cards_not_done = true;
 
-// DUMMY DATA REMOVE IF NOT NEEDED
-//const dummyData = require('./player/dummy-players.json');
-const HAVE_CARDS = false;
+// DEBUG : IF IMGUR IS DOWN SWITCH THIS TO TRUE.
+const HAVE_CARDS = true;
 
 //One additional listener to track acknowledgement from parent
 const events = require('events');
@@ -198,7 +197,6 @@ const dataRouter = (data) => {
         // 1) Make child thread to make card-pairs
         // console.log(chalk.bold("Sending card pairs to child to handle------------"))
         // console.log(data.players)
-        console.log("BEFORE SENDING PAIRCARDS , HAVE_CARDS::", HAVE_CARDS);
         imageThread.send({ topic: "card-pairs", data: data.players, HAVE_CARDS });
 
         /*      Patch data to send out to start tournament      */

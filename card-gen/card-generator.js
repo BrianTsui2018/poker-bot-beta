@@ -10,14 +10,7 @@ let allCommonCards = [];
 
 //Communicates with parent thread (Tournament)
 process.on("message", (msg) => {
-    console.log("MSG HAVE CARDS-------------------------")
-    console.log(msg)
-    console.log(msg.HAVE_CARDS);
-    //if (msg.HAVE_CARDS) {
-    //    console.log("___DETECTED AND ASSIGN")
     HAVE_CARDS = msg.HAVE_CARDS;
-    // }
-    console.log(chalk.magenta("This round's HAVE_CARDS ::: ", HAVE_CARDS));
     switch (msg.topic) {
         case "common-cards":
             console.log(chalk.magenta("card-gen | Msg = common-cards"));
@@ -34,8 +27,6 @@ process.on("message", (msg) => {
             break;
         case "card-pairs":
             let cardPairs = [];
-            // console.log("Card Gen | Case card-pairs")
-            // console.log(JSON.stringify(msg.data));
             let playersID = [];
 
             for (let idx = 0; idx < msg.data.length; idx++) {

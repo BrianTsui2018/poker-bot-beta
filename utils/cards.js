@@ -6,37 +6,17 @@ const chalk = require("chalk")
  * Back up method on generating cards in text base since multiple attempts of
  * getting the image version has failed.
  * @param {String} type A single character that represents type heart / spades / clubs / diamonds
- * @returns {Array}     An array that consists of the card base.
+ * @returns {String}     An string with the symbol.
  */
 const getCardType = (type) => {
 
-    let spade_base = [
-        " .  |",
-        "| /.\\ |",
-        "|(_._)|",
-        "|  |  |",
-    ];
+    let spade_base = "|  ♠  |";
 
-    let diamond_base = [
-        " ^  |",
-        "| / \\ |",
-        "| \\ / |",
-        "|  v  |",
-    ];
+    let diamond_base = "|  ♢  |";
 
-    let heart_base = [
-        "_ _ |",
-        "|( v )|",
-        "| \\ / |",
-        "|  v  |",
-    ]
+    let heart_base = "|  ♡  |";
 
-    let club_base = [
-        " _  |",
-        "| ( ) |",
-        "|(_'_)|",
-        "|  |  |",
-    ];
+    let club_base = "|  ♣  |";
 
     switch (type) {
         case 'D': return diamond_base;
@@ -59,23 +39,21 @@ const getCardType = (type) => {
 const textBasedCards = (cardArray) => {
     console.log("textbcard | ")
     console.log(cardArray)
-    let card_set = ["", "", "", "", "", ""];
+    let card_set = ["", "", "", ""];
     //length of card array determines the number of cards
     for (card of cardArray) { //type, rank in each.
         console.log('This card --->', card);
         let thisCard = getCardType(card.type);
         card_set[0] += " _____ ";
-        card_set[2] += thisCard[1];
-        card_set[3] += thisCard[2];
-        card_set[4] += thisCard[3];
+        card_set[2] += thisCard;
 
         if (card.rank === '10') {
-            card_set[1] += `|${card.rank}` + thisCard[0].slice(1);
-            card_set[5] += "|___" + `${card.rank}|`;
+            card_set[1] += `|${card.rank}` + "   |";
+            card_set[3] += "|___" + `${card.rank}|`;
         }
         else {
-            card_set[1] += `|${card.rank}` + thisCard[0];
-            card_set[5] += "|____" + `${card.rank}|`;
+            card_set[1] += `|${card.rank}` + "    |";
+            card_set[3] += "|____" + `${card.rank}|`;
         }
     }
 
