@@ -117,7 +117,7 @@ const getPlayerBank = async (player_data) => {
  */
 const getLastBonusAt = async (player_data) => {
     const thisPlayer = await getPlayerByID(player_data);
-    const updatedTime = thisPlayer.timestamp.updateUpdatedAt();
+    const updatedTime = thisPlayer.lastBonus;
     return updatedTime;
 }
 
@@ -301,23 +301,24 @@ const getOneLobbyData = async (thisLobby) => {
 }
 
  /*
- * Seeks for a player based on slack id and team id. Updates the timeStamp.udatedAt and saves.
+ * Seeks for a player based on slack id and team id. Updates the lastBonus and saves.
  * @param {object} data     Object contains a user_slack_id and team_id
+ * @param time from Data.now()
  */
-const updateUpdatedAt = async (data, time) => {
+const updateLastBonus = async (data, time) => {
 
     let playerinfo = { slack_id: data.user_slack_id, team_id: data.team_id };
     try {
         let player = await getOnePlayer(playerinfo);
 
-        console.log("Manager API | timestampupdate !---------------");
-        console.log("Was : ", player.timestamp.updatedAt);
-        player.timestamp.updatedAt = time;
+        console.log("Manager API | lastBonus !---------------");
+        console.log("Was : ", player.lastBonus);
+        player.lastBonus = time;
         await player.save();
-        console.log("Now : ", player.timestamp.updatedAt);
+        console.log("Now : ", player.lastBonus);
 
     } catch (error) {
-        console.log("Manager API | timestamp update ERROR!---------------");
+        console.log("Manager API | lastBonus update ERROR!---------------");
         console.log(error);
     }
 
@@ -472,7 +473,7 @@ module.exports = {
     withdrawChip,
     patchPlayerDP,
     updatePlayerWallet,
-    updateUpdatedAt,
+    updateLastBonus,
     axiosGet,            // input only needs {name, slack_id}, returns { slack_id, display_name, dp_url }
     axiosPUT
 };

@@ -55,6 +55,10 @@ const playerSchema = new mongoose.Schema({
         type: String,
         trim: true,
         default: ''
+    },
+    lastBonus: {
+        type: Number,
+        default: 0
     }
 }, {
         timestamps: {
