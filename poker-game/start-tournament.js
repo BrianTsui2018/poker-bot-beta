@@ -479,6 +479,7 @@ const getNextBet = async (msg, local_data, bot) => {
                     "thread_ts": local_data.ts,
                     "token": process.env.BOT_TOKEN,
                     "user": next_player.slack_id,
+                    // "text": "testing hello"
                     "attachments": [
                         {
                             "blocks": private_message_block
