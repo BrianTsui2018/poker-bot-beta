@@ -15,7 +15,8 @@ const {
     refreshLobbySection,
     placeBet,
     getPlayerBankBalance,
-    giveDailyBonus
+    giveDailyBonus,
+    joinedAndStartGame
 } = require('./bot-skills/poker-commands');
 
 const {
@@ -344,18 +345,21 @@ controller.hears(['demo', 'demonstrate'], 'direct_message,direct_mention, mentio
                                 "token": process.env.BOT_TOKEN,
                                 "channel": response.channel,
                                 "ts": response.message.ts,
-                                "text": "spades: :hearts: *Starting Poker Holdem Engine!*:clubs::diamonds:"
+                                "text": ":spades: :hearts: *Starting Poker Holdem Engine!*:clubs::diamonds:"
                             }
-                            bot.api.chat.postMessage(payload);
+                            bot.api.chat.postMessage(payload, function (err, response) {
 
-                            startTournament(bot, { "channel": response.channel, "ts": response.message.ts });
+                                startTournament(bot, { "channel": response.channel, "ts": response.message.ts, "use_demo": true });
+                            });
+
+
                         });
                         // bot.reply(convo, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:", function (err, response) {
                         //     response.message.channel = convo.context.channel;
                         //     startTournament(bot, response.message);
                         //     convo.say('Click into game message to see progress in Thread.');
                         // });
-                        convo.stop();
+                        convo.next();
                     }
                 },
                 {
@@ -436,11 +440,32 @@ controller.on('block_actions', async function (bot, message) {
         } else {
             console.log("\nindex.js : case JOINED\n");
             bot.reply(message, `<@${message.user}>, you have joined the lobby *${result.name}*.\nPlease await in the lobby's thread.:clubs:`), function (err, response) {
+
             };
+
+
             /*      Start Tournament automatically      */
-            bot.reply(message, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:", function (err, response) {
-                startTournament(bot, { "channel": response.channel, "ts": response.message.ts, "lobby_id": data.lobby_id, "use_demo": false });
-            });
+            // bot.reply(message, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:", function (err, response) {
+            //     let start_data = {
+            //         "channel": response.channel,
+            //         "ts": response.message.ts,
+            //         "lobby_id": data.lobby_id,
+            //         "use_demo": false
+            //     }
+            //     startTournament(bot, start_data);
+            // });
+
+
+            // bot.startConversation(message, function (err, convo) {
+            //     convo.say(":spades: :hearts: *Starting Texas Holdem' Poker!*:clubs::diamonds:\n(Enter game thread)");
+            //     console.log(convo);
+            //     console.log("\n-----------\n");
+
+
+            //     convo.task.bot
+            // });
+
+            joinedAndStartGame(response.lobby_id)
         }
     }
     else if (response.topic === "CREATE_LOBBY") {

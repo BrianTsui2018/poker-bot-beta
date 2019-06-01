@@ -200,6 +200,7 @@ const game_setup = async (data) => {
         /*       DUMMY PLAYERS          */
         const dummyData = require('../player/dummy-players.json');
         const dummyLobbyID = await getLobbyIdByName(dummyData.lobbyName);
+        thisLobby = await getOneLobby(dummyLobbyID);
         players_in_lobby = await getAllPlayerInLobby(dummyLobbyID);
         tournament_configuration = dummyData;
         READY_TO_START = true;
@@ -233,6 +234,9 @@ const game_setup = async (data) => {
             } else {
                 console.log("\n./poker-game/start-tournament.js -> This lobby is not playing and is ready to start!-------");
             }
+        }
+        else {
+            console.log("\nDebug: This lobby is playing at the moment.");
         }
 
         let t_pList = [];

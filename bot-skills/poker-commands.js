@@ -533,6 +533,70 @@ const giveDailyBonus = async (data) => {
     }
 }
 
+
+const joinedAndStartGame = async (lobby_id) => {
+    /*      Get the lobby           */
+    let thisLobby = await getLobbyByID(lobby_id);
+    // console.log("\njoinedAndStartGame() ---- thisLobby");
+    // console.log(thisLobby);
+
+    /*      Get all players         */
+    let L = await getLobbyPlayers(lobby_id);
+    let players = L.playerList;
+
+    /*      Construct names string        */
+    let names_str = '<@' + L.playerList[0].slack_id + '>';
+    for (let i = 1; i < L.num_players; i++) {
+        names_str = names_str.concat(', <@', L.playerList[i].slack_id, '>');
+    }
+
+    /*      Get the channel         */
+    let thisChannel = thisLobby.channel;
+    let thisTS;
+
+    /*      Post message, get ts        */
+    let head_payload = {
+        "token": process.env.BOT_TOKEN,
+        "channel": thisChannel,
+        "text": ":spades: :hearts: *Starting Texas Holdem' Poker!*:clubs::diamonds:\nPlayers in *" + thisLobby.name + "* :\n:small_orange_diamond:" + names_str + ", please enter this game thread:small_orange_diamond:\n(Click below)"
+    }
+    bot.api.chat.postMessage(head_payload, function (err, response) {
+        // console.log(response);
+        thisTS = response.message.ts;
+
+        let thread_payload = {
+            "token": process.env.BOT_TOKEN,
+            "channel": thisChannel,
+            "thread_ts": thisTS,
+            "text": "Welcome! The game will be starting soon, please stand by...:hourglass_flowing_sand:"
+        }
+        // console.log("\n------ thread_payload");
+        // console.log(thread_payload);
+        bot.api.chat.postMessage(thread_payload, function (err, response) {
+            startTournament(bot, { "channel": thisChannel, "ts": thisTS, "use_demo": true });
+        });
+    });
+    /*      Post message to ts          */
+
+    /*      Start Tournmanet at ts      */
+
+
+
+
+    // let payload = {
+    //     "token": process.env.BOT_TOKEN,
+    //     "channel": ,
+    //     //"ts": response.message.ts,
+    //     "text": ":spades: :hearts: *Starting Texas Holdem' Poker!*:clubs::diamonds:\n(Enter game thread)"
+    // }
+    // bot.api.chat.postMessage(payload, function (err, response) {
+    //     console.log(response);
+    //     //startTournament(bot, { "channel": response.channel, "ts": response.message.ts, "use_demo": true });
+    // });
+
+}
+
+
 module.exports = {
     createPoker,
     lobbyMenu,
@@ -543,5 +607,6 @@ module.exports = {
     refreshLobbySection,
     placeBet,
     getPlayerBankBalance,
-    giveDailyBonus
+    giveDailyBonus,
+    joinedAndStartGame
 }
