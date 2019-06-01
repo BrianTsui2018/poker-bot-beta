@@ -752,7 +752,7 @@ const makeBet = (data) => {
     /*      Call/check and Fold     */
     let bet_elemenets = [];
 
-    /*      Player has enough to call / check      */
+    // /*      Player has enough to call / check      */
     if (data.amount_in_short < data.wallet) {
         data.val = data.amount_in_short;
         bet_elemenets.push(button_check_call(data));
@@ -780,6 +780,7 @@ const makeBet = (data) => {
 
     if (data.amount_in_short === 0) { base_raise_amount = data.min_bet; } // case that no one has raised yet
     else { base_raise_amount = (data.amount_in_short) * 2; }  // case that there's already a raise, or Pre-Flop call/check for non-BB/SB players
+
     for (let i = 1; i <= 8; i++) {
         data.val = base_raise_amount * i;
         if (data.val < data.wallet) { raise_elements.push(button_raise(data)); }
@@ -793,7 +794,7 @@ const makeBet = (data) => {
     raise_elements.push(button_all_in(data));
 
     /*      Player raise        */
-    if (data.call_amount < data.wallet) {
+    if (data.amount_in_short < data.wallet) {
         message_block.push(
             {
                 "type": "section",
@@ -804,7 +805,7 @@ const makeBet = (data) => {
             },
             {
                 "type": "actions",
-                "elements": "+" + raise_elements
+                "elements": raise_elements
             }
         );
     }
