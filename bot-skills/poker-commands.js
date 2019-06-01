@@ -492,7 +492,7 @@ const getPlayerBankBalance = async (data) => {
     try {
         let bank = await getPlayerBank(data);
         let lastBonusAt = await getLastBonusAt(data);
-        let timeToGo = Math.ceil((Date.now()- lastBonusAt) / (1000 * 60 * 60));
+        let timeToGo = Math.ceil(24 -((Date.now()- lastBonusAt) / (1000 * 60 * 60)));
         msg[0].text.text = `:currency_exchange: <@${data.slack_id}>Your current balance : $ *${bank}*.00 \n:hourglass_flowing_sand: Your next recharge comes in ${timeToGo} hours`;
         return msg;
     } catch (error) {
@@ -543,10 +543,12 @@ const giveDailyBonus = async (data) => {
             await updateLastBonus(player, now);
 
         } else {
-            let timeToGo = Math.ceil((Date.now()- player.lastBonus) / (1000 * 60 * 60));
-            if(timeToGo < 1){
-                timeToGo = Math.ceil((Date.now()- player.lastBonus) / (1000 * 60));
-                msg = `:x::timer_clock: <@${data.slack_id}>, your next bonus is in less than ${timeTo} minutes. \n Go do some work. :wink:`
+            let timeToGo = Math.ceil(24 -((Date.now()- player.lastBonus) / (1000 * 60 * 60)));
+            if(timeToGo <= 1){
+                timeToGo = Math.ceil(60 -((Date.now()- player.lastBonus) / (1000 * 60)));
+                msg = `:x::timer_clock: <@${data.slack_id}>, your next bonus is in less than ${timeToGo} minutes. \n Go do some work. :wink:`
+            }else{
+                msg = `:x::timer_clock: <@${data.slack_id}>, your next bonus is in less than ${timeToGo} hours. \n Go do some work. :wink:`
             }
 
         }
