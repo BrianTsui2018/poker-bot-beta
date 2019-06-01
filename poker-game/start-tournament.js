@@ -170,17 +170,14 @@ const startT = (bot, local_data) => {
 
 async function updatePlayerCardsImages(msg, players_in_lobby) {
     let imgArr = msg.data.cardImages;
-    console.log(chalk.cyan("\n./poker-game/start-tournament.js > updatePlayerCardsImages() > compare the following urls:"));
+
 
     for (let i = 0; i < imgArr.length; i++) {
         let x = players_in_lobby.findIndex(P => P.slack_id === imgArr[i].id);
         players_in_lobby[x].cards = imgArr[i].url;
         players_in_lobby[x] = await updatePlayer(players_in_lobby[x]);
         players_in_lobby[x].idx = imgArr[i].index;
-        console.log("--------- source");
-        console.log(imgArr[i].url);
-        console.log("---------- stored in my array");
-        console.log(players_in_lobby[x].cards);
+
     }
 }
 
@@ -421,7 +418,7 @@ const getNextBet = async (msg, local_data, bot) => {
             if (local_data.next_player_status.already_bet === true) {
                 console.log("\n");
                 console.log(chalk.bgCyan("This player already bet! Betting round done!"));
-                console.log(local_data.players_in_lobby[local_data.next_player_idx]);
+                console.log(local_data.players_in_lobby[local_data.next_player_idx].name);
                 console.log(chalk.bgCyan("------------------------\n"));
             }
             /*          Unset if player is not in active state (fold/all-in)         */
@@ -449,17 +446,18 @@ const getNextBet = async (msg, local_data, bot) => {
                 // else {
                 //     console.log(chalk.cyan("To match currently is = ", betting_data.call_amount - betting_data.last_call_amount));
                 // }
+
                 betting_data.wallet = local_data.next_player_status.chips;
                 betting_data.call_amount = msg.data.callAmount;
                 betting_data.chips_already_bet = local_data.next_player_status.chipsBet;
                 betting_data.min_bet = msg.data.minBet;
-                betting_data.cards_array = msg.data.next_player_status.cards;
+                betting_data.cards_array = local_data.next_player_status.cards;
                 betting_data.type = msg.data.type;
 
                 // #debug ------------------
                 console.log(chalk.green("\n----- [", next_player.name, "] is going to bet NOW!--------"));
-                console.log("\n--------- ./poker-game/start-tournament.js ------- next player to bet --------- ");
-                console.log(next_player);
+                // console.log("\n--------- ./poker-game/start-tournament.js ------- next player to bet --------- ");
+                // console.log(next_player);
                 // console.log("-------------- msg.data : data supplied from tournament2.js ----------");
                 // console.log(msg.data);
                 console.log("-------------- betting_data: data to be passed into makeBet() ------------");

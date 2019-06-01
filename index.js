@@ -435,14 +435,12 @@ controller.on('block_actions', async function (bot, message) {
             bot.reply(message, `<@${message.user}>, you are currently playing in that game already.`);
         } else {
             console.log("\nindex.js : case JOINED\n");
-            bot.reply(message, `<@${message.user}>, you have joined the lobby *${result.name}*.\nPlease await in the lobby's thread.:clubs:`);
-
+            bot.reply(message, `<@${message.user}>, you have joined the lobby *${result.name}*.\nPlease await in the lobby's thread.:clubs:`), function (err, response) {
+            };
             /*      Start Tournament automatically      */
             bot.reply(message, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:", function (err, response) {
                 startTournament(bot, { "channel": response.channel, "ts": response.message.ts, "lobby_id": data.lobby_id, "use_demo": false });
             });
-
-
         }
     }
     else if (response.topic === "CREATE_LOBBY") {

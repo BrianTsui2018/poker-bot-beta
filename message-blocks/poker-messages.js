@@ -275,7 +275,7 @@ const update_state = (msg) => {
         update = `:spades: *<@${msg.data.player.slack_id}>* has decided to *${msg.data.state}* ...`;
     }
     else if (msg.data.session) {
-        update = `:moneybag: *<@${msg.data.player.slack_id}> has decided to bet :heavy_dollar_sign:*${msg.data.amount}* !`;
+        update = `:moneybag: *<@${msg.data.player.slack_id}> bet :heavy_dollar_sign:*${msg.data.amount}* !`;
     }
     else {
         throw new Error(" poker-message.js | data is neither STATE nor BET. Please check files.");
@@ -779,9 +779,9 @@ const makeBet = (data) => {
     let raise_elements = [];
     let base_raise_amount = 0;
 
-    console.log("\n--- makeBet() > input");
-    console.log("data.amount_in_short = ", data.amount_in_short);
-    console.log("data.min_bet = ", data.min_bet);
+    // console.log("\n--- makeBet() > input");
+    // console.log("data.amount_in_short = ", data.amount_in_short);
+    // console.log("data.min_bet = ", data.min_bet);
 
     if (data.amount_in_short === 0) { base_raise_amount = data.min_bet; } // case that no one has raised yet
     else { base_raise_amount = (data.amount_in_short) * 2; }  // case that there's already a raise, or Pre-Flop call/check for non-BB/SB players
@@ -791,8 +791,8 @@ const makeBet = (data) => {
         if (data.val < data.wallet) { raise_elements.push(button_raise(data)); }
     }
 
-    console.log("base_raise_amount = ", base_raise_amount);
-    console.log("--------------------------\n")
+    // console.log("base_raise_amount = ", base_raise_amount);
+    // console.log("--------------------------\n")
 
     /*          Raise: All in          */
     data.val = data.wallet;
@@ -842,8 +842,8 @@ const button_raise = (data) => {
 }
 
 const button_check_call = (data) => {
-    let text_str = "Check";
-    if (data.amount_in_short > 0) { "Call + \$" + data.amount_in_short.toString(10); }
+    let text_str = "Check ($0)";
+    if (data.amount_in_short > 0) { text_str = `Call \$ ${data.amount_in_short.toString(10)}`; }
     return {
         "type": "button",
         "text": {

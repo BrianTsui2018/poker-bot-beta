@@ -174,7 +174,6 @@ const getOnePlayer = async (data) => {
         let thisPlayer;
         if (data.team_id) {
             thisPlayer = await player.findOne({ slack_id: data.slack_id, team_id: data.team_id });
-            console.log("\ngetOnePlayer : Found player");
         }
         else {
             thisPlayer = await player.findOne({ slack_id: data.slack_id, isInLobby: true });
