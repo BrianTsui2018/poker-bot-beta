@@ -63,14 +63,14 @@ const lobbyRemovePlayer = async (player_data) => {
         console.log(`\nmanager.js -> lobbyRemovePlayer() : getOnePlayer did not find user\n` + player_data.slack_id);
     }
 
-    cleanupLobby(thisPlayer);
+    cleanupLobbyForPlayer(thisPlayer);
 
     return thisPlayer;                 // Returns updated player object OR null
 }
 
-const cleanupLobby = async (thisPlayer) => {
+const cleanupLobbyForPlayer = async (thisPlayer) => {
     /*      Clean Lobby     */
-    let thisLobbyID = thisPlayer.lobby_id;
+    let thisLobbyID = thisPlayer.lastLobby;
     let remainingPlayers = await getAllPlayerInLobby(thisLobbyID);
     if (remainingPlayers.length === 0 || (remainingPlayers.length === 1 && remainingPlayers[0].slack_id === thisPlayer.slack_id)) {
         console.log("manager.js cleaning up the empty lobby.");
@@ -112,7 +112,7 @@ const getPlayerBank = async (player_data) => {
 }
 
 const patchPlayerDP = async (newPlayer) => {
-    let extra_data = await axiosGet(newPlayer.slack_id, newPlayer.name);            // input only needs {name, slack_id}, returns { slack_id, display_name, dp_url }
+    let extra_data = await axiosGet({ "slack_id": newPlayer.slack_id, "name": newPlayer.name });            // input only needs {name, slack_id}, returns { slack_id, display_name, dp_url }
     newPlayer.dp = extra_data.dp_url;
     newPlayer = updatePlayer(newPlayer);
     return newPlayer;
@@ -278,8 +278,8 @@ const getOneLobbyData = async (thisLobby) => {
     /*      Get all the active players in lobby     */
     let players = await getAllPlayerInLobby(thisLobby._id);
     // #debug --------------------------------------------------------
-    console.log("\n------ manager.js ---------- players:");
-    console.log(players);
+    // console.log("\n------ manager.js ---------- players:");
+    // console.log(players);
 
 
     /*      Construct data          */

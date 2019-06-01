@@ -216,7 +216,7 @@ const deposit = async (data, chips) => {
 
     /*       Push Player updates        */
     let updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer, { new: true });
-    updatedPlayer = await player.findById(updatedPlayer._id);
+    //updatedPlayer = await player.findById(updatedPlayer._id);
 
     return updatedPlayer;
 }
