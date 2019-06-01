@@ -528,9 +528,8 @@ const giveDailyBonus = async (data) => {
         const oneday = 60 * 60 * 24 * 1000;
         const now = Date.now();
         console.log('pk command .js | checking Date.now() ', now);
-        //console.log('same, player.updatedAt', player.updatedAt)
-        //now - player.updatedAt > oneDay
-        if (true) {
+        console.log('same, player.updatedAt', player.updatedAt);
+        if (now - player.updatedAt > oneday) {
             //more than a day
             msg = `Ok.\n:yen::pound: <@${data.slack_id}>'s got their daily bonus.:dollar::euro:`;
             bonusMsg[0].text.text = msg;
