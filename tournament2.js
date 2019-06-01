@@ -18,8 +18,8 @@ const warning = chalk.keyword('orange');
 // Boolean to track if cards are processed or not:
 // let cards_not_done = true;
 
-// DEBUG : IF IMGUR IS DOWN SWITCH THIS TO TRUE.
-const HAVE_CARDS = true;
+// DEBUG : IF IMGUR IS DOWN SWITCH THIS TO FALSE.
+const HAVE_CARDS = false;
 
 //One additional listener to track acknowledgement from parent
 const events = require('events');
