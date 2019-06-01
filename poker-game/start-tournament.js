@@ -344,17 +344,6 @@ const eventHandler = async (local_data, msg) => {
             /*          Generate block message              */
             local_data.this_block_message = await update_cards(msg);
 
-            /*      Backup Card images          */
-            // if (!local_data.this_block_message[1].image_url) {
-
-            //     console.log(chalk.red("!! -- IMAGE NOT FOUND -- !! Starting backup measures"));
-            //     console.log(local_data)
-            //     console.log(chalk.red("!!---------------------------------------------------"));
-            //     console.log(msg.data.cards);
-            //     local_data.this_block_message[1] = await retryGetCommonCards(msg.data.cards);
-
-            // }
-
             /*          Save common cards image url in thisLobby         */
             local_data.thisLobby.common_cards_url = local_data.this_block_message[1].image_url;
 
@@ -375,9 +364,6 @@ const eventHandler = async (local_data, msg) => {
             }
 
             local_data.this_block_message = update_showdown(msg, local_data.thisLobby.common_cards_url);
-
-            // console.log('\n');
-            // console.log(local_data.this_block_message);
         }
         else if (msg.data.type === "win") {
             local_data.this_block_message = update_win(msg);
@@ -436,12 +422,6 @@ const getNextBet = async (msg, local_data, bot) => {
                 else {
                     betting_data.amount_in_short = msg.data.callAmount - local_data.next_player_status.chipsBet;
                 }
-                // if (msg.data.type === "setup" || msg.data.type === "cards") {
-                //     betting_data.last_call_amount = msg.data.callAmount;
-                // }
-                // else {
-                //     console.log(chalk.cyan("To match currently is = ", betting_data.call_amount - betting_data.last_call_amount));
-                // }
 
                 betting_data.wallet = local_data.next_player_status.chips;
                 betting_data.call_amount = msg.data.callAmount;
@@ -463,8 +443,6 @@ const getNextBet = async (msg, local_data, bot) => {
 
 
                 //-------------------------- final check on images and apply backup if needed
-
-
                 // #debug ------------------
                 // console.log("\n------ msg.data.type === " + msg.data.type + " ----------\n    ----- betting_data -----");
                 // console.log(betting_data);
