@@ -453,14 +453,15 @@ const getNextBet = async (msg, local_data, bot) => {
                 betting_data.call_amount = msg.data.callAmount;
                 betting_data.chips_already_bet = local_data.next_player_status.chipsBet;
                 betting_data.min_bet = msg.data.minBet;
-
+                betting_data.cards_array = msg.data.next_player_status.cards;
+                betting_data.type = msg.data.type;
 
                 // #debug ------------------
                 console.log(chalk.green("\n----- [", next_player.name, "] is going to bet NOW!--------"));
                 console.log("\n--------- ./poker-game/start-tournament.js ------- next player to bet --------- ");
                 console.log(next_player);
-                console.log("-------------- msg.data : data supplied from tournament2.js ----------");
-                console.log(msg.data);
+                // console.log("-------------- msg.data : data supplied from tournament2.js ----------");
+                // console.log(msg.data);
                 console.log("-------------- betting_data: data to be passed into makeBet() ------------");
                 console.log(betting_data);
                 //-------------------------

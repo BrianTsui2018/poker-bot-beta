@@ -174,6 +174,7 @@ const getOnePlayer = async (data) => {
         let thisPlayer;
         if (data.team_id) {
             thisPlayer = await player.findOne({ slack_id: data.slack_id, team_id: data.team_id });
+            console.log("\ngetOnePlayer : Found player");
         }
         else {
             thisPlayer = await player.findOne({ slack_id: data.slack_id, isInLobby: true });
@@ -216,7 +217,7 @@ const deposit = async (data, chips) => {
 
     /*       Push Player updates        */
     let updatedPlayer = await player.findOneAndUpdate({ slack_id: thisPlayer.slack_id, team_id: thisPlayer.team_id }, thisPlayer, { new: true });
-    updatedPlayer = await player.findById(updatedPlayer._id);
+    //updatedPlayer = await player.findById(updatedPlayer._id);
 
     return updatedPlayer;
 }

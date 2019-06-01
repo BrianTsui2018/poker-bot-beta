@@ -761,14 +761,19 @@ const makeBet = (data) => {
         bet_elemenets.push(button_all_in(data));
     }
 
-    /*      Player can always fold        */
-    bet_elemenets.push(button_fold(data));
+    /*      Player can only fold if there's a amount in short        */
+    if (data.amount_in_short > 0) {
+        bet_elemenets.push(button_fold(data));
+    }
+
+    /*      Push into message block         */
     message_block.push(
         {
             "type": "actions",
             "elements": bet_elemenets
         }
     );
+
 
     /*      Up to 8 raise buttons   */
     let raise_elements = [];
@@ -829,7 +834,7 @@ const button_raise = (data) => {
         "type": "button",
         "text": {
             "type": "plain_text",
-            "text": data.val.toString(10),
+            "text": `+\$${data.val.toString(10)}`,
             "emoji": true
         },
         "value": JSON.stringify({ "topic": "BET", "choice": "raise", "val": data.val, "lobby_id": data.lobby_id })
@@ -837,11 +842,13 @@ const button_raise = (data) => {
 }
 
 const button_check_call = (data) => {
+    let text_str = "Check";
+    if (data.amount_in_short > 0) { "Call + \$" + data.amount_in_short.toString(10); }
     return {
         "type": "button",
         "text": {
             "type": "plain_text",
-            "text": "Call/Check " + data.amount_in_short,
+            "text": text_str,
             "emoji": true
         },
         "style": "primary",

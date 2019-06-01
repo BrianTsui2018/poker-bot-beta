@@ -120,7 +120,7 @@ controller.hears(['poker', 'join', 'create', 'game', 'play', 'start', 'lobby'], 
     bot.startConversation(message, async function (err, convo) {
         if (err) { console.log(err); }
 
-        convo.say("Hello! Let's play *Texas Holdem' Poker*.");
+        convo.say(`Hello <@${message.user}>! Let's play *Texas Holdem' Poker* :spades:.`);
         await convo.ask({
             attachments: create_or_join
         }, [
@@ -156,7 +156,7 @@ controller.hears(['poker', 'join', 'create', 'game', 'play', 'start', 'lobby'], 
                 {
                     default: true,
                     callback: function (reply, convo) {
-                        convo.say('Beep-boop! Something went wrong :robot_face:');
+                        convo.say('Maybe next time! :clubs:');
                         convo.next();
                     }
                 }

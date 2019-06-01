@@ -54,12 +54,15 @@ const createNewUser = async (user_data) => {
         if (!user) {
             console.log("---- ERROR! -----\n./bot-skills/poker-commands.js > createNewUser > failed to register player!");
         } else {
+            console.log("\n----- ./bot-skills/poker-commands.js > createNewUser() > created this new user : ");
             console.log(user);
         }
         /*           Assign chip to user            */
         user = await assignChip(user_data, new_player_chips);
+        console.log("\nAssigned chips!");
         /*           Get display pic                */
         user = await patchPlayerDP(user);
+        console.log("\nPatched DP!");
 
         return user;
     } catch (error) {
@@ -200,6 +203,8 @@ const getLobbyNameFromUser = async (convo, user) => {
 |                                                                                   */
 const create_lobby_callback = async (convo, message) => {
     try {
+        convo.say("");
+        convo.next();
         /*      Load user data from DB by slack user ID         */
         let user_data = {};
         user_data.slack_id = message.user.id;
@@ -214,12 +219,13 @@ const create_lobby_callback = async (convo, message) => {
         if (!user) {
             /*           Create a user                */
             user = await createNewUser(user_data);
+            convo.say("");
+            convo.next();
             convo.next();
             convo.say(`I have created a new account for you, <@${user.slack_id}>. You now have \$${user.bank}.`);
             getLobbyNameFromUser(convo, user);
         }
         else {
-
             convo.say(`Welcome back, <@${user.slack_id}>`);
             convo.next();
             if (user.isInLobby) {
@@ -281,7 +287,9 @@ const testShowCards = (message, bot) => {
 
 
 const createPoker = (convo, reply) => {
-    let res = create_lobby_callback(convo, reply.raw_message); // the actual callback function
+    convo.say("");
+    convo.next();
+    create_lobby_callback(convo, reply.raw_message); // the actual callback function
 }
 
 
