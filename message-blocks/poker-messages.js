@@ -295,6 +295,12 @@ const update_state = (msg) => {
                 "type": "mrkdwn",
                 "text": update
             }
+            // ,
+            // "accessory": {
+            //     "type": "image",
+            //     "image_url": "https://i.imgur.com/BlRGh5q.png",
+            //     "alt_text": " "
+            // }
         },
         {
             "type": "divider"
@@ -725,26 +731,27 @@ const makeBet = (data) => {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": "-*Your Cards in the Hole*-\n"
+                "text": `-*Your Cards in the Hole*-\nYour Chips: :moneybag:${data.wallet}\n:arrow_forward: Current Call Amount: :heavy_dollar_sign:${data.amount_in_short}`
+            },
+            "accessory": {
+                "type": "image",
+                "image_url": data.P.cards,
+                "alt_text": "Your cards"
             }
+
         },
+        // {
+        //     "type": "section",
+        //     "text": {
+        //         "type": "mrkdwn",
+        //         "text": `*Your Chips*: :heavy_dollar_sign: ${data.wallet} \n:arrow_forward: Current Call Amount : ${data.amount_in_short}`
+        //     }
+        // },
         {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": `*Wallet*: :heavy_dollar_sign: ${data.wallet} \n:arrow_forward: Current Call Amount : ${data.amount_in_short}`
-            }
-        },
-        {
-            "type": "image",
-            "image_url": data.P.cards,     //data.cards_url
-            "alt_text": "Your cards"
-        },
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": "Bet:"
+                "text": ":arrow_down_small: Bet:"
             }
         }
     ]
@@ -805,7 +812,7 @@ const makeBet = (data) => {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "Raise:"
+                    "text": ":arrow_down_small:Raise:"
                 }
             },
             {

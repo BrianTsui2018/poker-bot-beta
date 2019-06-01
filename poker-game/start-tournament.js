@@ -344,6 +344,7 @@ const eventHandler = async (local_data, msg) => {
         }
         else if (msg.data.type === "cards") {
             /*          Generate block message              */
+            // msg.data.player = local_data.players_in_lobby.find(P => P.msg)
             local_data.this_block_message = update_cards(msg);
 
             /*      Backup Card images          */
