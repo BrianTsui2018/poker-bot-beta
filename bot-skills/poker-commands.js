@@ -573,7 +573,7 @@ const joinedAndStartGame = async (lobby_id) => {
         // console.log("\n------ thread_payload");
         // console.log(thread_payload);
         bot.api.chat.postMessage(thread_payload, function (err, response) {
-            startTournament(bot, { "channel": thisChannel, "ts": thisTS, "use_demo": true });
+            startTournament(bot, { "channel": thisChannel, "ts": thisTS, "lobby_id": lobby_id, "use_demo": false });
         });
     });
     /*      Post message to ts          */
