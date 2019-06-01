@@ -1,12 +1,7 @@
 
 const generateCardPayload = require('../card-gen/card-namer');
 const async = require("async");
-/*          Chalk           */
-const chalk = require('chalk');
-const error = chalk.bold.red;
-const warning = chalk.keyword('orange');
-const preflop = chalk.black.bgWhite;
-
+const chalk = require("chalk")
 /**
  * Back up method on generating cards in text base since multiple attempts of
  * getting the image version has failed.
@@ -62,6 +57,8 @@ const getCardType = (type) => {
  * @returns {String}        A string that represents the text base version of the cards.
  */
 const textBasedCards = (cardArray) => {
+    console.log("textbcard | ")
+    console.log(cardArray)
     let card_set = ["", "", "", "", "", ""];
     //length of card array determines the number of cards
     for (card of cardArray) { //type, rank in each.
@@ -86,11 +83,10 @@ const textBasedCards = (cardArray) => {
 
 }
 
-
-
 /**
  * 
- * @param {object} data Contains card names. Using card names to generate file name and make another attempt to grab the image url.
+ * @param {object}  data Contains card names. Using card names to generate file name and make another attempt to grab the image url.
+ * @param {Array}   data.cards Array of cards
  * @returns {object} returns the data object with either a url or a text base card.
  */
 const retryGetCommonCards = async (data) => {
@@ -110,48 +106,53 @@ const retryGetCommonCards = async (data) => {
         console.log(error);
         let text = data.this_block_message[3].text.text.slice();
         //Generate text base card name.
-        data.this_block_message[3].text.text = "```" + `${textBaseCard(data.cards)}` + "``` \n" + text;
+        data.this_block_message[3].text.text = "```" + `${textBasedCards(data.cards)}` + "``` \n" + text;
     }
 }
 
 /**
- *  !! INCOMPLETE !! NEED PRIVATE MSG IN ORDER TO BE FURTHER CORRECTED !!
+ *  Generates a pair of cards or returns null.
+ *  @param  {Array}     data        Array of 2 card objects
+ *  @param  {Object}    data.cards  card objects
+ *  @returns {String|null}               URL or null
  */
 const retryGetPairCards = async (data) => {
-    //function requestForCardImage(card_array, message, playersID) {
-    //console.log(chalk.magenta('CARDS ARRAY -'));
-    //console.log(card_array);
-    let image_url_array = [];
-    async.eachOf(data.cards, async (p, idx, callback1) => {
-        let cards = generateCardPayload(p);
-        let url = `https://imai-poker-utils.herokuapp.com/iu/${cards.cardName}`;
+    //async.eachOf(data.cards, async (p, idx, callback1) => {
+    console.log("cards---------------------");
+    console.log(p);
+    let cards = generateCardPayload(p);
+    let url = `https://imai-poker-utils.herokuapp.com/iu/${cards.cardName}`;
 
-        try {
-            let img = await axios.get(url);
-            console.log("Got img back!");
-            console.log(img);
+    try {
+        let img = await axios.get(url);
+        console.log("Got img back!");
+        console.log(img);
 
-            data.this_block_message[1].image_url = img.url;
-            return data.this_block_message;
-        } catch (error) {
-            console.log("Error logged, could not get img..");
-            console.log(error);
-            let text = data.this_block_message[3].text.text.slice();
-            //Generate text base card name.
-            data.this_block_message[3].text.text = "```" + `${textBaseCard(data.cards)}` + "``` \n" + text;
+        // data.this_block_message[1].image_url = img.url;
+        // return data.this_block_message;
+        if (img.warning) {
+            console.log(chalk.red("Cards.js | WARNING : Imgur says ", img.warning))
         }
+        return img.url;
+    } catch (error) {
+        console.log("Error logged, could not get img..");
+        console.log(error);
+        return null;
+    }
 
-        callback1();
+    //     callback1(res);
 
-    }, (err) => {
-        console.log(chalk.magenta('card-gen | Sending common cards back'));
-        console.log(chalk.magenta(JSON.stringify(card_array)));
+    // }, (res, err) => {
+    //     console.log(chalk.magenta('Back-up Card Gen | Results of reping-ing cards'));
+    //     console.log(chalk.magenta(JSON.stringify(res)));
 
-        return card_array
-        // process.send({ topic: message, data: image_url_array });
-        if (err)
-            console.log(err);
-    });
+    //     console.log(res);
+
+    //     return card_array
+    //     // process.send({ topic: message, data: image_url_array });
+    //     if (err)
+    //         console.log(err);
+    // });
 }
 
 
@@ -162,6 +163,7 @@ const retryGetPairCards = async (data) => {
 //     { rank: '10', type: 'D' }]
 // ));
 module.exports = {
+    textBasedCards,
     retryGetCommonCards,
     retryGetPairCards
 }

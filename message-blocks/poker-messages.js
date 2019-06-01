@@ -700,26 +700,14 @@ const one_lobby_info = async (data) => {
     return message_block;
 }
 
-/*------------------------------------------------------------------------------------
-|   Fold, Check/Call, Raise, All-In?
-|       Attachment in array format.
-|
-|                                                                                   */
-const makeBet = (data) => {
-
-    /*
-        data.lobby_id
-        data.cards
-        data.cards_url
-        data.wallet
-        data.call_amount
-        data.min_bet
-        data.chips_already_bet
-    */
-    if (!data.wallet) { data.wallet = 100001; }
-    if (!data.call_amount) { data.call_amount = 10; }
-
-    /*      Display information     */
+const { retryGetPairCards, textBasedCards } = require('../utils/cards');
+/**
+ * 
+ * @param {Object} data         Game data
+ * @param {String} data.type    setup / state / session...etc
+ * @param {Object} data.card 
+ */
+const makeBetDisplay = async (data) => {
     let message_block = [
         {
             "type": "section",
@@ -735,19 +723,87 @@ const makeBet = (data) => {
                 "text": `*Wallet*: :heavy_dollar_sign: ${data.wallet} \n:arrow_forward: Current Call Amount : ${data.amount_in_short}`
             }
         },
-        {
-            "type": "image",
-            "image_url": data.P.cards,     //data.cards_url
-            "alt_text": "Your cards"
-        },
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": "Bet:"
-            }
+    ];
+
+    let betInfo = {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": "Bet:"
         }
-    ]
+    }
+
+    let hasCard = {
+        "type": "image",
+        "image_url": data.P.cards,     //data.cards_url
+        "alt_text": "Your cards"
+    }
+
+    let noCard = {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": ""
+        }
+    }
+
+    //Check state and image : if setup and no image >> fire request.
+    if (data.type === "setup" && !data.P.cards) {
+        try {
+            let results = await retryGetPairCards(data);
+            if (!results) throw new Error(error);
+            hasCard.image_url = results;
+            data.P.cards = results;
+            message_block.push(hasCard);
+        } catch (error) {
+            //back up measures
+            console.log("in poker msg .js ")
+            console.log("data");
+            noCard.text.text = textBasedCards(data.card)
+            message_block.push(noCard);
+        }
+    }
+    else if (!data.P.cards) {
+        //If no image : construct cards and already beyond set up stage.
+        noCard.text.text = textBasedCards(data.card)
+        message_block.push(noCard);
+    }
+    else {
+        //else construct url block
+        message_block.push(hasCard);
+    }
+
+    message_block.push(betInfo);
+    //return the block
+    return message_block;
+}
+
+
+/*------------------------------------------------------------------------------------
+|   Fold, Check/Call, Raise, All-In?
+|       Attachment in array format.
+|
+|                                                                                   */
+const makeBet = async (data) => {
+
+    /*
+        data.lobby_id
+        data.cards
+        data.cards_url
+        data.wallet
+        data.call_amount
+        data.min_bet
+        data.chips_already_bet
+        data.cards_array <<-- card objects  *Needs update from upstream
+        data.type <<-- phrase
+    */
+    if (!data.wallet) { data.wallet = 100001; }
+    if (!data.call_amount) { data.call_amount = 10; }
+
+    /*      Display information     */
+    console.log("before makebet display : ");
+    console.log(data);
+    let message_block = await makeBetDisplay(data);
 
     /*      Call/check and Fold     */
     let bet_elemenets = [];

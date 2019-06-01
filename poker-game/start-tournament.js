@@ -6,6 +6,11 @@ const error = chalk.bold.red;
 const warning = chalk.keyword('orange');
 const preflop = chalk.black.bgWhite;
 
+
+//Debug
+//const HAVE_CARDS = false;
+
+
 const {
     showdown_mockup,
     update_state_msg_data_debug,
@@ -172,7 +177,7 @@ async function updatePlayerCardsImages(msg, players_in_lobby) {
     let imgArr = msg.data.cardImages;
     console.log(chalk.cyan("\n./poker-game/start-tournament.js > updatePlayerCardsImages() > compare the following urls:"));
 
-    for (let i = 0; i < imgArr.length; i++) {
+    for (let i = 0; i < players_in_lobby.length; i++) {
         let x = players_in_lobby.findIndex(P => P.slack_id === imgArr[i].id);
         players_in_lobby[x].cards = imgArr[i].url;
         players_in_lobby[x] = await updatePlayer(players_in_lobby[x]);
@@ -272,6 +277,7 @@ const game_setup = async (data) => {
                 ]
             }
         }
+
     }
     // #debug------------------
     // console.log("\n./poker-game/start-tournament.js > READY TO START | players_in_lobby = ");
@@ -308,20 +314,20 @@ const eventHandler = async (local_data, msg) => {
             /*          Update player images to database            */
             let res = await updatePlayerCardsImages(msg, local_data.players_in_lobby);
 
+            if (res) {
+                console.log("\n--------- Check this player's cards -----------")
+                console.log(local_data.players_in_lobby[0].cards);
+            }
+
             /*      Get the next player by PHE index and status        */
             local_data.next_player_idx = msg.data.nextBetPosition;
             local_data.next_player_status = msg.data.nextPlayerStatus;
 
-            // console.log("\n---- Update: Setup > local_data ------- \n");
-            // console.log(local_data);
-            // console.log("\n---- Update: Setup > msg.data.players[0].cards ------- \n");
-            // console.log(msg.data.players[0].cards);
-
             /*      Backup Card images          */
-            if (!msg.data.cardImages[0].url) {
-                console.log(chalk.red("!! -- IMAGE NOT FOUND @ PAIR CARDS-- !! Starting backup measures"));
-                local_data.this_block_message = await retryGetPairCards(local_data);
-            }
+            // if (!msg.data.cardImages[0].url) {
+            //     console.log(chalk.red("!! -- IMAGE NOT FOUND @ PAIR CARDS-- !! Starting backup measures"));
+            //     local_data.this_block_message = await retryGetPairCards(local_data.players_in_lobby);
+            // }
         }
         else if (msg.data.type === "state" || msg.data.type === "bet") {
             /*          Report the last player's bet        */
@@ -335,15 +341,11 @@ const eventHandler = async (local_data, msg) => {
             // potential next player is the next one after this last player
             let x = local_data.players_in_lobby[last_player_idx].idx + 1;
             if (x === local_data.num_players) { x = 0; }
-            let n = 0;
-            while (msg.data.allPlayersStatus[x].state === 'fold' && n < 10) {
-                x++; n++;
-                if (x === local_data.num_players) { x = 0; }
-            }
+
             /*          Set next player         */
             local_data.next_player_status = msg.data.allPlayersStatus[x];
             local_data.next_player_idx = x;
-            local_data.skipped = n;
+
         }
         else if (msg.data.type === "cards") {
             /*          Generate block message              */
@@ -363,7 +365,6 @@ const eventHandler = async (local_data, msg) => {
             /*      Get the next player by PHE index and status        */
             local_data.next_player_idx = msg.data.nextBetPosition;
             local_data.next_player_status = msg.data.nextPlayerStatus;
-            local_data.skipped = msg.data.skipped;
         }
         else if (msg.data.type === "showdown") {
             // #debug ---------------------------------------------------------
@@ -407,11 +408,6 @@ const getNextBet = async (msg, local_data, bot) => {
 
         console.log("\ngetNextBet() > Check next_player_status--------");
         console.log(local_data.next_player_status);
-        if (local_data.skipped) {
-            if (local_data.skipped > 0) {
-                console.log(chalk.red("! SKIPPED" + local_data.skipped + " folded player(s) !"));
-            }
-        }
 
         if (local_data.next_player_status.chips === 0) {
             console.log(chalk.blue("\n- makeBet() skipped > this player has all-in'd -\n"));
@@ -440,11 +436,12 @@ const getNextBet = async (msg, local_data, bot) => {
                 betting_data.lobby_id = next_player.lastLobby;
 
                 /*      Message block       */
-
-                betting_data.amount_in_short = msg.data.callAmount - local_data.next_player_status.chipsBet;
-
+                if (msg.data.amount) { betting_data.amount_in_short = msg.data.amount; }
+                else {
+                    betting_data.amount_in_short = msg.data.callAmount - local_data.next_player_status.chipsBet;
+                }
                 // if (msg.data.type === "setup" || msg.data.type === "cards") {
-                //     betting_data.curr_call = 0;
+                //     betting_data.last_call_amount = msg.data.callAmount;
                 // }
                 // else {
                 //     console.log(chalk.cyan("To match currently is = ", betting_data.call_amount - betting_data.last_call_amount));
@@ -454,23 +451,26 @@ const getNextBet = async (msg, local_data, bot) => {
                 betting_data.chips_already_bet = local_data.next_player_status.chipsBet;
                 betting_data.min_bet = msg.data.minBet;
 
-
                 // #debug ------------------
                 console.log(chalk.green("\n----- [", next_player.name, "] is going to bet NOW!--------"));
-                console.log("\n--------- ./poker-game/start-tournament.js ------- next player to bet --------- ");
-                console.log(next_player);
+                // console.log("\n--------- ./poker-game/start-tournament.js ------- next player to bet --------- ");
+                // console.log(next_player);
                 console.log("-------------- msg.data : data supplied from tournament2.js ----------");
                 console.log(msg.data);
                 console.log("-------------- betting_data: data to be passed into makeBet() ------------");
                 console.log(betting_data);
                 //-------------------------
-                let private_message_block = makeBet(betting_data);
+                let private_message_block = await makeBet(betting_data);
+
+
+                //-------------------------- final check on images and apply backup if needed
+
 
                 // #debug ------------------
                 // console.log("\n------ msg.data.type === " + msg.data.type + " ----------\n    ----- betting_data -----");
                 // console.log(betting_data);
                 // console.log("\n------ msg.data.type === " + msg.data.type + " ----------\n    ----- message_block------");
-                // console.log(JSON.stringify(private_message_block));
+                // console.log(private_message_block);
                 //-------------------------
 
                 /*      Prepare payload     */
@@ -479,7 +479,6 @@ const getNextBet = async (msg, local_data, bot) => {
                     "thread_ts": local_data.ts,
                     "token": process.env.BOT_TOKEN,
                     "user": next_player.slack_id,
-                    // "text": "testing hello"
                     "attachments": [
                         {
                             "blocks": private_message_block
@@ -487,10 +486,6 @@ const getNextBet = async (msg, local_data, bot) => {
                     ]
                 }
 
-                // #debug ------------------
-                console.log("\n------ bet_message_payload");
-                console.log(bet_message_payload);
-                //-------------------------
                 /*      Send to one player       */
                 bot.api.chat.postEphemeral(bet_message_payload);
             }

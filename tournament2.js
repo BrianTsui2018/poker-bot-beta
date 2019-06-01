@@ -2,7 +2,13 @@
 
 const Tournament = require("poker-holdem-engine");
 const childProcess = require("child_process");
-//const mongoUri = "mongodb://localhost:8000/store"
+
+//Our tournament: 
+let configs = JSON.parse(process.argv[2]);  //Parse tournament setting
+let t = new Tournament(configs.tournamentID, configs.playerList, configs.tournamentSettings);
+
+//Forks a child to handle image generation
+const imageThread = childProcess.fork("./card-gen/card-generator.js");
 
 // TODO : REMOVE BEFORE PRODUCTION
 const chalk = require('chalk');
@@ -10,11 +16,11 @@ const error = chalk.bold.red;
 const warning = chalk.keyword('orange');
 
 // Boolean to track if cards are processed or not:
-let cards_not_done = true;
+// let cards_not_done = true;
 
 // DUMMY DATA REMOVE IF NOT NEEDED
 //const dummyData = require('./player/dummy-players.json');
-
+const HAVE_CARDS = false;
 
 //One additional listener to track acknowledgement from parent
 const events = require('events');
@@ -83,16 +89,8 @@ pidgeon.on("Check for image data", (data) => {
     else {
         pidgeon_index.emit("Data ready", data);
     }
-
 })
 
-
-//Our tournament: 
-let configs = JSON.parse(process.argv[2]);
-let t = new Tournament(configs.tournamentID, configs.playerList, configs.tournamentSettings);
-
-//Forks a child to handle image generation
-const imageThread = childProcess.fork("./card-gen/card-generator.js");
 
 //Each time when PHE/Tournament.js has an update, this will catch it
 t.on("TOURNAMENT:updated", (data, done) => {
@@ -108,7 +106,6 @@ t.on("TOURNAMENT:updated", (data, done) => {
 });
 
 
-
 //Communication area for tournament.js and card-generator.js
 imageThread.on("message", (msg) => {
     switch (msg.topic) {
@@ -122,7 +119,7 @@ imageThread.on("message", (msg) => {
             //////////// PIDGEON
             let firstThreeCards = commonCardsFromGameState.splice(0, 3);
             console.log('First Three Cards to Child : ', JSON.stringify(firstThreeCards));
-            imageThread.send({ topic: "common-cards", data: firstThreeCards });
+            imageThread.send({ topic: "common-cards", data: firstThreeCards, HAVE_CARDS });
 
             break;
         case "common":
@@ -136,7 +133,8 @@ imageThread.on("message", (msg) => {
             if (commonCardsFromGameState.length > 0) {
                 console.log(chalk.cyan('Got common cards back, and common cards obj list has '));
                 console.log(commonCardsFromGameState)
-                imageThread.send({ topic: "common-cards", data: [commonCardsFromGameState.shift()] })
+
+                imageThread.send({ topic: "common-cards", data: [commonCardsFromGameState.shift()], HAVE_CARDS })
             } else {
                 console.log(chalk.cyan('commonCardsFromGameState.length is now ', commonCardsFromGameState.length));
                 console.log(chalk.cyan("Removing Image thread!"));
@@ -200,7 +198,8 @@ const dataRouter = (data) => {
         // 1) Make child thread to make card-pairs
         // console.log(chalk.bold("Sending card pairs to child to handle------------"))
         // console.log(data.players)
-        imageThread.send({ topic: "card-pairs", data: data.players });
+        console.log("BEFORE SENDING PAIRCARDS , HAVE_CARDS::", HAVE_CARDS);
+        imageThread.send({ topic: "card-pairs", data: data.players, HAVE_CARDS });
 
         /*      Patch data to send out to start tournament      */
         data.bigBlindPosition = t.gamestate.bigBlindPosition;
