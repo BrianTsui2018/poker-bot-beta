@@ -275,42 +275,6 @@ controller.hears(['bank', 'balance', 'money', 'How much money is in my bank'], '
     }
 });
 
-
-controller.hears(['card'], 'direct_message,direct_mention, mention', async function (bot, message) {
-    bot.replyAcknowledge();
-    try {
-
-        bot.startConversation(message, async function (err, convo) {
-            convo.say('');
-            convo.next();
-            convo.say('');
-            convo.next();
-            let bankMsg = [
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "```test♠```"
-                    }
-                },
-                {
-                    "type": "divider"
-                }
-            ];
-            bot.sendWebhook({
-                blocks: bankMsg,
-                channel: message.channel_id,
-            }, function (err, res) {
-                if (err) {
-                    console.log(err);
-                }
-            });
-        });
-    } catch (error) {
-        console.log(error)
-    }
-});
-
 controller.hears(['I am broke', 'recharge', 'bonus', 'charge up'], 'direct_message,direct_mention, mention', async function (bot, message) {
     bot.replyAcknowledge();
     try {
