@@ -17,7 +17,6 @@
     "botkit": "^0.7.4",
     "botkit-storage-mongoose": "^1.0.3",
     "chalk": "^2.4.2",
-    "env-cmd": "^8.0.2",
     "mongoose": "^5.5.3",
     "poker-holdem-engine": "^3.0.1",
     "random-js": "^2.0.0",
@@ -25,6 +24,7 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
+    "env-cmd": "^8.0.2",
     "mocha": "^6.1.4",
     "nodemon": "^1.18.11"
   }

@@ -4,12 +4,13 @@ const chalk = require('chalk');
 const async = require("async");
 
 
-
+let HAVE_CARDS = true;
 
 let allCommonCards = [];
 
 //Communicates with parent thread (Tournament)
 process.on("message", (msg) => {
+    HAVE_CARDS = msg.HAVE_CARDS;
     switch (msg.topic) {
         case "common-cards":
             console.log(chalk.magenta("card-gen | Msg = common-cards"));
@@ -26,8 +27,6 @@ process.on("message", (msg) => {
             break;
         case "card-pairs":
             let cardPairs = [];
-            // console.log("Card Gen | Case card-pairs")
-            // console.log(JSON.stringify(msg.data));
             let playersID = [];
 
             for (let idx = 0; idx < msg.data.length; idx++) {
@@ -41,7 +40,6 @@ process.on("message", (msg) => {
             console.log(chalk.red("card-gen | Uncaught topic! ", msg.topic));
     }
 })
-
 
 /**
  * Takes a generated card payload and fires a request to the Utils app for PHE
@@ -57,6 +55,7 @@ function requestForCardImage(card_array, message, playersID) {
         let cards = generateCardPayload(p);
         console.log(chalk.yellow('CARDS'));
         console.log(cards);
+
         let options = {
             method: 'POST',
             url: 'https://imai-poker-utils.herokuapp.com/iu/image',
@@ -68,20 +67,30 @@ function requestForCardImage(card_array, message, playersID) {
             body: cards,
             json: true
         };
-        request(options, function (error, response, body) {
-            if (error)
-                throw new Error(error);
-            //console.log(response);
-            console.log(chalk.magenta("BODY ! "));
-            console.log(body);
-            if (playersID) {
-                image_url_array.push({ index: idx, id: playersID[idx], url: body.url });
-            } else {
-                image_url_array.push({ numberOfCards: card_array[0].length, url: body.url });
-            }
+        if (HAVE_CARDS) {
+            request(options, function (error, response, body) {
+                if (error)
+                    throw new Error(error);
+                //console.log(response);
+                console.log(chalk.magenta("BODY ! "));
+                console.log(body);
+                if (playersID) {
+                    image_url_array.push({ index: idx, id: playersID[idx], url: body.url });
+                } else {
+                    image_url_array.push({ numberOfCards: card_array[0].length, url: body.url });
+                }
 
+                callback1();
+            });
+        } else {
+            if (playersID) {
+                image_url_array.push({ index: idx, id: playersID[idx], url: "" });
+            } else {
+                image_url_array.push({ numberOfCards: card_array[0].length, url: "" });
+            }
             callback1();
-        });
+        }
+
     }, (err) => {
         console.log(chalk.magenta('card-gen | Sending common cards back'));
         console.log(chalk.magenta(JSON.stringify(card_array)));

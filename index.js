@@ -274,8 +274,6 @@ controller.hears(['bank', 'balance', 'money', 'How much money is in my bank'], '
     } catch (error) {
         console.log(error)
     }
-
-
 });
 
 controller.hears(['I am broke', 'recharge', 'bonus', 'charge up'], 'direct_message,direct_mention, mention', async function (bot, message) {
