@@ -295,6 +295,12 @@ const update_state = (msg) => {
                 "type": "mrkdwn",
                 "text": update
             }
+            // ,
+            // "accessory": {
+            //     "type": "image",
+            //     "image_url": "https://i.imgur.com/BlRGh5q.png",
+            //     "alt_text": " "
+            // }
         },
         {
             "type": "divider"
@@ -890,7 +896,7 @@ const makeBet = async (data) => {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "Raise:"
+                    "text": ":arrow_down_small:Raise:"
                 }
             },
             {

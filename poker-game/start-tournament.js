@@ -80,8 +80,6 @@ const startT = (bot, local_data) => {
         else {
             /*        Build update message block + set next player to bet       */
             local_data = await eventHandler(local_data, msg);
-            console.log(chalk.cyan("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"))
-            console.log(local_data.this_block_message)
             /*        Send update to Slack            */
             bot.sendWebhook(getUpdatePayload(local_data), async function (err, res) {
                 if (err) {
@@ -202,6 +200,7 @@ const game_setup = async (data) => {
         /*       DUMMY PLAYERS          */
         const dummyData = require('../player/dummy-players.json');
         const dummyLobbyID = await getLobbyIdByName(dummyData.lobbyName);
+        thisLobby = await getOneLobby(dummyLobbyID);
         players_in_lobby = await getAllPlayerInLobby(dummyLobbyID);
         tournament_configuration = dummyData;
         READY_TO_START = true;
@@ -235,6 +234,9 @@ const game_setup = async (data) => {
             } else {
                 console.log("\n./poker-game/start-tournament.js -> This lobby is not playing and is ready to start!-------");
             }
+        }
+        else {
+            console.log("\nDebug: This lobby is playing at the moment.");
         }
 
         let t_pList = [];
@@ -364,8 +366,6 @@ const eventHandler = async (local_data, msg) => {
                 msg.data.ranks[i].bestCardsInfo.url = thisPlayer.cards;
             }
 
-            console.log("!!!!!!!!------showdown!!!!!!!!!!!!!!!!!!");
-            console.log("")
             local_data.this_block_message = update_showdown(msg, local_data.thisLobby.common_cards_url);
             //local_data.this_block_message = showdown_mockup();
         }
