@@ -208,13 +208,14 @@ const dataRouter = (data) => {
         data.dealerPosition = data.smallBlindPosition - 1 >= 0 ? data.smallBlindPosition - 1 : data.players.length - 1;
         data.nextBetPosition = data.bigBlindPosition + 1 === data.players.length ? 0 : data.bigBlindPosition + 1;
         commonCardsFromGameState = t.gamestate.deck.slice(0, 5);
+        data.allPlayersStatus = t.gamestate.players;
         data.nextPlayerStatus = t.gamestate.players[data.nextBetPosition];
         data.nextPlayerStatus.already_bet = false;
         data.callAmount = t.gamestate.callAmount;
         data.pot = t.gamestate.pot;
         data.sidepots = t.gamestate.sidepots;
         data.minBet = t.gamestate.sb * 2;
-
+        //console.log(t.gamestate);
 
         // #debug ----------------------------
         // console.log("\n-------------- tournament2.js -> dataRouter(data) case = setup ------------------");
@@ -246,6 +247,7 @@ const dataRouter = (data) => {
         data.pot = t.gamestate.pot;
         data.sidepots = t.gamestate.sidepots;
         data.minBet = t.gamestate.sb * 2;
+
         // patch in symbols for players
         // for (let i = 0; i < t.gamestate.players.length; i++) {
         //     if (t.gamestate.players[i][Symbol.for("already-bet")] === true || t.gamestate.players[i][Symbol.for("all-in")] === true) {

@@ -307,14 +307,15 @@ const eventHandler = async (local_data, msg) => {
 
             /*          Update player images to database            */
             let res = await updatePlayerCardsImages(msg, local_data.players_in_lobby);
-            if (res) {
-                console.log("\n--------- Check this player's cards -----------")
-                console.log(local_data.players_in_lobby[0].cards);
-            }
 
             /*      Get the next player by PHE index and status        */
             local_data.next_player_idx = msg.data.nextBetPosition;
             local_data.next_player_status = msg.data.nextPlayerStatus;
+
+            // console.log("\n---- Update: Setup > local_data ------- \n");
+            // console.log(local_data);
+            // console.log("\n---- Update: Setup > msg.data.players[0].cards ------- \n");
+            // console.log(msg.data.players[0].cards);
 
             /*      Backup Card images          */
             if (!msg.data.cardImages[0].url) {
@@ -408,7 +409,7 @@ const getNextBet = async (msg, local_data, bot) => {
         console.log(local_data.next_player_status);
         if (local_data.skipped) {
             if (local_data.skipped > 0) {
-                console.log(chalk.red("! SKIPPED" + n + " folded player(s) !"));
+                console.log(chalk.red("! SKIPPED" + local_data.skipped + " folded player(s) !"));
             }
         }
 
@@ -439,12 +440,11 @@ const getNextBet = async (msg, local_data, bot) => {
                 betting_data.lobby_id = next_player.lastLobby;
 
                 /*      Message block       */
-                if (msg.data.amount) { betting_data.amount_in_short = msg.data.amount; }
-                else {
-                    betting_data.amount_in_short = msg.data.callAmount - local_data.next_player_status.chipsBet;
-                }
+
+                betting_data.amount_in_short = msg.data.callAmount - local_data.next_player_status.chipsBet;
+
                 // if (msg.data.type === "setup" || msg.data.type === "cards") {
-                //     betting_data.last_call_amount = msg.data.callAmount;
+                //     betting_data.curr_call = 0;
                 // }
                 // else {
                 //     console.log(chalk.cyan("To match currently is = ", betting_data.call_amount - betting_data.last_call_amount));
@@ -457,8 +457,8 @@ const getNextBet = async (msg, local_data, bot) => {
 
                 // #debug ------------------
                 console.log(chalk.green("\n----- [", next_player.name, "] is going to bet NOW!--------"));
-                // console.log("\n--------- ./poker-game/start-tournament.js ------- next player to bet --------- ");
-                // console.log(next_player);
+                console.log("\n--------- ./poker-game/start-tournament.js ------- next player to bet --------- ");
+                console.log(next_player);
                 console.log("-------------- msg.data : data supplied from tournament2.js ----------");
                 console.log(msg.data);
                 console.log("-------------- betting_data: data to be passed into makeBet() ------------");
@@ -470,7 +470,7 @@ const getNextBet = async (msg, local_data, bot) => {
                 // console.log("\n------ msg.data.type === " + msg.data.type + " ----------\n    ----- betting_data -----");
                 // console.log(betting_data);
                 // console.log("\n------ msg.data.type === " + msg.data.type + " ----------\n    ----- message_block------");
-                // console.log(private_message_block);
+                // console.log(JSON.stringify(private_message_block));
                 //-------------------------
 
                 /*      Prepare payload     */
@@ -486,6 +486,10 @@ const getNextBet = async (msg, local_data, bot) => {
                     ]
                 }
 
+                // #debug ------------------
+                console.log("\n------ bet_message_payload");
+                console.log(bet_message_payload);
+                //-------------------------
                 /*      Send to one player       */
                 bot.api.chat.postEphemeral(bet_message_payload);
             }

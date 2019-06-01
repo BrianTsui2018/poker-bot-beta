@@ -732,7 +732,7 @@ const makeBet = (data) => {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": `*Wallet*: :heavy_dollar_sign: ${data.wallet} \n:arrow_forward: Current Call Amount : ${data.call_amount}"`
+                "text": `*Wallet*: :heavy_dollar_sign: ${data.wallet} \n:arrow_forward: Current Call Amount : ${data.amount_in_short}`
             }
         },
         {
@@ -779,7 +779,7 @@ const makeBet = (data) => {
     console.log("data.min_bet = ", data.min_bet);
 
     if (data.amount_in_short === 0) { base_raise_amount = data.min_bet; } // case that no one has raised yet
-    else { base_raise_amount = (data.amount_in_short + data.chips_already_bet) * 2; }  // case that there's already a raise, or Pre-Flop call/check for non-BB/SB players
+    else { base_raise_amount = (data.amount_in_short) * 2; }  // case that there's already a raise, or Pre-Flop call/check for non-BB/SB players
     for (let i = 1; i <= 8; i++) {
         data.val = base_raise_amount * i;
         if (data.val < data.wallet) { raise_elements.push(button_raise(data)); }
@@ -804,7 +804,7 @@ const makeBet = (data) => {
             },
             {
                 "type": "actions",
-                "elements": raise_elements
+                "elements": "+" + raise_elements
             }
         );
     }
@@ -840,7 +840,7 @@ const button_check_call = (data) => {
         "type": "button",
         "text": {
             "type": "plain_text",
-            "text": "Call/Check",
+            "text": "Call/Check " + data.amount_in_short,
             "emoji": true
         },
         "style": "primary",

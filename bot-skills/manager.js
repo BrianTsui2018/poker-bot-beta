@@ -63,14 +63,14 @@ const lobbyRemovePlayer = async (player_data) => {
         console.log(`\nmanager.js -> lobbyRemovePlayer() : getOnePlayer did not find user\n` + player_data.slack_id);
     }
 
-    cleanupLobby(thisPlayer.lastLobby);
+    cleanupLobby(thisPlayer);
 
     return thisPlayer;                 // Returns updated player object OR null
 }
 
-const cleanupLobby = async (lobby_id) => {
+const cleanupLobby = async (thisPlayer) => {
     /*      Clean Lobby     */
-    let thisLobbyID = lobby_id;
+    let thisLobbyID = thisPlayer.lobby_id;
     let remainingPlayers = await getAllPlayerInLobby(thisLobbyID);
     if (remainingPlayers.length === 0 || (remainingPlayers.length === 1 && remainingPlayers[0].slack_id === thisPlayer.slack_id)) {
         console.log("manager.js cleaning up the empty lobby.");
