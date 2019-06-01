@@ -79,7 +79,7 @@ const textBasedCards = (cardArray) => {
         }
     }
 
-    return `${card_set.join('\n')}`;
+    return "```" + card_set.join('\n') + "```";
 
 }
 
@@ -89,7 +89,7 @@ const textBasedCards = (cardArray) => {
  * @param {Array}   data.cards Array of cards
  * @returns {object} returns the data object with either a url or a text base card.
  */
-const retryGetCommonCards = async (data) => {
+const retryGetCommonCards = async (cards) => {
 
     //Generate file name
     let imageURL = generateCardPayload(data.cards)
@@ -99,14 +99,18 @@ const retryGetCommonCards = async (data) => {
         console.log("Got img back!");
         console.log(img);
 
-        data.this_block_message[1].image_url = img.url;
-        return data.this_block_message;
+        if (img.warning) {
+            console.log(chalk.red("Cards.js | WARNING : Imgur says ", img.warning))
+        }
+        return img.url;
+        // return data.this_block_message;
     } catch (error) {
         console.log("Error logged, could not get img..");
         console.log(error);
-        let text = data.this_block_message[3].text.text.slice();
+        return null;
+        //let text = data.this_block_message[3].text.text.slice();
         //Generate text base card name.
-        data.this_block_message[3].text.text = "```" + `${textBasedCards(data.cards)}` + "``` \n" + text;
+        //data.this_block_message[3].text.text = "```" + `${textBasedCards(data.cards)}` + "``` \n" + text;
     }
 }
 
@@ -139,20 +143,6 @@ const retryGetPairCards = async (data) => {
         console.log(error);
         return null;
     }
-
-    //     callback1(res);
-
-    // }, (res, err) => {
-    //     console.log(chalk.magenta('Back-up Card Gen | Results of reping-ing cards'));
-    //     console.log(chalk.magenta(JSON.stringify(res)));
-
-    //     console.log(res);
-
-    //     return card_array
-    //     // process.send({ topic: message, data: image_url_array });
-    //     if (err)
-    //         console.log(err);
-    // });
 }
 
 

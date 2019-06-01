@@ -346,15 +346,18 @@ const eventHandler = async (local_data, msg) => {
         }
         else if (msg.data.type === "cards") {
             /*          Generate block message              */
-            local_data.this_block_message = update_cards(msg);
+            local_data.this_block_message = await update_cards(msg);
 
             /*      Backup Card images          */
-            if (!local_data.this_block_message[1].image_url) {
+            // if (!local_data.this_block_message[1].image_url) {
 
-                console.log(chalk.red("!! -- IMAGE NOT FOUND -- !! Starting backup measures"));
-                local_data.this_block_message = await retryGetCommonCards(local_data);
+            //     console.log(chalk.red("!! -- IMAGE NOT FOUND -- !! Starting backup measures"));
+            //     console.log(local_data)
+            //     console.log(chalk.red("!!---------------------------------------------------"));
+            //     console.log(msg.data.cards);
+            //     local_data.this_block_message[1] = await retryGetCommonCards(msg.data.cards);
 
-            }
+            // }
 
             /*          Save common cards image url in thisLobby         */
             local_data.thisLobby.common_cards_url = local_data.this_block_message[1].image_url;

@@ -357,13 +357,42 @@ const update_setup = (msg) => {
 
 
 
-const update_cards = (msg) => {
+const update_cards = async (msg) => {
     let this_block_message;
     if (msg.data.session === "FLOP") { this_block_message = FLOP(msg.data); }
     else if (msg.data.session === "RIVER") { this_block_message = RIVER(msg.data); }
     else if (msg.data.session === "TURN") { this_block_message = TURN(msg.data); };
 
+    console.log()
+
+
     //Run a check to see if images are set into the data message
+    console.log()
+    if (!this_block_message[1].image_url) {
+        try {
+            let results = await retryGetCommonCards(msg.data.cards)
+            if (!results) throw new Error()
+            this_block_message[1].text.image_url = results
+            return this_block_message;
+        } catch (error) {
+            console.log("poker-message.js | update_cards | Cannot find cards")
+            let noCard = {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": ""
+                }
+            };
+
+            noCard.text.text = textBasedCards(msg.data.cards);
+            this_block_message[1] = noCard;
+
+            return this_block_message;
+        }
+
+
+
+    }
 
     return this_block_message;
 }
@@ -759,13 +788,13 @@ const makeBetDisplay = async (data) => {
             //back up measures
             console.log("in poker msg .js ")
             console.log("data");
-            noCard.text.text = textBasedCards(data.card)
+            noCard.text.text = textBasedCards(data.cards_array)
             message_block.push(noCard);
         }
     }
     else if (!data.P.cards) {
         //If no image : construct cards and already beyond set up stage.
-        noCard.text.text = textBasedCards(data.card)
+        noCard.text.text = textBasedCards(data.cards_array);
         message_block.push(noCard);
     }
     else {
@@ -890,7 +919,7 @@ const button_raise = (data) => {
         "type": "button",
         "text": {
             "type": "plain_text",
-            "text": `+\$${data.val.toString(10)}`,
+            "text": `+\$${data.val.toString(10)} `,
             "emoji": true
         },
         "value": JSON.stringify({ "topic": "BET", "choice": "raise", "val": data.val, "lobby_id": data.lobby_id })
@@ -899,7 +928,7 @@ const button_raise = (data) => {
 
 const button_check_call = (data) => {
     let text_str = "Check ($0)";
-    if (data.amount_in_short > 0) { text_str = `Call \$ ${data.amount_in_short.toString(10)}`; }
+    if (data.amount_in_short > 0) { text_str = `Call \$ ${data.amount_in_short.toString(10)} `; }
     return {
         "type": "button",
         "text": {
@@ -997,8 +1026,8 @@ const FLOP = (data) => {
     let flop_block = [...base_template];
     flop_block[0].text.text = ":diamonds: Session : *FLOP*";
     flop_block[1].title.text = "Cards : ";
-    flop_block[3].text.text = `First three cards : ${card_name_translator(data.cards)} ... what now?`;
-    flop_block[1].image_url = data.cardImages[0].url;
+    flop_block[3].text.text = `First three cards: ${card_name_translator(data.cards)} ...what now ? `;
+    flop_block[1].image_url = data.cardImages[0].url.length > 0 ? data.cardImages[0].url : null;
     flop_block[1].alt_text = "Three cards shown!";
 
     return flop_block;
@@ -1008,8 +1037,8 @@ const RIVER = (data) => {
     let river_block = [...base_template];
     river_block[0].text.text = ":clubs: Session : *RIVER*";
     river_block[1].title.text = "Cards : ";
-    river_block[3].text.text = `New card : ${card_name_translator(data.cards)} ... what now?`;
-    river_block[1].image_url = data.cardImages[0].url;
+    river_block[3].text.text = `New card: ${card_name_translator(data.cards)} ...what now ? `;
+    river_block[1].image_url = data.cardImages[0].url.length > 0 ? data.cardImages[0].url : null;
     river_block[1].alt_text = "Four cards shown!";
 
     return river_block;
@@ -1019,8 +1048,8 @@ const TURN = (data) => {
     let turn_block = [...base_template];
     turn_block[0].text.text = ":HEART: Session : *TURN*";
     turn_block[1].title.text = "Cards : ";
-    turn_block[3].text.text = `New card : ${card_name_translator(data.cards)} ... what now?`;
-    turn_block[1].image_url = data.cardImages[0].url;
+    turn_block[3].text.text = `New card: ${card_name_translator(data.cards)} ...what now ? `;
+    turn_block[1].image_url = data.cardImages[0].url.length > 0 ? data.cardImages[0].url : null;
     turn_block[1].alt_text = "Five cards shown!";
 
     return turn_block;
@@ -1058,12 +1087,12 @@ const get_show_down_user = (playerId, bestCardsInfo) => {
         "text":
         {
             "type": "mrkdwn",
-            "text": `*<@${playerId}>*\n :black_small_square: Best Cards : *${bestCardsInfo.name}* !` //replace with :black_medium_square:*[User 1]* \n :black_small_square:Best Cards : [bestCards] \n :black_small_square:Info : [bestCardsInfo Obj]
+            "text": `*<@${playerId}>*\n: black_small_square: Best Cards: * ${bestCardsInfo.name}* !` //replace with :black_medium_square:*[User 1]* \n :black_small_square:Best Cards : [bestCards] \n :black_small_square:Info : [bestCardsInfo Obj]
         },
         "accessory":
         {
             "type": "image",
-            "image_url": `${bestCardsInfo.url}`, //Fill with image url
+            "image_url": `${bestCardsInfo.url} `, //Fill with image url
             "alt_text": "Card pairs"
         }
     };
@@ -1076,7 +1105,7 @@ const SHOWDOWN = (data, url) => {
     for (let idx = 0; idx < data.ranks.length; idx++) {
         let show_down_user = get_show_down_user(data.ranks[idx].playerId, data.ranks[idx].bestCardsInfo)
         showdown_array.push(show_down_user);
-        // showdown_array[showdown_array.length - 1].text.text = `*<@${data.ranks[idx].playerId}>*\n :black_small_square: Best Cards : ${data.ranks[idx].bestCardsInfo.name} .`;
+        // showdown_array[showdown_array.length - 1].text.text = `*<@${ data.ranks[idx].playerId }>*\n: black_small_square: Best Cards: ${ data.ranks[idx].bestCardsInfo.name } .`;
         // showdown_array[showdown_array.length - 1].accessory.image_url = data.ranks[idx].bestCardsInfo.url;
     }
     showdown_array.push({ "type": "divider" })
