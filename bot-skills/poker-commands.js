@@ -84,7 +84,7 @@ const setupLobby = async (convo, user) => {
     if (convo.vars.lobby_name && convo.vars.lobby_buyin && convo.vars.lobby_name != convo.vars.lobby_buyin) {
 
         /*      Create Lobby with the given info        */
-        const created_lobby = await registerLobby({ name: convo.vars.lobby_name, buyin: convo.vars.lobby_buyin, team_id: user.team_id, channel: convo.source_message.channel });
+        const created_lobby = await registerLobby({ name: convo.vars.lobby_name, buyin: convo.vars.lobby_buyin, minBet: (parseInt(convo.vars.lobby_buyin) / 25), team_id: user.team_id, channel: convo.source_message.channel });
         convo.say('... Created lobby *' + created_lobby.name + '*. :diamonds:');
         convo.next();
 

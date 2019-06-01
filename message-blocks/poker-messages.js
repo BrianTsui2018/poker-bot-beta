@@ -736,7 +736,13 @@ const { retryGetPairCards, textBasedCards } = require('../utils/cards');
 const makeBetDisplay = async (data) => {
 
     let HAS_CARDS = true;
-
+    let noCard = {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": ""
+        }
+    };
     //Check state and image : if setup and no image >> fire request.
     if (data.type === "setup" && !data.P.cards) {
         try {
@@ -793,13 +799,7 @@ const makeBetDisplay = async (data) => {
                     "text": `-*Your Cards in the Hole*-\nYour Chips: :moneybag:${data.wallet}\n:arrow_forward: Current Call Amount: :heavy_dollar_sign:${data.amount_in_short}`
                 },
             },
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": ""
-                }
-            }
+            noCard
         ]
     }
 
