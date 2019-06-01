@@ -111,10 +111,14 @@ const startT = (bot, local_data) => {
             }
             else {
                 //Replace with actions for this state!
+                let waitTime = 8000;
+                if (msg.data.type === 'setup') {
+                    waitTime += 5000;
+                }
                 setTimeout(() => {
                     // console.log(chalk.bold("Attempting to end wait"));
                     thread.send({ topic: "acknowledgement" });
-                }, 8000);
+                }, waitTime);
                 //----------------end replacement.
             }
         }
