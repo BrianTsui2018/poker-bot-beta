@@ -558,10 +558,12 @@ const current_lobbies_info = async (data) => {
         let maxP = data[i].lobby.maxPlayers;
         let buyin = data[i].lobby.buyin;
         let minBet = data[i].lobby.minBet;
+        let lobby_channel = data[i].lobby.channel;
 
         let value = {
             "topic": "JOIN_LOBBY",
-            "lobby_id": data[i].lobby._id
+            "lobby_id": data[i].lobby._id,
+            "lobby_channel": lobby_channel
         }
         message_block.push({
             "type": "section",

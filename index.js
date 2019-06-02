@@ -129,8 +129,14 @@ controller.hears(['poker', 'join', 'create', 'game', 'play', 'start', 'lobby'], 
                     pattern: "create",
                     callback: function (reply, convo) {
                         convo.next();
-                        createPoker(convo, reply);
-
+                        console.log(message);
+                        if (message.type === "direct_message") {
+                            convo.say("To create a lobby, you must create it in a public channel (this is direct message).\nThe game will be hosted in the channel that it's lobby was created in.:clubs:");
+                            convo.next();
+                        }
+                        else {
+                            createPoker(convo, reply);
+                        }
                     }
                 }, {
                     pattern: "join",
@@ -419,7 +425,8 @@ controller.on('block_actions', async function (bot, message) {
             "user_slack_id": message.user,
             "lobby_id": response.lobby_id,
             "user_name": message.raw_message.user.username,
-            "channel_id": message.channel
+            "channel_id": message.channel,
+            "lobby_channel": response.lobby_channel
         }
 
         /*          Put player in lobby           */
@@ -437,7 +444,7 @@ controller.on('block_actions', async function (bot, message) {
             bot.reply(message, `<@${message.user}>, you are currently playing in that game already.`);
         } else {
             console.log("\nindex.js : case JOINED\n");
-            bot.reply(message, `<@${message.user}>, you have joined the lobby *${result.name}*.\nPlease await in the lobby's thread.:clubs:`), function (err, response) {
+            bot.reply(message, `<@${message.user}>, you have joined the lobby *${result.name}*.\nPlease go to <#${data.lobby_channel}> to meet other players in the game thread.:clubs:`), function (err, response) {
 
             };
 
