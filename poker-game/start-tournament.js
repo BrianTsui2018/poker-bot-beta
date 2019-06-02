@@ -73,6 +73,8 @@ const startTournament = async (bot, data) => {
     /*     Start Tounarment      */
     if (local_data.READY_TO_START === true) {
         startT(bot, local_data);
+    } else {
+        console.log("\nstart-tournament.js > startTournament() : READY_TO_START is false.")
     }
 
 }
@@ -171,7 +173,7 @@ const getUpdatePayload = (local_data) => {
 
 const game_setup = async (data) => {
     let READY_TO_START = true;
-    let thisLobby;
+    let thisLobby = data.lobby;
     let tournament_configuration;
     let players_in_lobby = data.players_in_lobby;
 
@@ -184,13 +186,41 @@ const game_setup = async (data) => {
         tournament_configuration = dummyData;
         READY_TO_START = true;
     } else {
+
         //                                                              //  Note:   Possible error is when two users got here at the same time, and thought themselves to be 2nd player joinng the lobby
         /*       REAL PLAYERS               */                          //          Suppose if and only if the player joining is the 2nd one, then a new tournament would start (a new thread would be created).
         /*      Retrieve Lobby data         */                          //          For now, the expected recovery is the users to either ignore the 2nd thread(game) or start a new one if glitched terribly.
-        thisLobby = await getOneLobby(data.lobby_id);                   //--------------------------------------- Between these two lines is where possible duplication game error may occur
-        if (!thisLobby) {
-            console.log("\nERROR! start-tournament.js -> Real Players mode -> could not get the lobby");
-        }
+
+        // thisLobby = await getOneLobby(data.lobby_id);                   //--------------------------------------- Between these two lines is where possible duplication game error may occur
+        // if (!thisLobby) {
+        //     console.log("\nERROR! start-tournament.js -> Real Players mode -> could not get the lobby");
+        // }
+        /*      Game Start Validation      */
+        // if (thisLobby.is_playing === false) {
+        //     console.log("\n./poker-game/start-tournament.js -> This lobby is not playing at the moment-------");
+        //     /*      Check for lobby status first to block off risk of duplicate-game error         */
+        //     thisLobby.is_playing = true;
+
+        //     /*      Update ASAP incase another player is joining simutaneously      */
+        //     updateLobby(thisLobby);                                     //--------------------------------------- Between these two lines is where possible duplication game error may occur
+        //     READY_TO_START = true;
+
+        /*      Retrieve players data       */
+        // players_in_lobby = await getAllPlayerInLobby(data.lobby_id);
+
+        // if (players_in_lobby.length < 2) {
+        //     console.log("\n./poker-game/start-tournament.js -> This lobby will not start because there is only 1 player in lobby-------");
+        //     /*      Reset to false      */
+        //     thisLobby.is_playing = false;
+        //     updateLobby(thisLobby);
+        //     READY_TO_START = false;
+        // } else {
+        //     console.log("\n./poker-game/start-tournament.js -> This lobby is not playing and is ready to start!-------");
+        // }
+        // }
+        // else {
+        //     console.log("\nDebug: This lobby is playing at the moment.");
+        // }
 
 
         let t_pList = [];
@@ -215,8 +245,8 @@ const game_setup = async (data) => {
             "tournamentSettings": {
                 "BUYIN": thisLobby.buyin,
                 "WARMUP": false,
-                "WARMUP_GAME": 10,
-                "WARMUP_TIME": 10,
+                "WARMUP_GAME": 0,
+                "WARMUP_TIME": 0,
                 "HAND_THROTTLE_TIME": 1,
                 "SMALL_BLINDS": [thisLobby.minBet / 2],
                 "SMALL_BLINDS_PERIOD": 1,
@@ -227,7 +257,6 @@ const game_setup = async (data) => {
                 ]
             }
         }
-
     }
 
     /*          Return this             */
