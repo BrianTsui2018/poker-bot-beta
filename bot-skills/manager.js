@@ -401,7 +401,7 @@ const axiosGet = async (currPlayer) => {
     let dp = 'https://pbs.twimg.com/profile_images/1087888631442874370/X5KNCAVj_400x400.jpg';
     if (user_profile.ok === true) {
         name = user_profile.user.profile.real_name_normalized;
-        dp = user_profile.user.profile.image_24;
+        dp = user_profile.user.profile.image_512;
     }
 
     let player_data = { slack_id: currPlayer.slack_id, display_name: name, dp_url: dp };

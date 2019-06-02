@@ -449,7 +449,7 @@ const start_game = (data) => {
     let player = {
         "type": "image",
         "image_url": "https://api.slack.com/img/blocks/bkb_template_images/profile_3.png",
-        "alt_text": "Pam Beasely"
+        "alt_text": "User Display Pic"
     }
 
     let count = {
