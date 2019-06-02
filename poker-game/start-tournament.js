@@ -131,10 +131,7 @@ const startT = (bot, local_data) => {
 
             }
             else {
-                let waitTime = 5000;
-                if (msg.data.type !== 'setup') {
-                    waitTime += 45000;
-                }
+                let waitTime = 45000;
                 tournament_stopwatch = setTimeout(() => {
                     console.log(chalk.magenta("ENDING TIMEOUT"))
                     thread.send({ topic: "acknowledgement" });
