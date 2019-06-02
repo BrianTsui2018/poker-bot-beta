@@ -493,8 +493,12 @@ const getPlayerBankBalance = async (data) => {
         let bank = await getPlayerBank(data);
         //calculate time till next bonus [currentTime - lastBonusTime] / conversion to hours
         let timeToGo = Math.ceil(24 -((Date.now()- await getLastBonusAt(data)) / (3600000)));
-        msg[0].text.text = `:currency_exchange: <@${data.slack_id}>Your current balance : $ *${bank}*.00 \n
-                            :hourglass_flowing_sand: Your next recharge comes in under ${timeToGo} hours`;
+        //send message for bonus not ready
+        if(timeToGo > 0) {
+            msg[0].text.text = `:currency_exchange: <@${data.slack_id}>Your current balance : $ *${bank}*.00 \n:hourglass_flowing_sand: Your next recharge comes in under ${timeToGo} hours`;
+        }else {
+            msg[0].text.text = `:currency_exchange: <@${data.slack_id}>Your current balance : $ *${bank}*.00 \n:hourglass_flowing_sand: Your next recharge is ready!:moneybag:`;
+        }
         return msg;
     } catch (error) {
         console.log("poker-command.js | getPlayerbankBalance | error ");
@@ -603,7 +607,7 @@ const joinedAndStartGame = async (lobby_id) => {
         }
         // console.log("\n------ thread_payload");
         // console.log(thread_payload);
-        bot.api.chat.postMessage(thread_payload, function (err, response) {
+    bot.api.chat.postMessage(thread_payload, function (err, response) {
             startTournament(bot, { "channel": thisChannel, "ts": thisTS, "lobby_id": lobby_id, "use_demo": false });
         });
     });
