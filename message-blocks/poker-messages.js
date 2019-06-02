@@ -368,12 +368,8 @@ const update_cards = async (msg) => {
     if (msg.data.session === "FLOP") { this_block_message = FLOP(msg.data); }
     else if (msg.data.session === "RIVER") { this_block_message = RIVER(msg.data); }
     else if (msg.data.session === "TURN") { this_block_message = TURN(msg.data); };
-
-    console.log()
-
-
     //Run a check to see if images are set into the data message
-    console.log()
+
     if (!this_block_message[1].image_url) {
         try {
             let results = await retryGetCommonCards(msg.data.cards)
@@ -389,17 +385,12 @@ const update_cards = async (msg) => {
                     "text": ""
                 }
             };
-
             noCard.text.text = textBasedCards(msg.data.cards);
             this_block_message[1] = noCard;
 
             return this_block_message;
         }
-
-
-
     }
-
     return this_block_message;
 }
 
@@ -743,45 +734,15 @@ const { retryGetPairCards, textBasedCards } = require('../utils/cards');
  * @param {Object} data.card 
  */
 const makeBetDisplay = async (data) => {
-    let message_block = [
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": "-*Your Cards in the Hole*-\n"
-            }
-        },
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": `*Wallet*: :heavy_dollar_sign: ${data.wallet} \n:arrow_forward: Current Call Amount : ${data.amount_in_short}`
-            }
-        },
-    ];
 
-    let betInfo = {
-        "type": "section",
-        "text": {
-            "type": "mrkdwn",
-            "text": "Bet:"
-        }
-    }
-
-    let hasCard = {
-        "type": "image",
-        "image_url": data.P.cards,     //data.cards_url
-        "alt_text": "Your cards"
-    }
-
+    let HAS_CARDS = true;
     let noCard = {
         "type": "section",
         "text": {
             "type": "mrkdwn",
             "text": ""
         }
-    }
-
+    };
     //Check state and image : if setup and no image >> fire request.
     if (data.type === "setup" && !data.P.cards) {
         try {
@@ -789,25 +750,66 @@ const makeBetDisplay = async (data) => {
             if (!results) throw new Error(error);
             hasCard.image_url = results;
             data.P.cards = results;
-            message_block.push(hasCard);
+            //message_block.push(hasCard);
+            HAS_CARDS = true;
         } catch (error) {
             //back up measures
             console.log("in poker msg .js ")
             console.log("data");
             noCard.text.text = textBasedCards(data.cards_array)
-            message_block.push(noCard);
+            // message_block.push(noCard);
+            HAS_CARDS = false;
         }
     }
     else if (!data.P.cards) {
         //If no image : construct cards and already beyond set up stage.
         noCard.text.text = textBasedCards(data.cards_array);
-        message_block.push(noCard);
+        // message_block.push(noCard);
+        HAS_CARDS = false
     }
     else {
         //else construct url block
-        message_block.push(hasCard);
+        // message_block.push(hasCard);
+        HAS_CARDS = true;
     }
 
+    let message_block = [];
+    if (HAS_CARDS === true) {
+        /*      Display information     */
+        message_block = [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `-*Your Cards in the Hole*-\nYour Chips: :moneybag:${data.wallet}\n:arrow_forward: Current Call Amount: :heavy_dollar_sign:${data.amount_in_short}`
+                },
+                "accessory": {
+                    "type": "image",
+                    "image_url": data.P.cards,     //data.cards_url
+                    "alt_text": "Your cards"
+                }
+            }
+        ]
+    } else {
+        message_block = [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": `-*Your Cards in the Hole*-\nYour Chips: :moneybag:${data.wallet}\n:arrow_forward: Current Call Amount: :heavy_dollar_sign:${data.amount_in_short}`
+                },
+            },
+            noCard
+        ]
+    }
+
+    let betInfo = {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": ":arrow_down_small: Bet:"
+        }
+    }
     message_block.push(betInfo);
     //return the block
     return message_block;
@@ -925,7 +927,7 @@ const button_raise = (data) => {
         "type": "button",
         "text": {
             "type": "plain_text",
-            "text": `+\$${data.val.toString(10)} `,
+            "text": `+\$${data.val.toString(10)}`,
             "emoji": true
         },
         "value": JSON.stringify({ "topic": "BET", "choice": "raise", "val": data.val, "lobby_id": data.lobby_id })
@@ -934,7 +936,7 @@ const button_raise = (data) => {
 
 const button_check_call = (data) => {
     let text_str = "Check ($0)";
-    if (data.amount_in_short > 0) { text_str = `Call \$ ${data.amount_in_short.toString(10)} `; }
+    if (data.amount_in_short > 0) { text_str = `Call \$ ${data.amount_in_short.toString(10)}`; }
     return {
         "type": "button",
         "text": {
@@ -1032,7 +1034,7 @@ const FLOP = (data) => {
     let flop_block = [...base_template];
     flop_block[0].text.text = ":diamonds: Session : *FLOP*";
     flop_block[1].title.text = "Cards : ";
-    flop_block[3].text.text = `First three cards: ${card_name_translator(data.cards)} ...what now ? `;
+    flop_block[3].text.text = `First three cards: ${card_name_translator(data.cards)} ...\nWaiting for players to bet.:small_orange_diamond:`;
     flop_block[1].image_url = data.cardImages[0].url.length > 0 ? data.cardImages[0].url : null;
     flop_block[1].alt_text = "Three cards shown!";
 
@@ -1043,7 +1045,7 @@ const RIVER = (data) => {
     let river_block = [...base_template];
     river_block[0].text.text = ":clubs: Session : *RIVER*";
     river_block[1].title.text = "Cards : ";
-    river_block[3].text.text = `New card: ${card_name_translator(data.cards)} ...what now ? `;
+    river_block[3].text.text = `New card: ${card_name_translator(data.cards)} ... \nWaiting for players to bet.:small_orange_diamond:`;
     river_block[1].image_url = data.cardImages[0].url.length > 0 ? data.cardImages[0].url : null;
     river_block[1].alt_text = "Four cards shown!";
 
@@ -1052,9 +1054,9 @@ const RIVER = (data) => {
 
 const TURN = (data) => {
     let turn_block = [...base_template];
-    turn_block[0].text.text = ":HEART: Session : *TURN*";
+    turn_block[0].text.text = ":hearts: Session : *TURN*";
     turn_block[1].title.text = "Cards : ";
-    turn_block[3].text.text = `New card: ${card_name_translator(data.cards)} ...what now ? `;
+    turn_block[3].text.text = `New card: ${card_name_translator(data.cards)} ... \nWaiting for players to bet.:small_orange_diamond:`;
     turn_block[1].image_url = data.cardImages[0].url.length > 0 ? data.cardImages[0].url : null;
     turn_block[1].alt_text = "Five cards shown!";
 
@@ -1093,7 +1095,7 @@ const get_show_down_user = (playerId, bestCardsInfo) => {
         "text":
         {
             "type": "mrkdwn",
-            "text": `*<@${playerId}>*\n: black_small_square: Best Cards: * ${bestCardsInfo.name}* !` //replace with :black_medium_square:*[User 1]* \n :black_small_square:Best Cards : [bestCards] \n :black_small_square:Info : [bestCardsInfo Obj]
+            "text": `*<@${playerId}>*\n: black_small_square: Best Cards: *${bestCardsInfo.name}* !` //replace with :black_medium_square:*[User 1]* \n :black_small_square:Best Cards : [bestCards] \n :black_small_square:Info : [bestCardsInfo Obj]
         },
         "accessory":
         {
@@ -1107,13 +1109,9 @@ const get_show_down_user = (playerId, bestCardsInfo) => {
 
 const SHOWDOWN = (data, url) => {
     let showdown_array = get_show_down_template(url);
-    console.log("!!!!!!!!!!!!pkmsgjs | SHOWDOWN!!!!!!!!!!!!")
-    console.log(showdown_array);
-    console.log(JSON.stringify(showdown_array))
     /*      Loop through each "showdown" player        */
     for (let idx = 0; idx < data.ranks.length; idx++) {
         let show_down_user = get_show_down_user(data.ranks[idx].playerId, data.ranks[idx].bestCardsInfo)
-        console.log(show_down_user)
         showdown_array.push(show_down_user);
         // showdown_array[showdown_array.length - 1].text.text = `*<@${ data.ranks[idx].playerId }>*\n: black_small_square: Best Cards: ${ data.ranks[idx].bestCardsInfo.name } .`;
         // showdown_array[showdown_array.length - 1].accessory.image_url = data.ranks[idx].bestCardsInfo.url;

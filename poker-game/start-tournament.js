@@ -341,11 +341,16 @@ const eventHandler = async (local_data, msg) => {
             // potential next player is the next one after this last player
             let x = local_data.players_in_lobby[last_player_idx].idx + 1;
             if (x === local_data.num_players) { x = 0; }
+            let n = 0;
+            while (msg.data.allPlayersStatus[x].state === 'fold' && n < 10) {
+                x++; n++;
+                if (x === local_data.num_players) { x = 0; }
+            }
 
             /*          Set next player         */
             local_data.next_player_status = msg.data.allPlayersStatus[x];
             local_data.next_player_idx = x;
-
+            local_data.skipped = n;
         }
         else if (msg.data.type === "cards") {
             /*          Generate block message              */
@@ -357,6 +362,7 @@ const eventHandler = async (local_data, msg) => {
             /*      Get the next player by PHE index and status        */
             local_data.next_player_idx = msg.data.nextBetPosition;
             local_data.next_player_status = msg.data.nextPlayerStatus;
+            local_data.skipped = msg.data.skipped;
         }
         else if (msg.data.type === "showdown") {
             // #debug ---------------------------------------------------------
@@ -398,7 +404,11 @@ const getNextBet = async (msg, local_data, bot) => {
 
         console.log("\ngetNextBet() > Check next_player_status--------");
         console.log(local_data.next_player_status);
-
+        if (local_data.skipped) {
+            if (local_data.skipped > 0) {
+                console.log(chalk.red("! SKIPPED" + local_data.skipped + " folded player(s) !"));
+            }
+        }
         if (local_data.next_player_status.chips === 0) {
             console.log(chalk.blue("\n- makeBet() skipped > this player has all-in'd -\n"));
         }
@@ -426,10 +436,8 @@ const getNextBet = async (msg, local_data, bot) => {
                 betting_data.lobby_id = next_player.lastLobby;
 
                 /*      Message block       */
-                if (msg.data.amount) { betting_data.amount_in_short = msg.data.amount; }
-                else {
-                    betting_data.amount_in_short = msg.data.callAmount - local_data.next_player_status.chipsBet;
-                }
+
+                betting_data.amount_in_short = msg.data.callAmount - local_data.next_player_status.chipsBet;
 
                 betting_data.wallet = local_data.next_player_status.chips;
                 betting_data.call_amount = msg.data.callAmount;
@@ -470,7 +478,10 @@ const getNextBet = async (msg, local_data, bot) => {
                         }
                     ]
                 }
-
+                // #debug ------------------
+                console.log("\n------ bet_message_payload");
+                console.log(bet_message_payload);
+                //-------------------------
                 /*      Send to one player       */
                 bot.api.chat.postEphemeral(bet_message_payload);
             }
