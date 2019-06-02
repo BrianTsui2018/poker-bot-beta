@@ -80,8 +80,25 @@ const startT = (bot, local_data) => {
         else {
             /*        Build update message block + set next player to bet       */
             local_data = await eventHandler(local_data, msg);
+
+            console.log(chalk.bgRed("\n------- start-tournament.js > startT() ---------"));
+            console.log("this block message ---------");
+            console.log(local_data.this_block_message);
+            console.log("\nlocal_data.channel ---------");
+            console.log(local_data.channel);
+            console.log("\nlocal_data.ts ---------");
+            console.log(local_data.ts);
+
             /*        Send update to Slack            */
-            bot.sendWebhook(getUpdatePayload(local_data), async function (err, res) {
+            // bot.sendWebhook(getUpdatePayload(local_data), async function (err, res) {
+            //     if (err) {
+            //         console.log(err);
+            //     }
+            //     else {
+            //         await getNextBet(msg, local_data, bot);
+            //     }
+            // });
+            bot.api.chat.postMessage(getUpdatePayload(local_data), async function (err, res) {
                 if (err) {
                     console.log(err);
                 }
@@ -188,17 +205,18 @@ async function updatePlayerCardsImages(msg, players_in_lobby) {
 /*     Prepare update message payload     */
 const getUpdatePayload = (local_data) => {
     return {
-        blocks: local_data.this_block_message,
-        channel: local_data.channel,
-        thread_ts: local_data.ts
+        "token": process.env.BOT_TOKEN,
+        "blocks": local_data.this_block_message,
+        "channel": local_data.channel,
+        "thread_ts": local_data.ts
     }
 }
 
 const game_setup = async (data) => {
-    let READY_TO_START = false;
+    let READY_TO_START = true;
     let thisLobby;
     let tournament_configuration;
-    let players_in_lobby = [];
+    let players_in_lobby = data.players_in_lobby;
 
     if (data.use_demo === true) {
         /*       DUMMY PLAYERS          */
@@ -217,31 +235,31 @@ const game_setup = async (data) => {
             console.log("\nERROR! start-tournament.js -> Real Players mode -> could not get the lobby");
         }
         /*      Game Start Validation      */
-        if (thisLobby.is_playing === false) {
-            console.log("\n./poker-game/start-tournament.js -> This lobby is not playing at the moment-------");
-            /*      Check for lobby status first to block off risk of duplicate-game error         */
-            thisLobby.is_playing = true;
+        // if (thisLobby.is_playing === false) {
+        //     console.log("\n./poker-game/start-tournament.js -> This lobby is not playing at the moment-------");
+        //     /*      Check for lobby status first to block off risk of duplicate-game error         */
+        //     thisLobby.is_playing = true;
 
-            /*      Update ASAP incase another player is joining simutaneously      */
-            updateLobby(thisLobby);                                     //--------------------------------------- Between these two lines is where possible duplication game error may occur
-            READY_TO_START = true;
+        //     /*      Update ASAP incase another player is joining simutaneously      */
+        //     updateLobby(thisLobby);                                     //--------------------------------------- Between these two lines is where possible duplication game error may occur
+        //     READY_TO_START = true;
 
-            /*      Retrieve players data       */
-            players_in_lobby = await getAllPlayerInLobby(data.lobby_id);
+        /*      Retrieve players data       */
+        // players_in_lobby = await getAllPlayerInLobby(data.lobby_id);
 
-            if (players_in_lobby.length < 2) {
-                console.log("\n./poker-game/start-tournament.js -> This lobby will not start because there is only 1 player in lobby-------");
-                /*      Reset to false      */
-                thisLobby.is_playing = false;
-                updateLobby(thisLobby);
-                READY_TO_START = false;
-            } else {
-                console.log("\n./poker-game/start-tournament.js -> This lobby is not playing and is ready to start!-------");
-            }
-        }
-        else {
-            console.log("\nDebug: This lobby is playing at the moment.");
-        }
+        // if (players_in_lobby.length < 2) {
+        //     console.log("\n./poker-game/start-tournament.js -> This lobby will not start because there is only 1 player in lobby-------");
+        //     /*      Reset to false      */
+        //     thisLobby.is_playing = false;
+        //     updateLobby(thisLobby);
+        //     READY_TO_START = false;
+        // } else {
+        //     console.log("\n./poker-game/start-tournament.js -> This lobby is not playing and is ready to start!-------");
+        // }
+        // }
+        // else {
+        //     console.log("\nDebug: This lobby is playing at the moment.");
+        // }
 
         let t_pList = [];
         /*      Build player List       */

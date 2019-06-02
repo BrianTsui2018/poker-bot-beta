@@ -27,6 +27,11 @@ const {
     axiosPUT
 } = require('./manager.js');
 
+
+const {
+    updateLobby
+} = require('../lobby/lobby-router')
+
 const {
     startTournament
 } = require('../poker-game/start-tournament')
@@ -554,62 +559,57 @@ const giveDailyBonus = async (data) => {
 const joinedAndStartGame = async (lobby_id) => {
     /*      Get the lobby           */
     let thisLobby = await getLobbyByID(lobby_id);
-    // console.log("\njoinedAndStartGame() ---- thisLobby");
-    // console.log(thisLobby);
 
-    /*      Get all players         */
-    let L = await getLobbyPlayers(lobby_id);
-    let players = L.playerList;
+    /*      Block duplicate procedure       */
+    if (thisLobby.is_playing === false) {
+        thisLobby.is_playing = true;
+        updateLobby(thisLobby);
 
-    /*      Construct names string        */
-    let names_str = '<@' + L.playerList[0].slack_id + '>';
-    for (let i = 1; i < L.num_players; i++) {
-        names_str = names_str.concat(', <@', L.playerList[i].slack_id, '>');
-    }
+        /*      Get all players         */
+        let L = await getLobbyPlayers(lobby_id);
+        let players = L.playerList;
 
-    /*      Get the channel         */
-    let thisChannel = thisLobby.channel;
-    let thisTS;
+        if (players.length <= thisLobby.maxPlayers && players.length >= 2) {    // This is 2nd time validating player number. It was first checked when player joins lobby.
+            /*      Construct names string        */
+            let names_str = '<@' + L.playerList[0].slack_id + '>';
+            for (let i = 1; i < L.num_players; i++) {
+                names_str = names_str.concat(', <@', L.playerList[i].slack_id, '>');
+            }
 
-    /*      Post message, get ts        */
-    let head_payload = {
-        "token": process.env.BOT_TOKEN,
-        "channel": thisChannel,
-        "text": ":spades: :hearts: *Starting Texas Holdem' Poker!*:clubs::diamonds:\nPlayers in *" + thisLobby.name + "* :\n:small_orange_diamond:" + names_str + ", please enter this game thread:small_orange_diamond:\n(Click below)"
-    }
-    bot.api.chat.postMessage(head_payload, function (err, response) {
-        // console.log(response);
-        thisTS = response.message.ts;
+            /*      Get the channel         */
+            let thisChannel = thisLobby.channel;
+            let thisTS;
 
-        let thread_payload = {
-            "token": process.env.BOT_TOKEN,
-            "channel": thisChannel,
-            "thread_ts": thisTS,
-            "text": "Welcome! The game will be starting soon, please stand by...:hourglass_flowing_sand:"
+            /*      Post message, get ts        */
+            let head_payload = {
+                "token": process.env.BOT_TOKEN,
+                "channel": thisChannel,
+                "text": ":spades: :hearts: *Starting Texas Holdem' Poker!*:clubs::diamonds:\nPlayers in *" + thisLobby.name + "* :\n:small_orange_diamond:" + names_str + ", please enter this game thread:small_orange_diamond:\n(Click below)"
+            }
+            bot.api.chat.postMessage(head_payload, function (err, response) {
+                thisTS = response.message.ts;
+
+                /*      Post message to ts          */
+                let thread_payload = {
+                    "token": process.env.BOT_TOKEN,
+                    "channel": thisChannel,
+                    "thread_ts": thisTS,
+                    "text": "Welcome! The game will be starting soon, please stand by...:hourglass_flowing_sand:"
+                }
+                bot.api.chat.postMessage(thread_payload, function (err, response) {
+
+                    /*      Start Tournmanet at ts      */
+                    startTournament(bot, { "channel": thisChannel, "ts": thisTS, "lobby_id": lobby_id, "use_demo": false, "players_in_lobby": players });
+                });
+            });
+        } else {
+            /*      Case: lobby is full or empty        */
+
         }
-        // console.log("\n------ thread_payload");
-        // console.log(thread_payload);
-        bot.api.chat.postMessage(thread_payload, function (err, response) {
-            startTournament(bot, { "channel": thisChannel, "ts": thisTS, "lobby_id": lobby_id, "use_demo": false });
-        });
-    });
-    /*      Post message to ts          */
+    } else {
+        /*      Case: lobby is already playing      */
 
-    /*      Start Tournmanet at ts      */
-
-
-
-
-    // let payload = {
-    //     "token": process.env.BOT_TOKEN,
-    //     "channel": ,
-    //     //"ts": response.message.ts,
-    //     "text": ":spades: :hearts: *Starting Texas Holdem' Poker!*:clubs::diamonds:\n(Enter game thread)"
-    // }
-    // bot.api.chat.postMessage(payload, function (err, response) {
-    //     console.log(response);
-    //     //startTournament(bot, { "channel": response.channel, "ts": response.message.ts, "use_demo": true });
-    // });
+    }
 
 }
 
