@@ -166,9 +166,7 @@ const playerJoinLobby = async (user_data, lobby_id) => {
         } else {
             await lobbyRemovePlayer(thisPlayer);
             thisPlayer.isInLobby = false;
-
         }
-
     }
     // check if lobby exist    
     if (!thisLobby) {
