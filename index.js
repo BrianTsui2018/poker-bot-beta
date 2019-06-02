@@ -1,6 +1,7 @@
 //----------------------------------------
 /*              Import                  */
 const Botkit = require('botkit');
+const { botEvent } = require('./poker-game/start-tournament');
 const {
     handleSlash
 } = require('./slash-commands');
@@ -129,8 +130,14 @@ controller.hears(['poker', 'join', 'create', 'game', 'play', 'start', 'lobby'], 
                     pattern: "create",
                     callback: function (reply, convo) {
                         convo.next();
-                        createPoker(convo, reply);
-
+                        console.log(message);
+                        if (message.type === "direct_message") {
+                            convo.say("To create a lobby, you must create it in a public channel (this is direct message).\nThe game will be hosted in the channel that it's lobby was created in.:clubs:");
+                            convo.next();
+                        }
+                        else {
+                            createPoker(convo, reply);
+                        }
                     }
                 }, {
                     pattern: "join",
@@ -393,21 +400,23 @@ controller.on('block_actions', async function (bot, message) {
             "user_name": message.raw_message.user.username,
             "channel_id": message.channel,
             "choice": response.choice,
-            "val": response.val
-
+            "val": response.val,
         }
         //#debug ---------------
         console.log("\n--------------- incoming data from player betting")
         console.log(data);
         //----------------------
 
+        // let body = await placeBet(data) //, (body) => {
 
-        let body = await placeBet(data) //, (body) => {
-        //#debug ---------------
-        console.log(" Controller : Bot has placed a request to util ")
-        console.log(body);
-        console.log(" --------------------------------------------- ")
-        //});
+        placeBet(data).then((body) => {
+            console.log(" Controller : Bot has placed a request to util ")
+            console.log(body);
+            console.log(" --------------------------------------------- ")
+
+            botEvent.emit("SlackBot: Got User Action");
+            console.log("Slackbot: BOT!")
+        })
 
     }
     else if (response.topic === "JOIN_LOBBY" || response.topic === "JOIN_LOBBY_DIRECT") {
@@ -419,7 +428,8 @@ controller.on('block_actions', async function (bot, message) {
             "user_slack_id": message.user,
             "lobby_id": response.lobby_id,
             "user_name": message.raw_message.user.username,
-            "channel_id": message.channel
+            "channel_id": message.channel,
+            "lobby_channel": response.lobby_channel
         }
 
         /*          Put player in lobby           */
@@ -434,35 +444,19 @@ controller.on('block_actions', async function (bot, message) {
 
         if (result === "ALREADY") {
             console.log("\nindex.js : case ALREADY\n");
-            bot.reply(message, `<@${message.user}>, you are currently playing in that game already.`);
+            bot.reply(message, `<@${message.user}>, you are currently playing in that game already.:clubs:`);
+        } else if (result === "BROKE") {
+            console.log("\nindex.js : case BROKE\n");
+            bot.reply(message, `<@${message.user}>, it appears that you don't have enough chips in your account to match the lobby's Buy-In.:clubs:`);
+        } else if (result === "NO-LOBBY") {
+            console.log("\nindex.js : case NO-LOBBY\n");
+            bot.reply(message, `<@${message.user}>, that lobby no longer exist. Please try another one.:clubs:`);
+        } else if (result === "FULL") {
+            console.log("\nindex.js : case FULL\n");
+            bot.reply(message, `<@${message.user}>, the lobby is already full, please try again.:clubs:`);
         } else {
             console.log("\nindex.js : case JOINED\n");
-            bot.reply(message, `<@${message.user}>, you have joined the lobby *${result.name}*.\nPlease await in the lobby's thread.:clubs:`), function (err, response) {
-
-            };
-
-
-            /*      Start Tournament automatically      */
-            // bot.reply(message, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:", function (err, response) {
-            //     let start_data = {
-            //         "channel": response.channel,
-            //         "ts": response.message.ts,
-            //         "lobby_id": data.lobby_id,
-            //         "use_demo": false
-            //     }
-            //     startTournament(bot, start_data);
-            // });
-
-
-            // bot.startConversation(message, function (err, convo) {
-            //     convo.say(":spades: :hearts: *Starting Texas Holdem' Poker!*:clubs::diamonds:\n(Enter game thread)");
-            //     console.log(convo);
-            //     console.log("\n-----------\n");
-
-
-            //     convo.task.bot
-            // });
-
+            bot.reply(message, `<@${message.user}>, you have joined the lobby *${result.name}*.\nPlease go to <#${data.lobby_channel}> to meet other players in the game thread.:clubs:`), function (err, response) { };
             joinedAndStartGame(response.lobby_id)
         }
     }
