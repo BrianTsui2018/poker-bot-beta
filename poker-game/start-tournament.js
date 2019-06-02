@@ -80,8 +80,25 @@ const startT = (bot, local_data) => {
         else {
             /*        Build update message block + set next player to bet       */
             local_data = await eventHandler(local_data, msg);
+
+            console.log(chalk.bgRed("\n------- start-tournament.js > startT() ---------"));
+            console.log("this block message ---------");
+            console.log(local_data.this_block_message);
+            console.log("\nlocal_data.channel ---------");
+            console.log(local_data.channel);
+            console.log("\nlocal_data.ts ---------");
+            console.log(local_data.ts);
+
             /*        Send update to Slack            */
-            bot.sendWebhook(getUpdatePayload(local_data), async function (err, res) {
+            // bot.sendWebhook(getUpdatePayload(local_data), async function (err, res) {
+            //     if (err) {
+            //         console.log(err);
+            //     }
+            //     else {
+            //         await getNextBet(msg, local_data, bot);
+            //     }
+            // });
+            bot.api.chat.postMessage(getUpdatePayload(local_data), async function (err, res) {
                 if (err) {
                     console.log(err);
                 }
@@ -188,9 +205,10 @@ async function updatePlayerCardsImages(msg, players_in_lobby) {
 /*     Prepare update message payload     */
 const getUpdatePayload = (local_data) => {
     return {
-        blocks: local_data.this_block_message,
-        channel: local_data.channel,
-        thread_ts: local_data.ts
+        "token": process.env.BOT_TOKEN,
+        "blocks": local_data.this_block_message,
+        "channel": local_data.channel,
+        "thread_ts": local_data.ts
     }
 }
 
