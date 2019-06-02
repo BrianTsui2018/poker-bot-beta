@@ -110,6 +110,16 @@ const getPlayerBank = async (player_data) => {
     const chips = thisPlayer.bank;
     return chips;
 }
+/**
+ *   Read the updated at date from user's bank (DB) by Slack user ID
+ * @param {String} player_data  User slack ID
+ * @returns {Number} bank balance
+ */
+const getLastBonusAt = async (player_data) => {
+    const thisPlayer = await getPlayerByID(player_data);
+    const updatedTime = thisPlayer.lastBonus;
+    return updatedTime;
+}
 
 const patchPlayerDP = async (newPlayer) => {
     let extra_data = await axiosGet({ "slack_id": newPlayer.slack_id, "name": newPlayer.name });            // input only needs {name, slack_id}, returns { slack_id, display_name, dp_url }
@@ -288,6 +298,29 @@ const getOneLobbyData = async (thisLobby) => {
     return data;
 }
 
+ /*
+ * Seeks for a player based on slack id and team id. Updates the lastBonus and saves.
+ * @param {object} data     Object contains a user_slack_id and team_id
+ * @param time from Data.now()
+ */
+const updateLastBonus = async (data, time) => {
+
+    try {
+
+        console.log("Manager API | lastBonus !---------------");
+        let oldtime = await getLastBonusAt(data);
+        console.log("Was : ", oldtime);
+        let player = await getOnePlayer(data);
+        player.lastBonus = time;
+        await player.save();
+        console.log("Now : ", player.lastBonus);
+
+    } catch (error) {
+        console.log("Manager API | lastBonus update ERROR!---------------");
+        console.log(error);
+    }
+
+}
 /**
  * Seeks for a player base on slack id and team id. Updates the wallet and saves.
  * @param {object} data     Object contains a user_slack_id and team_id
@@ -310,6 +343,7 @@ const updatePlayerWallet = async (data) => {
     }
 
 }
+
 
 
 /**
@@ -436,6 +470,8 @@ module.exports = {
     withdrawChip,
     patchPlayerDP,
     updatePlayerWallet,
+    getLastBonusAt,
+    updateLastBonus,
     axiosGet,            // input only needs {name, slack_id}, returns { slack_id, display_name, dp_url }
     axiosPUT
 };

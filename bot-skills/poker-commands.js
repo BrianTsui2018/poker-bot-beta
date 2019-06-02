@@ -21,8 +21,10 @@ const {
     getPlayerByID,
     getPlayerBank,
     assignChip,
+    getLastBonusAt,
     withdrawChip,
     patchPlayerDP,
+    updateLastBonus,
     updatePlayerWallet,
     axiosPUT
 } = require('./manager.js');
@@ -64,6 +66,7 @@ const createNewUser = async (user_data) => {
         /*           Get display pic                */
         user = await patchPlayerDP(user);
         console.log("\nPatched DP!");
+
 
         return user;
     } catch (error) {
@@ -490,14 +493,20 @@ const getPlayerBankBalance = async (data) => {
         {
             "type": "divider"
         }
-    ]
-
+    ];
     try {
         let bank = await getPlayerBank(data);
-        msg[0].text.text = `:currency_exchange: <@${data.slack_id}>Your current balance : $ *${bank}*.00 \n:hourglass_flowing_sand: Your next recharge comes in at *time*`
+        //calculate time till next bonus [currentTime - lastBonusTime] / conversion to hours
+        let timeToGo = Math.ceil(24 -((Date.now()- await getLastBonusAt(data)) / (3600000)));
+        //send message for bonus not ready
+        if(timeToGo > 0) {
+            msg[0].text.text = `:currency_exchange: <@${data.slack_id}>Your current balance : $ *${bank}*.00 \n:hourglass_flowing_sand: Your next recharge comes in under ${timeToGo} hours`;
+        }else {
+            msg[0].text.text = `:currency_exchange: <@${data.slack_id}>Your current balance : $ *${bank}*.00 \n:hourglass_flowing_sand: Your next recharge is ready!:moneybag:`;
+        }
         return msg;
     } catch (error) {
-        console.log("poker-command.js | getPlayerbankBalance | error ")
+        console.log("poker-command.js | getPlayerbankBalance | error ");
         console.log("error");
     }
 }
@@ -532,19 +541,28 @@ const giveDailyBonus = async (data) => {
         //give or reject
         const oneday = 60 * 60 * 24 * 1000;
         const now = Date.now();
-        console.log('pk command .js | checking Date.now() ', now);
-        //console.log('same, player.updatedAt', player.updatedAt)
-        //now - player.updatedAt > oneDay
-        if (true) {
+        //console.log('pk command .js | checking Date.now() ', now);
+        //console.log('same, player.lastBonus', player.lastBonus);
+        if (now - player.lastBonus > oneday) {
             //more than a day
             msg = `Ok.\n:yen::pound: <@${data.slack_id}>'s got their daily bonus.:dollar::euro:`;
             bonusMsg[0].text.text = msg;
 
             player = await assignChip(data, 1000000);
             //let bankMsg = getPlayerBankBalance(data)
+            await updateLastBonus(player, now);
 
         } else {
-            msg = `:x::timer_clock: <@${data.user}>, your next bonus is at ${player.updatedAt}* \n Go do some work for now. :wink:`
+            //reject
+            let timeToGo = Math.ceil(24 -((Date.now()- player.lastBonus) / (3600000)));
+            //under an hour
+            if(timeToGo <= 1){
+                timeToGo = Math.ceil(1440 -((Date.now()- player.lastBonus) / (60000)));
+                msg = `:x::timer_clock: <@${data.slack_id}>, your next comes in under ${timeToGo} minutes. \n So close!. :wink:`
+            }else{
+                msg = `:x::timer_clock: <@${data.slack_id}>, your next bonus comes in under ${timeToGo} hours. \n Go do some work. :wink:`
+            }
+
         }
 
         bonusMsg[0].text.text = msg;
