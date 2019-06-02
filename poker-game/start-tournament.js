@@ -49,11 +49,24 @@ const {
 /*        Requirement         */
 const childProcess = require("child_process");
 
+let tournament_stopwatch;
+let EventEmitter = require('events').EventEmitter
+let botEvent = new EventEmitter();
+let thread;
+
+botEvent.on('SlackBot: Got User Action', () => {
+    console.log(chalk.magenta("START-TOUR | GOT BOT EVENT"));
+    clearTimeout(tournament_stopwatch);
+    thread.send({ topic: "acknowledgement" })
+})
+
+const shortCutCountDown = () => {
+    botEvent.emit("SlackBot: Got User Action");
+    console.log("Slackbot: BOT!")
+}
+
 const startTournament = async (bot, data) => {
-
     /*      Ready message to establish the thread       */
-    // TODO: allow player to enter the game thread early 
-
     /*        Prepare start game data       */
     let local_data = await game_setup(data);
 
@@ -70,7 +83,7 @@ const startT = (bot, local_data) => {
     local_data.next_player_idx = -1;
 
     /*      Start Thread       */
-    const thread = childProcess.fork("tournament2.js", configs);            //Immediately fork a child process to start to run tournament
+    thread = childProcess.fork("tournament2.js", configs);            //Immediately fork a child process to start to run tournament
 
     /*      Event Listener (to child process tournament)      */
     thread.on("message", async (msg) => {                                   //Each time child process passes a msg back, this thread listener catches it.
@@ -79,6 +92,7 @@ const startT = (bot, local_data) => {
         }
         else {
             /*        Build update message block + set next player to bet       */
+
             local_data = await eventHandler(local_data, msg);
 
             console.log(chalk.bgRed("\n------- start-tournament.js > startT() ---------"));
@@ -98,13 +112,16 @@ const startT = (bot, local_data) => {
             //         await getNextBet(msg, local_data, bot);
             //     }
             // });
+
+
             bot.api.chat.postMessage(getUpdatePayload(local_data), async function (err, res) {
-                if (err) {
-                    console.log(err);
-                }
-                else {
-                    await getNextBet(msg, local_data, bot);
-                }
+                if (err) { console.log(err); }
+
+                await getNextBet(msg, local_data, bot);
+
+                // if (msg.data.type === 'showdown') {
+                //     shortCutCountDown();
+                // }
             });
 
             /*          Wait or no wait               */
@@ -127,16 +144,15 @@ const startT = (bot, local_data) => {
 
             }
             else {
-                //Replace with actions for this state!
-                let waitTime = 8000;
-                if (msg.data.type === 'setup') {
-                    waitTime += 5000;
+                let waitTime = 5000;
+                if (msg.data.type !== 'setup') {
+                    waitTime += 45000;
                 }
-                setTimeout(() => {
+                tournament_stopwatch = setTimeout(() => {
                     // console.log(chalk.bold("Attempting to end wait"));
+                    console.log(chalk.magenta("ENDING TIMEOUT"))
                     thread.send({ topic: "acknowledgement" });
                 }, waitTime);
-                //----------------end replacement.
             }
         }
 
@@ -395,6 +411,7 @@ const eventHandler = async (local_data, msg) => {
             }
 
             local_data.this_block_message = update_showdown(msg, local_data.thisLobby.common_cards_url);
+
             //local_data.this_block_message = showdown_mockup();
         }
         else if (msg.data.type === "win") {
@@ -429,6 +446,9 @@ const getNextBet = async (msg, local_data, bot) => {
         }
         if (local_data.next_player_status.chips === 0) {
             console.log(chalk.blue("\n- makeBet() skipped > this player has all-in'd -\n"));
+
+            /*      shortcut timeout        */
+            shortCutCountDown();
         }
         else {
             /*          Unset if player already bet         */
@@ -437,10 +457,14 @@ const getNextBet = async (msg, local_data, bot) => {
                 console.log(chalk.bgCyan("This player already bet! Betting round done!"));
                 console.log(local_data.players_in_lobby[local_data.next_player_idx].name);
                 console.log(chalk.bgCyan("------------------------\n"));
+                /*      shortcut timeout        */
+                shortCutCountDown();
             }
             /*          Unset if player is not in active state (fold/all-in)         */
             else if (local_data.next_player_status.state !== "active") {
                 console.log(chalk.blue("\n- makeBet() skipped > this player has already bet -\n"));
+                /*      shortcut timeout        */
+                shortCutCountDown();
             }
             else {
 
@@ -505,20 +529,20 @@ const getNextBet = async (msg, local_data, bot) => {
             }
         }
     }
-
     else {
+        /*      This is "Showdown" or "Win"        */
+        console.log("-------------------------------TYPE---------------------")
+        console.log(msg.data.type)
+        /*      shortcut timeout        */
+        shortCutCountDown();
+
         // Don't make bet messages in these updates
-        console.log(chalk.blue("\n- makeBet() skipped > This is not an update:state that should be betting -\n"));
+        //console.log(chalk.blue("\n- makeBet() skipped > This is not an update:state that should be betting -\n"));
     }
 
 }
 
-let EventEmitter = require('events').EventEmitter
-let botEvent = new EventEmitter();
 
-botEvent.on('BOTBOTTEST', (msg) => {
-    console.log("START-TOUR | GOT BOT EVENT", msg);
-})
 
 module.exports = {
     startTournament,
