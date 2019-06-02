@@ -1,6 +1,7 @@
 //----------------------------------------
 /*              Import                  */
 const Botkit = require('botkit');
+const { botEvent } = require('./poker-game/start-tournament');
 const {
     handleSlash
 } = require('./slash-commands');
@@ -399,21 +400,23 @@ controller.on('block_actions', async function (bot, message) {
             "user_name": message.raw_message.user.username,
             "channel_id": message.channel,
             "choice": response.choice,
-            "val": response.val
-
+            "val": response.val,
         }
         //#debug ---------------
         console.log("\n--------------- incoming data from player betting")
         console.log(data);
         //----------------------
 
+        // let body = await placeBet(data) //, (body) => {
 
-        let body = await placeBet(data) //, (body) => {
-        //#debug ---------------
-        console.log(" Controller : Bot has placed a request to util ")
-        console.log(body);
-        console.log(" --------------------------------------------- ")
-        //});
+        placeBet(data).then((body) => {
+            console.log(" Controller : Bot has placed a request to util ")
+            console.log(body);
+            console.log(" --------------------------------------------- ")
+
+            botEvent.emit("SlackBot: Got User Action");
+            console.log("Slackbot: BOT!")
+        })
 
     }
     else if (response.topic === "JOIN_LOBBY" || response.topic === "JOIN_LOBBY_DIRECT") {
