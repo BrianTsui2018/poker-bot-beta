@@ -104,9 +104,9 @@ const startT = (bot, local_data) => {
                 await updatePlayerWallet(playerList, local_data.thisLobby.team_id);
 
                 /*      One game ended, kill thread       */
-                // thread.send({ topic: "quit-game" });
-                // thread.kill();
-                thread.send({ topic: "continue" })
+                thread.send({ topic: "quit-game" });
+                thread.kill();
+                // thread.send({ topic: "continue" })
 
             }
             else {
