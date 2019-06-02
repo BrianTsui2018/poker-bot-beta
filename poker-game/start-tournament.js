@@ -495,6 +495,14 @@ const getNextBet = async (msg, local_data, bot) => {
 
 }
 
+let EventEmitter = require('events').EventEmitter
+let botEvent = new EventEmitter();
+
+botEvent.on('BOTBOTTEST', (msg) => {
+    console.log("START-TOUR | GOT BOT EVENT", msg);
+})
+
 module.exports = {
-    startTournament
+    startTournament,
+    botEvent
 };

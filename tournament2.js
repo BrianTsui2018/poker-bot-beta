@@ -16,11 +16,7 @@ const error = chalk.bold.red;
 const warning = chalk.keyword('orange');
 
 
-<<<<<<< HEAD
-// DEBUG : IF IMGUR IS DOWN SWITCH THIS TO TRUE.
-=======
 // DEBUG : IF IMGUR IS DOWN SWITCH THIS TO FALSE.
->>>>>>> upstream/master
 const HAVE_CARDS = false;
 
 //One additional listener to track acknowledgement from parent

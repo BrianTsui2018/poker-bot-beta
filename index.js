@@ -401,6 +401,11 @@ controller.on('block_actions', async function (bot, message) {
         console.log(data);
         //----------------------
 
+        // controller.emit("stop-tournament-wait", () => {
+        //     console.log("INDEX ||||      Fired event!");
+        // });
+        const { botEvent } = require('./poker-game/start-tournament');
+        botEvent.emit("BOTBOTTEST", "TESTING");
 
         let body = await placeBet(data) //, (body) => {
         //#debug ---------------
