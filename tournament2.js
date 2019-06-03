@@ -224,6 +224,7 @@ const dataRouter = (data) => {
         data.cardImages = commonURL.shift();
         let x = t.gamestate.bigBlindPosition - 1 >= 0 ? t.gamestate.bigBlindPosition - 1 : t.gamestate.players.length - 1;
         let n = 0;
+        data.allPlayersStatus = t.gamestate.players;
         data.nextPlayerStatus = t.gamestate.players[x];
         while (data.nextPlayerStatus.state === 'fold' && n <= t.gamestate.players.length) {
             x += 1;

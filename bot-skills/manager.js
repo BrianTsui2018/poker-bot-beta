@@ -114,6 +114,7 @@ const getPlayerBank = async (player_data) => {
 const patchPlayerDP = async (newPlayer) => {
     let extra_data = await axiosGet({ "slack_id": newPlayer.slack_id, "name": newPlayer.name });            // input only needs {name, slack_id}, returns { slack_id, display_name, dp_url }
     newPlayer.dp = extra_data.dp_url;
+    newPlayer.display_name = extra_data.display_name;
     newPlayer = updatePlayer(newPlayer);
     return newPlayer;
 }

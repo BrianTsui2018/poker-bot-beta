@@ -257,7 +257,8 @@ const calculateWinnings = (playersEndGame, winners) => {
  * @param {String} team_id
  */
 const updatePlayerWallet = async (playerList, team_id) => {
-    console.log("----------------plist-------------------------");
+    // #debug -----------------------------------
+    console.log("\n --------------./player/player-router > updatePlayerWaller() > plist---------------");
     console.log(playerList)
     async.each(playerList, (player, callback) => {
 

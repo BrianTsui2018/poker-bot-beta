@@ -831,10 +831,11 @@ const makeBet = async (data) => {
         data.cards_url
         data.wallet
         data.call_amount
-        data.min_bet
-        data.chips_already_bet
+        data.min_bet        
         data.cards_array <<-- card objects  *Needs update from upstream
         data.type <<-- phrase
+        data.P.curr_bet
+        data.P.chips_already_bet
     */
     if (!data.wallet) { data.wallet = 100001; }
     if (!data.call_amount) { data.call_amount = 10; }
@@ -847,7 +848,7 @@ const makeBet = async (data) => {
     /*      Call/check and Fold     */
     let bet_elemenets = [];
 
-    // /*      Player has enough to call / check      */
+    /*      Player has enough to call / check      */
     if (data.amount_in_short < data.wallet) {
         data.val = data.amount_in_short;
         bet_elemenets.push(button_check_call(data));
@@ -1123,6 +1124,37 @@ const SHOWDOWN = (data, url) => {
     return showdown_array;
 }
 
+const makeStatus = (local_data) => {
+    let n = local_data.num_players;
+    let message_block = [];
+
+    for (let p = 0; p < n; p++) {
+        let dn = local_data.players_in_lobby[p].name;
+        if (local_data.players_in_lobby[p].display_name !== "") { dn = local_data.players_in_lobby[p].display_name };
+        let dp = local_data.players_in_lobby[p].dp;
+        let remaining_chips = local_data.players_in_lobby[p].remaining_chips;
+        let state = local_data.players_in_lobby[p].state;
+        let curr_bet = local_data.players_in_lobby[p].curr_bet;
+
+        let p_block = {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "image",
+                    "image_url": dp,
+                    "alt_text": dn
+                },
+                {
+                    "type": "mrkdwn",
+                    "text": " *" + dn + "* | Chips: $" + remaining_chips + " | [" + state + "] | Current Bet: $" + curr_bet
+                }
+            ]
+        }
+        message_block.push(p_block);
+    }
+    return message_block;
+}
+
 module.exports = {
     askForBuyin,
     genLobbyNames,
@@ -1141,7 +1173,8 @@ module.exports = {
     one_lobby_info,
     pingPlayer,
     makeBet,
-    update_showdown
+    update_showdown,
+    makeStatus
 
 }
 

@@ -17,7 +17,8 @@ const {
     update_win,
     update_cards,
     update_showdown,
-    makeBet
+    makeBet,
+    makeStatus
 } = require('../message-blocks/poker-messages');
 
 const {
@@ -94,21 +95,31 @@ const startT = (bot, local_data) => {
         }
         else {
             /*        Build update message block + set next player to bet       */
-
             local_data = await eventHandler(local_data, msg);
 
-            console.log(chalk.bgRed("\n------- start-tournament.js > startT() ---------"));
-            console.log("this block message ---------");
-            console.log(local_data.this_block_message);
-            console.log("\nlocal_data.channel ---------");
-            console.log(local_data.channel);
-            console.log("\nlocal_data.ts ---------");
-            console.log(local_data.ts);
+            // console.log(chalk.bgRed("\n------- start-tournament.js > startT() ---------"));
+            // console.log("this block message ---------");
+            // console.log(local_data.this_block_message);
+            // console.log("\nlocal_data.channel ---------");
+            // console.log(local_data.channel);
+            // console.log("\nlocal_data.ts ---------");
+            // console.log(local_data.ts);
 
+            /*      Send update message block       */
             bot.api.chat.postMessage(getUpdatePayload(local_data), async function (err, res) {
                 if (err) { console.log(err); }
 
-                await getNextBet(msg, local_data, bot);
+                if (msg.data.type !== "win" && msg.data.type !== "showdown") {
+
+                    /*      Build player status message block      */
+                    local_data = await playerStatusHandler(local_data, msg);
+                    /*      Send player status message block       */
+                    bot.api.chat.postMessage(getUpdatePayload(local_data), async function (err, res) {
+                        /*      Ask next player for the bet     */
+                        await getNextBet(msg, local_data, bot);
+                        /*      Process ends here, next step continues at index.js, when event hears player's button        */
+                    });
+                }
             });
 
             /*          Wait or no wait               */
@@ -271,16 +282,46 @@ const game_setup = async (data) => {
     return return_data;
 }
 
+const resetCurrBet = async (local_data, msg) => {
+    // #debug -----------
+    console.log("\n---- resetCurrBet() ---- ");
+    let n = local_data.num_players;
+    for (let i = 0; i < n; i++) {
+        local_data.players_in_lobby[i].curr_bet = 0;
+        if (msg.data.type === "setup") {
+            local_data.players_in_lobby[i].chips_already_bet = msg.data.allPlayersStatus[i].chipsBet;
+            local_data.players_in_lobby[i].curr_bet = msg.data.allPlayersStatus[i].chipsBet;
+        }
+    }
+}
+
+const updateCurrBet = async (local_data, new_chipsBet) => {
+    // #debug -----------
+    console.log("\n---- updateCurrBet ----");
+    let P = local_data.players_in_lobby[local_data.last_player_idx];
+    console.log("new_chipsBet > " + new_chipsBet);
+    console.log("P.chips_already_bet > " + P.chips_already_bet);
+    P.curr_bet += new_chipsBet - P.chips_already_bet;
+    console.log("P.curr_bet > " + P.curr_bet);
+    P.chips_already_bet = new_chipsBet;
+    local_data.players_in_lobby[local_data.last_player_idx] = P;
+    console.log("new chips_already_bet from local_data = " + local_data.players_in_lobby[local_data.last_player_idx].chips_already_bet)
+    return P;
+}
+
 
 const eventHandler = async (local_data, msg) => {
 
     if (msg.topic === "updates") {
-        console.log(chalk.bgMagenta('------------Tournament UPDATES------------'));
+        console.log(chalk.bgMagenta('------------Tournament UPDATES [' + msg.data.type + ' ]------------'));
         console.log(msg);
         console.log(chalk.bgMagenta('------------------------------------------'));
+        console.log("\t--- [ local_data.players_in_lobby ] ---");
+        console.log(local_data.players_in_lobby);
 
         local_data.this_block_message = [];
         if (msg.data.type === "setup") {
+
             /*          Generate block message              */
             local_data.this_block_message = update_setup(msg);
 
@@ -292,6 +333,9 @@ const eventHandler = async (local_data, msg) => {
                 console.log(local_data.players_in_lobby[0].cards);
             }
 
+            /*      Reset all player's curr_session_bet to      */
+            resetCurrBet(local_data, msg);
+
             /*      Get the next player by PHE index and status        */
             local_data.next_player_idx = msg.data.nextBetPosition;
             local_data.next_player_status = msg.data.nextPlayerStatus;
@@ -299,15 +343,23 @@ const eventHandler = async (local_data, msg) => {
         }
         else if (msg.data.type === "state" || msg.data.type === "bet") {
             /*          Report the last player's bet        */
-            let last_player_idx = local_data.players_in_lobby.findIndex(P => P.slack_id === msg.data.playerId);
+            local_data.last_player_idx = local_data.players_in_lobby.findIndex(P => P.slack_id === msg.data.playerId);
+
+            /*          Update last player's curr_Bet       */
+            let new_chipsBet = msg.data.allPlayersStatus[local_data.last_player_idx].chipsBet;
+            console.log("--- new_chipsBet = " + new_chipsBet);
+            let last_player = await updateCurrBet(local_data, new_chipsBet);
+            console.log("\n------- last_player after updateCurrBet -------- ");
+            console.log(last_player);
+            console.log("------------------------------");
 
             /*          Generate block message              */
-            msg.data.player = local_data.players_in_lobby[last_player_idx];
+            msg.data.player = last_player;
             local_data.this_block_message = update_state(msg);
 
             /*      Get the next player by PHE index        */
             // potential next player is the next one after this last player
-            let x = local_data.players_in_lobby[last_player_idx].idx + 1;
+            let x = local_data.players_in_lobby[local_data.last_player_idx].idx + 1;
             if (x === local_data.num_players) { x = 0; }
             let n = 0;
             while (msg.data.allPlayersStatus[x].state === 'fold' && n < 10) {
@@ -321,6 +373,9 @@ const eventHandler = async (local_data, msg) => {
             local_data.skipped = n;
         }
         else if (msg.data.type === "cards") {
+            /*      Reset all player's curr_session_bet to      */
+            resetCurrBet(local_data, msg);
+
             /*          Generate block message              */
             local_data.this_block_message = await update_cards(msg);
 
@@ -358,6 +413,22 @@ const eventHandler = async (local_data, msg) => {
     }
 }
 
+
+
+const playerStatusHandler = async (local_data, msg) => {
+
+
+    if (local_data.next_player_status.state !== "active" && local_data.next_player_status.already_bet === false && local_data.next_player_status.chips > 0) {
+        let P_list = local_data.P;
+        let n = local_data.num_players;
+        for (let i = 0; i < n; i++) {
+            local_data.players_in_lobby[i].state = msg.data.allPlayersStatus[i].state;
+            local_data.players_in_lobby[i].remaining_chips = msg.data.allPlayersStatus[i].chips;
+        }
+        local_data.this_block_message = makeStatus(local_data);
+    }
+    return local_data;
+}
 
 const getNextBet = async (msg, local_data, bot) => {
 
@@ -405,12 +476,10 @@ const getNextBet = async (msg, local_data, bot) => {
                 betting_data.lobby_id = next_player.lastLobby;
 
                 /*      Message block       */
-
                 betting_data.amount_in_short = msg.data.callAmount - local_data.next_player_status.chipsBet;
-
                 betting_data.wallet = local_data.next_player_status.chips;
                 betting_data.call_amount = msg.data.callAmount;
-                betting_data.chips_already_bet = local_data.next_player_status.chipsBet;
+                // betting_data.chips_already_bet = local_data.next_player_status.chipsBet;
                 betting_data.min_bet = msg.data.minBet;
                 betting_data.cards_array = local_data.next_player_status.cards;
                 betting_data.type = msg.data.type;
@@ -458,8 +527,7 @@ const getNextBet = async (msg, local_data, bot) => {
     }
     else {
         /*      This is "Showdown" or "Win"        */
-        console.log("-------------------------------TYPE---------------------")
-        console.log(msg.data.type)
+
         /*      shortcut timeout        */
         if (msg.data.type !== 'win') {
             shortCutCountDown();
