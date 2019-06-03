@@ -173,49 +173,6 @@ controller.hears(['poker', 'join', 'create', 'game', 'play', 'start', 'lobby'], 
 
 });
 
-
-// controller.on('direct_mention', function (bot, message) {
-//     console.log('\nDirect mention caught!');
-//     //console.log(message);
-//     if (message.text === "ping") {
-//         console.log('\npong!');
-//     }
-//     // else if (message.text === "poker", function (bot, message) {
-//     //     // #debug -------------- Test zone --------------------------
-//     //     bot.reply(message, {
-//     //         attachments: [
-//     //             {
-//     //                 title: 'Do you want to Create or Join a game?',
-//     //                 callback_id: '123',
-//     //                 attachment_type: 'default',
-//     //                 actions:
-//     //                     [
-//     //                         {
-//     //                             "name": "create",
-//     //                             "text": "Create",
-//     //                             "value": "create",
-//     //                             "type": "button",
-//     //                         },
-//     //                         {
-//     //                             "name": "no",
-//     //                             "text": "No",
-//     //                             "value": "no",
-//     //                             "type": "button",
-//     //                         }
-
-//     //                     ]
-//     //             }
-//     //         ]
-//     //     },
-//     //         () => {
-//     //             console.log("\nthis is callback.");
-
-//     //             // -----------------------------------------------------------
-//     //         }
-//     //     );
-//     // });
-// });
-
 controller.hears('test cards', 'direct_message,direct_mention, mention', function (bot, message) {
     bot.replyAcknowledge();
     bot.startConversation(message, function (err, convo) {
@@ -246,10 +203,7 @@ controller.hears(['quit', 'leave', 'done', 'check-out', 'check out', 'cash out',
         convo.next();
         convo.say('');
         convo.next();
-        //#debug-------------
-        // console.log("\nPlayer leaving game---------------- print message:");
-        // console.log(message);
-        //---------------------------
+
         bot.reply(message, `<@${message.user}> has left the game.\nYour balance will be updated shortly.`, async () => {
             let user = { slack_id: message.user, team_id: message.team };
             let thisPlayer = await playerLeave(user);
@@ -359,11 +313,7 @@ controller.hears(['demo', 'demonstrate'], 'direct_message,direct_mention, mentio
 
 
                         });
-                        // bot.reply(convo, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:", function (err, response) {
-                        //     response.message.channel = convo.context.channel;
-                        //     startTournament(bot, response.message);
-                        //     convo.say('Click into game message to see progress in Thread.');
-                        // });
+
                         convo.next();
                     }
                 },
@@ -388,6 +338,8 @@ controller.hears(['demo', 'demonstrate'], 'direct_message,direct_mention, mentio
 controller.on('block_actions', async function (bot, message) {
     // #debug
     console.log('\nindex.js : Event -> Block action caught!==========================\n');
+    // console.log('--------------- message ------------------');
+    // console.log(message);
 
     let response = JSON.parse(message.text);
 
@@ -407,15 +359,13 @@ controller.on('block_actions', async function (bot, message) {
         console.log(data);
         //----------------------
 
-        // let body = await placeBet(data) //, (body) => {
-
         placeBet(data).then((body) => {
             console.log(" Controller : Bot has placed a request to util ")
             console.log(body);
             console.log(" --------------------------------------------- ")
 
-            botEvent.emit("SlackBot: Got User Action");
-            console.log("Slackbot: BOT!")
+            botEvent.emit("SlackBot: Got User Action", [data]);
+
         })
 
     }

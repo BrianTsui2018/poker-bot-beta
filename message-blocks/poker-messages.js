@@ -839,6 +839,11 @@ const makeBet = async (data) => {
     */
     if (!data.wallet) { data.wallet = 100001; }
     if (!data.call_amount) { data.call_amount = 10; }
+    // let SB_patch = false;
+    // if (data.P.chips_already_bet === data.min_bet / 2 + data.min_bet / 10) {
+    //     console.log(chalk.bgRed("SB patch!"));
+    //     SB_patch = true;
+    // }
 
     /*      Display information     */
     console.log("before makebet display : ");
@@ -880,6 +885,7 @@ const makeBet = async (data) => {
     // console.log("data.min_bet = ", data.min_bet);
 
     if (data.amount_in_short === 0) { base_raise_amount = data.min_bet; } // case that no one has raised yet
+    else if (data.amount_in_short < data.min_bet) { base_raise_amount = data.min_bet + data.call_amount - data.P.chips_already_bet; }
     else { base_raise_amount = (data.amount_in_short) * 2; }  // case that there's already a raise, or Pre-Flop call/check for non-BB/SB players
 
     for (let i = 1; i <= 8; i++) {
@@ -926,6 +932,11 @@ const button_all_in = (data) => {
 }
 
 const button_raise = (data) => {
+    // let patch_amount = data.min_bet / 2;
+    // let val = data.val;
+    // if (SB_patch === "true") {
+    //     val += patch_amount;
+    // }
     return {
         "type": "button",
         "text": {
@@ -1130,26 +1141,58 @@ const makeStatus = (local_data) => {
 
     for (let p = 0; p < n; p++) {
         let dn = local_data.players_in_lobby[p].name;
-        if (local_data.players_in_lobby[p].display_name !== "") { dn = local_data.players_in_lobby[p].display_name };
+        if (local_data.players_in_lobby[p].display_name) { dn = local_data.players_in_lobby[p].display_name };
         let dp = local_data.players_in_lobby[p].dp;
         let remaining_chips = local_data.players_in_lobby[p].remaining_chips;
         let state = local_data.players_in_lobby[p].state;
         let curr_bet = local_data.players_in_lobby[p].curr_bet;
 
+        // console.log("\nmakeStatus() -> Report:");
+        // console.log("dn = " + dn);
+        // console.log("dp = " + dp);
+        // console.log("remaining_chips = " + remaining_chips);
+        // console.log("state = " + state);
+        // console.log("curr_bet = " + curr_bet);
+
+        if (state === "active") {
+            if (local_data.next_player_idx === p) { state = "*Betting*"; }
+            else if (remaining_chips > 0) { state = "Waiting"; }
+            else { state = "All-in"; }
+        }
+        else if (state === "fold") {
+            state = "Fold"
+        }
+
+        let text_str = dn;
+
+        let elements = [];
+        elements.push(
+            {
+                "type": "image",
+                "image_url": dp,
+                "alt_text": dn
+            }
+        );
+
+
+        if (local_data.next_player_idx === p) {
+            text_str = text_str + ":speech_balloon:";
+        }
+
+        text_str = text_str + " [" + state + "] | Chips: $" + remaining_chips + " > $" + curr_bet;
+
+        elements.push(
+            {
+                "type": "mrkdwn",
+                "text": text_str
+            }
+        )
+
         let p_block = {
             "type": "context",
-            "elements": [
-                {
-                    "type": "image",
-                    "image_url": dp,
-                    "alt_text": dn
-                },
-                {
-                    "type": "mrkdwn",
-                    "text": " *" + dn + "* | Chips: $" + remaining_chips + " | [" + state + "] | Current Bet: $" + curr_bet
-                }
-            ]
+            "elements": elements
         }
+
         message_block.push(p_block);
     }
     return message_block;

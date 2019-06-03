@@ -55,6 +55,11 @@ const playerSchema = new mongoose.Schema({
         type: String,
         trim: true,
         default: ''
+    },
+    display_name: {
+        type: String,
+        trime: true,
+        default: ''
     }
 }, {
         timestamps: {

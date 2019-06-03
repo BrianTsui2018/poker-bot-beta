@@ -54,11 +54,26 @@ let tournament_stopwatch;
 let EventEmitter = require('events').EventEmitter
 let botEvent = new EventEmitter();
 let thread;
+let curr_player_slack_id;
+let LOCK = true;
 
-botEvent.on('SlackBot: Got User Action', () => {
+botEvent.on('SlackBot: Got User Action', (args) => {
     console.log(chalk.magenta("START-TOUR | GOT BOT EVENT"));
-    clearTimeout(tournament_stopwatch);
-    thread.send({ topic: "acknowledgement" })
+    if (args) {
+        let data = args[0];
+        console.log(data);
+        if (data.user_slack_id === curr_player_slack_id && LOCK === false) {
+            LOCK = true;
+            clearTimeout(tournament_stopwatch);
+            thread.send({ topic: "acknowledgement" })
+        } else {
+            console.log(chalk.red("Wrong player spamming button!"));
+        }
+    } else {
+        clearTimeout(tournament_stopwatch);
+        thread.send({ topic: "acknowledgement" })
+    }
+
 })
 
 const shortCutCountDown = () => {
@@ -107,19 +122,33 @@ const startT = (bot, local_data) => {
 
             /*      Send update message block       */
             bot.api.chat.postMessage(getUpdatePayload(local_data), async function (err, res) {
+                // let done = false;
                 if (err) { console.log(err); }
 
                 if (msg.data.type !== "win" && msg.data.type !== "showdown") {
-
-                    /*      Build player status message block      */
-                    local_data = await playerStatusHandler(local_data, msg);
-                    /*      Send player status message block       */
-                    bot.api.chat.postMessage(getUpdatePayload(local_data), async function (err, res) {
+                    if (local_data.next_player_status.state === "active" && local_data.next_player_status.already_bet === false && local_data.next_player_status.chips > 0) {
+                        /*      Build player status message block      */
+                        local_data = await playerStatusHandler(local_data, msg);
+                        /*      Send player status message block       */
+                        bot.api.chat.postMessage(getUpdatePayload(local_data), async function (err, res) {
+                            // done = true;
+                            /*      Ask next player for the bet     */
+                            await getNextBet(msg, local_data, bot);
+                        });
+                    } else {
                         /*      Ask next player for the bet     */
                         await getNextBet(msg, local_data, bot);
-                        /*      Process ends here, next step continues at index.js, when event hears player's button        */
-                    });
+                    }
+                } else {
+                    /*      Ask next player for the bet     */
+                    await getNextBet(msg, local_data, bot);
                 }
+
+                // if (done === false) {
+                //     /*      Ask next player for the bet     */
+                //     await getNextBet(msg, local_data, bot);
+                //     /*      Process ends here, next step continues at index.js, when event hears player's button        */
+                // }
             });
 
             /*          Wait or no wait               */
@@ -413,13 +442,10 @@ const eventHandler = async (local_data, msg) => {
     }
 }
 
-
-
 const playerStatusHandler = async (local_data, msg) => {
 
-
-    if (local_data.next_player_status.state !== "active" && local_data.next_player_status.already_bet === false && local_data.next_player_status.chips > 0) {
-        let P_list = local_data.P;
+    if (local_data.next_player_status.state === "active" && local_data.next_player_status.already_bet === false && local_data.next_player_status.chips > 0) {
+        // let P_list = local_data.P;
         let n = local_data.num_players;
         for (let i = 0; i < n; i++) {
             local_data.players_in_lobby[i].state = msg.data.allPlayersStatus[i].state;
@@ -470,6 +496,7 @@ const getNextBet = async (msg, local_data, bot) => {
                 let betting_data = {};
                 if (local_data.next_player_idx === local_data.num_players) { local_data.next_player_idx = 0; }
                 let next_player = local_data.players_in_lobby.find(P => P.idx === local_data.next_player_idx);
+                curr_player_slack_id = next_player.slack_id;
                 betting_data.P = next_player;
 
                 /*      The lobby       */
@@ -479,6 +506,7 @@ const getNextBet = async (msg, local_data, bot) => {
                 betting_data.amount_in_short = msg.data.callAmount - local_data.next_player_status.chipsBet;
                 betting_data.wallet = local_data.next_player_status.chips;
                 betting_data.call_amount = msg.data.callAmount;
+                betting_data.small_blind_position = msg.data.smallBlindPosition;
                 // betting_data.chips_already_bet = local_data.next_player_status.chipsBet;
                 betting_data.min_bet = msg.data.minBet;
                 betting_data.cards_array = local_data.next_player_status.cards;
@@ -522,6 +550,8 @@ const getNextBet = async (msg, local_data, bot) => {
                 //-------------------------
                 /*      Send to one player       */
                 bot.api.chat.postEphemeral(bet_message_payload);
+                LOCK = false;
+
             }
         }
     }
