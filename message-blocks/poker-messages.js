@@ -275,7 +275,7 @@ const update_state = (msg) => {
         update = `:spades: *<@${msg.data.player.slack_id}>* has decided to *${msg.data.state}* ...`;
     }
     else if (msg.data.session) {
-        update = `:moneybag: *<@${msg.data.player.slack_id}> bet :heavy_dollar_sign:*${msg.data.amount}* !`;
+        update = `*<@${msg.data.player.slack_id}>* bet:heavy_dollar_sign:*${msg.data.amount}* \> :moneybag:`;
     }
     else {
         throw new Error(" poker-message.js | data is neither STATE nor BET. Please check files.");
@@ -286,22 +286,25 @@ const update_state = (msg) => {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": `:arrow_right: Session : *${msg.data.session}* `
+                "text": `:arrow_right: Session : *${msg.data.session}*\n`
             }
         },
         {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": update
-            }
-            // ,
-            // "accessory": {
-            //     "type": "image",
-            //     "image_url": "https://i.imgur.com/BlRGh5q.png",
-            //     "alt_text": " "
-            // }
+            "type": "context",
+            "elements": [
+                {
+                    "type": "image",
+                    "image_url": msg.data.player.dp,
+                    "alt_text": msg.data.player.display_name
+                },
+                {
+                    "type": "mrkdwn",
+                    "text": update
+                }
+            ]
         },
+
+
         {
             "type": "divider"
         }
@@ -364,6 +367,28 @@ const update_setup = (msg) => {
 
 
 const update_cards = async (msg) => {
+    /*------------------- msg
+        topic: 'updates'
+        data:{
+            type: 'cards'
+            cards: [ [Object], [Object], [Object] ],
+            handId: '[22244] 5cf51d313bac9b6850645b04: 1/1',
+            session: 'FLOP',
+            cardImages: [ [Object] ],
+            allPlayersStatus: [ [Object], [Object], [Object] ],
+            nextPlayerStatus:
+            { state: 'active',
+                cards: [Array],
+                chips: 47800,
+                chipsBet: 2200,
+                already_bet: false },
+            nextBetPosition: 1,
+            skipped: 0,
+            callAmount: 2200,
+            pot: 6600,
+            sidepots: [],
+            minBet: 2000 
+        }                       */
     let this_block_message;
     if (msg.data.session === "FLOP") { this_block_message = FLOP(msg.data); }
     else if (msg.data.session === "RIVER") { this_block_message = RIVER(msg.data); }
@@ -402,12 +427,16 @@ const update_showdown = (msg, url) => {
 
 const update_win = (msg) => {
 
+    let str = `:trophy:*Winner*: :trophy:`;
+    for (let i = 0; i < msg.data.winners.length; i++) {
+        str = str.concat(`\n<@${msg.data.winners[i].playerId}> has won *${msg.data.winners[i].amount}* from the pot!`)
+    }
     let message_block = [
         {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": `:medal:*Winner: <@${msg.data.winners[0].playerId}>* :medal: \n <@${msg.data.winners[0].playerId}> has won *${msg.data.winners[0].amount}* from the pot!`
+                "text": str
             },
             "accessory": {
                 "type": "image",
@@ -1045,35 +1074,34 @@ const card_name_translator = (cards) => {
 }
 
 const FLOP = (data) => {
+    console.log('\nSidepot[0]= ');
+    console.log(data.sidepots[0]);
     let flop_block = [...base_template];
-    flop_block[0].text.text = ":diamonds: Session : *FLOP*";
+    flop_block[0].text.text = ":diamonds: Session : *FLOP*\n:moneybag: Pot: $" + data.pot;
     flop_block[1].title.text = "Cards : ";
     flop_block[3].text.text = `First three cards: ${card_name_translator(data.cards)} ...\nWaiting for players to bet.:small_orange_diamond:`;
     flop_block[1].image_url = data.cardImages[0].url.length > 0 ? data.cardImages[0].url : null;
-    flop_block[1].alt_text = "Three cards shown!";
-
+    flop_block[1].alt_text = "Common Cards";
     return flop_block;
 }
 
 const RIVER = (data) => {
     let river_block = [...base_template];
-    river_block[0].text.text = ":clubs: Session : *RIVER*";
+    river_block[0].text.text = ":clubs: Session : *RIVER*\n:moneybag: Pot: $" + data.pot;
     river_block[1].title.text = "Cards : ";
     river_block[3].text.text = `New card: ${card_name_translator(data.cards)} ... \nWaiting for players to bet.:small_orange_diamond:`;
     river_block[1].image_url = data.cardImages[0].url.length > 0 ? data.cardImages[0].url : null;
     river_block[1].alt_text = "Four cards shown!";
-
     return river_block;
 }
 
 const TURN = (data) => {
     let turn_block = [...base_template];
-    turn_block[0].text.text = ":hearts: Session : *TURN*";
+    turn_block[0].text.text = ":hearts: Session : *TURN*\n:moneybag: Pot: $" + data.pot;
     turn_block[1].title.text = "Cards : ";
     turn_block[3].text.text = `New card: ${card_name_translator(data.cards)} ... \nWaiting for players to bet.:small_orange_diamond:`;
     turn_block[1].image_url = data.cardImages[0].url.length > 0 ? data.cardImages[0].url : null;
     turn_block[1].alt_text = "Five cards shown!";
-
     return turn_block;
 }
 
@@ -1109,7 +1137,7 @@ const get_show_down_user = (playerId, bestCardsInfo) => {
         "text":
         {
             "type": "mrkdwn",
-            "text": `*<@${playerId}>*\n: black_small_square: Best Cards: *${bestCardsInfo.name}* !` //replace with :black_medium_square:*[User 1]* \n :black_small_square:Best Cards : [bestCards] \n :black_small_square:Info : [bestCardsInfo Obj]
+            "text": `*<@${playerId}>*\n:black_small_square: Best Cards: *${bestCardsInfo.name}* !` //replace with :black_medium_square:*[User 1]* \n :black_small_square:Best Cards : [bestCards] \n :black_small_square:Info : [bestCardsInfo Obj]
         },
         "accessory":
         {

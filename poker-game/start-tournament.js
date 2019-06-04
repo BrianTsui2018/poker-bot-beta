@@ -73,7 +73,6 @@ botEvent.on('SlackBot: Got User Action', (args) => {
         clearTimeout(tournament_stopwatch);
         thread.send({ topic: "acknowledgement" })
     }
-
 })
 
 const shortCutCountDown = () => {
@@ -376,11 +375,10 @@ const eventHandler = async (local_data, msg) => {
 
             /*          Update last player's curr_Bet       */
             let new_chipsBet = msg.data.allPlayersStatus[local_data.last_player_idx].chipsBet;
-            console.log("--- new_chipsBet = " + new_chipsBet);
             let last_player = await updateCurrBet(local_data, new_chipsBet);
-            console.log("\n------- last_player after updateCurrBet -------- ");
-            console.log(last_player);
-            console.log("------------------------------");
+            // console.log("\n------- last_player after updateCurrBet -------- ");
+            // console.log(last_player);
+            // console.log("------------------------------");
 
             /*          Generate block message              */
             msg.data.player = last_player;
@@ -404,6 +402,12 @@ const eventHandler = async (local_data, msg) => {
         else if (msg.data.type === "cards") {
             /*      Reset all player's curr_session_bet to      */
             resetCurrBet(local_data, msg);
+
+            console.log(chalk.bgRed("\n----- CARDS session ----"));
+            console.log("\n--- [local_data] ---");
+            console.log(local_data);
+            console.log("--- [msg] ---");
+            console.log(msg);
 
             /*          Generate block message              */
             local_data.this_block_message = await update_cards(msg);
