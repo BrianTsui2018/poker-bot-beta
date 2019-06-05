@@ -339,19 +339,19 @@ const update_setup = (msg) => {
             "fields": [
                 {
                     "type": "mrkdwn",
-                    "text": `*Big Blind:*\n <@${msg.data.players[msg.data.bigBlindPosition].id}>`
+                    "text": `*Big Blind:* <@${msg.data.players[msg.data.bigBlindPosition].id}>`
                 },
                 {
                     "type": "mrkdwn",
-                    "text": `*Small Blind:*\n<@${msg.data.players[msg.data.smallBlindPosition].id}>`
+                    "text": `*Small Blind:* <@${msg.data.players[msg.data.smallBlindPosition].id}>`
                 },
                 {
                     "type": "mrkdwn",
-                    "text": `*Pot:*\n :moneybag: ${msg.data.pot}`
+                    "text": `*Pot:* :moneybag: ${msg.data.pot}`
                 },
                 {
                     "type": "mrkdwn",
-                    "text": `*Ante:*\n :heavy_dollar_sign: ${msg.data.ante}`
+                    "text": `*Ante:* :heavy_dollar_sign: ${msg.data.ante}`
                 },
                 {
                     "type": "mrkdwn",
@@ -591,7 +591,7 @@ const current_lobbies_info = async (data) => {
         let value = {
             "topic": "JOIN_LOBBY",
             "lobby_id": data[i].lobby._id,
-            "lobby_channel": lobby_channel
+            "lobby_channel": lobby_channel,
         }
         message_block.push({
             "type": "section",
@@ -874,8 +874,8 @@ const makeBet = async (data) => {
     // }
 
     /*      Display information     */
-    console.log("before makebet display : ");
-    console.log(data);
+    // console.log("before makebet display : ");
+    // console.log(data);
     let message_block = await makeBetDisplay(data);
 
     /*      Call/check and Fold     */
@@ -1222,6 +1222,8 @@ const makeStatus = (local_data) => {
 
         message_block.push(p_block);
     }
+
+    message_block.push({ "type": "divider" })
     return message_block;
 }
 

@@ -261,8 +261,13 @@ const updatePlayerWallet = async (playerList, team_id, CLEAR_CARDS) => {
 
     async.each(playerList, (player, callback) => {
 
-        getOnePlayer({ slack_id: player.playerId, team_id })
+        getOnePlayer({ slack_id: player.playerId, team_id: team_id })
             .then(thisPlayer => {
+                console.log("\n============ updatePlayerWallet ===============");
+                console.log("Player = ", thisPlayer.name);
+                console.log("Wallet from DB = ", thisPlayer.wallet);
+                console.log("---- what is player :");
+                console.log(player);
                 thisPlayer.wallet = player.chips;
                 if (CLEAR_CARDS) { thisPlayer.cards = ""; }
                 thisPlayer.save();

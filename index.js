@@ -206,9 +206,9 @@ controller.hears(['quit', 'leave', 'done', 'check-out', 'check out', 'cash out',
         convo.say('');
         convo.next();
 
-        bot.reply(message, `<@${message.user}> has left the game.\nYour balance will be updated shortly.`, async () => {
+        bot.reply(message, `<@${message.user}> has left the game.\nYour balance will be updated shortly.`, () => {
             let user = { slack_id: message.user, team_id: message.team };
-            let thisPlayer = await playerLeave(user);
+            playerLeave(user);
         });
     });
 });
@@ -357,8 +357,8 @@ controller.on('block_actions', async function (bot, message) {
             "val": response.val,
         }
         //#debug ---------------
-        console.log("\n--------------- incoming data from player betting")
-        console.log(data);
+        // console.log("\n--------------- incoming data from player betting")
+        // console.log(data);
         //----------------------
 
         placeBet(data).then((body) => {
@@ -409,6 +409,7 @@ controller.on('block_actions', async function (bot, message) {
         } else {
             console.log("\nindex.js : case JOINED\n");
             bot.reply(message, `<@${message.user}>, you have joined the lobby *${result.name}*.\nPlease go to <#${data.lobby_channel}> to meet other players in the game thread.:clubs:`), function (err, response) { };
+            // bot.reply(message, `<@${message.user}>, you have joined the lobby *${result.name}*.\n<${data.lobby_thread}|Click *Here*> to meet other players in the game thread.:clubs:`), function (err, response) { };
             joinedAndStartGame(response.lobby_id)
         }
     }

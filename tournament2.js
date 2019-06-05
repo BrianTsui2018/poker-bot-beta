@@ -152,14 +152,6 @@ process.on("message", async (msg) => {
     switch (msg.topic) {
         case "start-game":
             console.log(chalk.green("tournament | Msg = start-game | Starting !"));
-            /*      Override player's chips     */
-            // for (let i = 0; i < t.gamestate.players.length; i++) {
-
-            //     t.gamestate.players[i].chips = 123456;
-            //     console.log(t.gamestate.players[i]);
-            // }
-
-
             await t.start();
             break;
         case "pause-game":

@@ -55,6 +55,11 @@ const getPlayerByID = async (player_data) => {
 const lobbyRemovePlayer = async (player_data) => {
     /*      Get player      */
     let thisPlayer = await getPlayerByID(player_data);
+    console.log("\n---------- ./bot-skills/manager.js -------- lobbyRevmoePlayer------- before checkout")
+    console.log(thisPlayer);
+    /*      Wallet        */
+    let wallet = thisPlayer.wallet;
+
     /*      Check-out Player    */
     if (thisPlayer) {
         thisPlayer = await checkOut(thisPlayer);
@@ -64,9 +69,11 @@ const lobbyRemovePlayer = async (player_data) => {
         console.log(`\nmanager.js -> lobbyRemovePlayer() : getOnePlayer did not find user\n` + player_data.slack_id);
     }
 
+    console.log("\n---------- ./bot-skills/manager.js -------- lobbyRevmoePlayer------- after checkout, before cleanup")
+    console.log(thisPlayer);
     cleanupLobbyForPlayer(thisPlayer);
 
-    return thisPlayer;                 // Returns updated player object OR null
+    return { "player": thisPlayer, "wallet": wallet };                 // Returns updated player object OR null
 }
 
 const cleanupLobbyForPlayer = async (thisPlayer) => {

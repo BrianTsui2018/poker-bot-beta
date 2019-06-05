@@ -1,3 +1,9 @@
+/*          Chalk           */
+const chalk = require('chalk');
+const error = chalk.bold.red;
+const warning = chalk.keyword('orange');
+const preflop = chalk.black.bgWhite;
+
 const {
     showdown_mockup,
     askForBuyin,
@@ -39,14 +45,12 @@ const {
 } = require('../poker-game/start-tournament')
 
 crow.on("Forked Tournament2.js", (args) => {
-    console.log("\n<<<<<<< Crow >>>>>>>>>>>\nForked Tournament2.js--------");
-    console.log(args);
 
 })
 
 crow.on("End of Tournament", (local_data) => {
-    console.log("\n<<<<<<< Crow >>>>>>>>>>>\nEnd of Tournament--------");
-    console.log(local_data);
+    // console.log("\n<<<<<<< Crow >>>>>>>>>>>\nEnd of Tournament--------");
+    // console.log(local_data);
     joinedAndStartGame(local_data.thisLobby._id, local_data.players_in_lobby, local_data.ts);
 })
 
@@ -108,6 +112,8 @@ const setupLobby = async (convo, user) => {
         /*      Add this player to the new lobby        */
         const updated_lobby = await playerJoinLobby({ slack_id: user.slack_id, team_id: user.team_id }, created_lobby._id);
         convo.say('<@' + user.slack_id + '> is waiting in the lobby.\nGame starts as soon as another player joins.:spades:');
+        let curr_bank = user.bank - convo.vars.lobby_buyin;
+        bot.api.chat.postMessage({ "token": process.env.BOT_TOKEN, "channel": user.slack_id, "as_user": true, "text": `You withdrew \$${convo.vars.lobby_buyin} from your bank\nYour bank balance: \$${curr_bank}` });
         convo.next();
 
         /*      Check if the last procedure was successful      */
@@ -349,13 +355,19 @@ const oneLobbyMenu = async (bot, channel_id, lobby_id) => {
 
 const playerJoin = async (bot, data) => {
 
-    /*      Get this Player object       */
+    /*      Grant this Player chips if new      */
     await newPlayerChips(bot, data);
 
     /*       Add this player to the new lobby        */
-    let response = await playerJoinLobby({ slack_id: data.user_slack_id, team_id: data.team_id }, data.lobby_id);
+    let updatedLobby = await playerJoinLobby({ slack_id: data.user_slack_id, team_id: data.team_id }, data.lobby_id);
 
-    return response;
+
+    let player = await getPlayerByID({ "slack_id": data.user_slack_id, "team_id": data.team_id });
+    /*      DM user about balance       */
+    bot.api.chat.postMessage({ "token": process.env.BOT_TOKEN, "channel": player.slack_id, "as_user": true, "text": `You withdrew \$${player.wallet} from your bank\nYour bank balance: \$${player.bank}` });
+
+
+    return player;
 }
 
 /*      Refresh Lobby List      */
@@ -413,9 +425,11 @@ const refreshLobbySection = async (bot, message, lobby_id) => {
 
 }
 
-const playerLeave = (user) => {
-    let thisPlayer = lobbyRemovePlayer(user);
-    return thisPlayer;
+const playerLeave = async (user) => {
+    let data = await lobbyRemovePlayer(user);
+
+    bot.api.chat.postMessage({ "token": process.env.BOT_TOKEN, "channel": user.slack_id, "as_user": true, "text": `You have deposited \$${data.wallet} into your bank\nYour bank balance: \$${data.player.bank}` })
+    return data.player;
 }
 
 /**
@@ -452,6 +466,8 @@ const newPlayerChips = async (bot, data) => {
             }
         );
     }
+
+    return thisPlayer;
 }
 
 /**
@@ -569,7 +585,7 @@ const giveDailyBonus = async (data) => {
 
 
 const joinedAndStartGame = async (lobby_id, prevPlayers, prevTS) => {
-    // const joinedAndStartGame = async (lobby_id) => {
+
     /*      Get the lobby           */
     let thisLobby = await getLobbyByID(lobby_id);
     let RESTART = false;
@@ -590,43 +606,26 @@ const joinedAndStartGame = async (lobby_id, prevPlayers, prevTS) => {
         /*          Exclude extra players if there is       */
         players = players.slice(0, thisLobby.maxPlayers);
 
+        /*      Get the channel         */
+        let thisChannel = thisLobby.channel;
         if (players.length >= 2) {    // This is 2nd time validating player number. It was first checked when player joins lobby.
-            /*      Construct names string        */
-            let names_str = '<@' + players[0].slack_id + '>';
-            for (let i = 1; i < players.length; i++) {
-                names_str = names_str.concat(', <@', players[i].slack_id, '>');
+
+            if (RESTART) {
+                /*      Redirect to Game Thread             */
+                restartPrevGame(thisChannel, prevTS, thisLobby, players);
+            } else {
+                /*      Post message and Start Game        */
+                startNewGame(thisChannel, thisLobby, players);
             }
 
-            /*      Get the channel         */
-            let thisChannel = thisLobby.channel;
-            let thisTS;
-
-            /*      Post message, get ts        */
-            let head_payload = {
+        } else {
+            /*      Case: lobby is empty        */
+            let payload = {
                 "token": process.env.BOT_TOKEN,
                 "channel": thisChannel,
-                "text": ":spades: :hearts: *Starting Texas Holdem' Poker!*:clubs::diamonds:\nPlayers in *" + thisLobby.name + "* :\n:small_orange_diamond:" + names_str + ", please enter this game thread:small_orange_diamond:\n(Click below)"
-            }
-            bot.api.chat.postMessage(head_payload, function (err, response) {
-
-                thisTS = RESTART ? prevTS : response.message.ts;
-
-                /*      Post message to ts          */
-                let thread_payload = {
-                    "token": process.env.BOT_TOKEN,
-                    "channel": thisChannel,
-                    "thread_ts": thisTS,
-                    "text": "Welcome! The game will be starting soon, please stand by...:hourglass_flowing_sand:"
-                }
-                bot.api.chat.postMessage(thread_payload, function (err, response) {
-                    /*      Start Tournmanet at ts      */
-                    startTournament(bot, { "channel": thisChannel, "ts": thisTS, "lobby_id": lobby_id, "use_demo": false, "players_in_lobby": players, "lobby": thisLobby });
-                });
-
-            });
-        } else {
-            /*      Case: lobby is full or empty        */
-
+                "text": "*\*Shuffles\**There aren't enough players. Game resumes when another player joins.\n(Perhaps join another lobby?)"
+            };
+            bot.api.chat.postMessage(payload, function (err, response) { });
         }
     } else {
         /*      Case: lobby is already playing      */
@@ -640,6 +639,104 @@ const serverReset = () => {
 }
 
 
+function restartPrevGame(thisChannel, prevTS, thisLobby, players) {
+
+    /*      DM all players      */
+    notifyPlayer(thisChannel, prevTS, players);
+
+    /*      Construct names string        */
+    let names_str = '<@' + players[0].slack_id + '>';
+    for (let i = 1; i < players.length; i++) {
+        names_str = names_str.concat(', <@', players[i].slack_id, '>');
+    }
+
+    let head_payload = {
+        "token": process.env.BOT_TOKEN,
+        "channel": thisChannel,
+        "ts": prevTS,
+        "text": ":spades: :hearts: *Starting Texas Holdem' Poker!*:clubs::diamonds:\nPlayers in *" + thisLobby.name + "* :\n:small_orange_diamond:" + names_str + ", please enter this game thread:small_orange_diamond:\n:small_red_triangle_down:Click below:small_red_triangle_down:"
+    };
+    bot.api.chat.update(head_payload, function (err, response) {
+        if (response.ok) {
+            let thisTS = prevTS;
+            /*      Post message to ts          */
+            let thread_payload = {
+                "token": process.env.BOT_TOKEN,
+                "channel": thisChannel,
+                "thread_ts": thisTS,
+                "text": "*Shuffling*...:hourglass_flowing_sand:"
+            };
+            bot.api.chat.postMessage(thread_payload, function (err, response) {
+                /*      Start Tournmanet at ts      */
+                startTournament(bot, { "channel": thisChannel, "ts": thisTS, "lobby_id": thisLobby._id, "use_demo": false, "players_in_lobby": players, "lobby": thisLobby });
+            });
+        } else {
+            console.log(error);
+        }
+    });
+}
+
+function startNewGame(thisChannel, thisLobby, players) {
+
+    /*      Construct names string        */
+    let names_str = '<@' + players[0].slack_id + '>';
+    for (let i = 1; i < players.length; i++) {
+        names_str = names_str.concat(', <@', players[i].slack_id, '>');
+    }
+
+    let head_payload = {
+        "token": process.env.BOT_TOKEN,
+        "channel": thisChannel,
+        "text": ":spades: :hearts: *Starting Texas Holdem' Poker!*:clubs::diamonds:\nPlayers in *" + thisLobby.name + "* :\n:small_orange_diamond:" + names_str + ", please enter this game thread:small_orange_diamond:\n:small_red_triangle_down:Click below:small_red_triangle_down:"
+    };
+    bot.api.chat.postMessage(head_payload, function (err, response) {
+
+        let thisTS = response.message.ts;
+
+        notifyPlayer(thisChannel, thisTS, players);
+        /*      Post message to ts          */
+        let thread_payload = {
+            "token": process.env.BOT_TOKEN,
+            "channel": thisChannel,
+            "thread_ts": thisTS,
+            "text": "Welcome! The game will be starting soon, please stand by...:hourglass_flowing_sand:"
+        };
+        bot.api.chat.postMessage(thread_payload, function (err, response) {
+            /*      Start Tournmanet at ts      */
+            startTournament(bot, { "channel": thisChannel, "ts": thisTS, "lobby_id": thisLobby._id, "use_demo": false, "players_in_lobby": players, "lobby": thisLobby });
+        });
+    });
+}
+
+const notifyPlayer = (thisChannel, thisTs, p_list) => {
+    // console.log(chalk.bgRed("\n---------------- ./bot-skills/poker-commands.js > notifyPlayer() ---------"))
+    /*          Get Permalink           */
+    let permalink;
+    let payload = {
+        "token": process.env.BOT_TOKEN,
+        "channel": thisChannel,
+        "message_ts": thisTs,
+    }
+    bot.api.chat.getPermalink(payload, function (err, response) {
+        if (err) { console.log(err); }
+        console.log(response);
+        permalink = response.permalink;
+        let n = p_list.length;
+
+        for (let i = 0; i < n; i++) {
+            let P = p_list[i];
+            payload = {
+                "token": process.env.BOT_TOKEN,
+                "channel": P.slack_id,
+                "text": `*The lobby you have joined is starting the game soon!*\n:small_orange_diamond:<${permalink}|Click Here> to game thread.:small_orange_diamond:\n*Remember to leave game* when you're done, just message me here, say "*checkout*" or "*leave*":door:.`,
+                "as_user": true
+            }
+            bot.api.chat.postMessage(payload, function (err, response) {
+                if (err) { console.log(err); }
+            });
+        }
+    });
+}
 
 function restartHandler(prevPlayers, players) {
     let newList = [];
@@ -650,6 +747,7 @@ function restartHandler(prevPlayers, players) {
             newList.push(thisP);
         }
     }
+
     /*      Push new players        */
     for (let i = 0; i < players.length; i++) {
         let thisP = newList.find(P => P.slack_id === players[i].slack_id);
@@ -657,15 +755,11 @@ function restartHandler(prevPlayers, players) {
             newList.push(players[i]);
         }
     }
-    // #debug -----------------------------
-    console.log("\n------------ RESTART procedure --------------");
-    console.log("-------[ newList 1 ]---------");
-    console.log(newList);
+
     /*      Shift left          */
     let firstP = newList.shift();
     newList.push(firstP);
-    console.log("\n-------[ newList 2 ]---------");
-    console.log(newList);
+
     return newList;
 }
 

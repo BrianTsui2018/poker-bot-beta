@@ -49,12 +49,6 @@ const {
     updatePlayer
 } = require('../player/player-router');
 
-
-
-// const {
-//     joinedAndStartGame
-// } = require('../bot-skills/poker-commands.js');
-
 /*        Requirement         */
 const childProcess = require("child_process");
 
@@ -66,16 +60,16 @@ let curr_player_slack_id;
 let LOCK = true;
 
 botEvent.on('SlackBot: Got User Action', (args) => {
-    console.log(chalk.magenta("START-TOUR | GOT BOT EVENT"));
+    // console.log(chalk.magenta("START-TOUR | GOT BOT EVENT"));
     if (args) {
         let data = args[0];
-        console.log(data);
+        // console.log(data);
         if (data.user_slack_id === curr_player_slack_id && LOCK === false) {
             LOCK = true;
             clearTimeout(tournament_stopwatch);
             thread.send({ topic: "acknowledgement" })
         } else {
-            console.log(chalk.red("Wrong player spamming button!"));
+            // console.log(chalk.red("Wrong player spamming button!"));
         }
     } else {
         clearTimeout(tournament_stopwatch);
@@ -87,7 +81,6 @@ botEvent.on('SlackBot: Got User Action', (args) => {
 
 const shortCutCountDown = () => {
     botEvent.emit("SlackBot: Got User Action");
-    console.log("Slackbot: BOT!")
 }
 
 const startTournament = async (bot, data) => {
@@ -99,7 +92,7 @@ const startTournament = async (bot, data) => {
     if (local_data.READY_TO_START === true) {
         startT(bot, local_data);
     } else {
-        console.log("\nstart-tournament.js > startTournament() : READY_TO_START is false.")
+        // console.log("\nstart-tournament.js > startTournament() : READY_TO_START is false.")
     }
 
 }
@@ -136,12 +129,13 @@ const startT = (bot, local_data) => {
                 if (err) { console.log(err); }
 
                 if (msg.data.type !== "win" && msg.data.type !== "showdown") {
+                    await updateAllPlayerChips(local_data, msg);
                     if (local_data.next_player_status.state === "active" && local_data.next_player_status.already_bet === false && local_data.next_player_status.chips > 0) {
                         /*      Build player status message block      */
                         local_data = await playerStatusHandler(local_data, msg);
                         /*      Send player status message block       */
                         bot.api.chat.postMessage(getUpdatePayload(local_data), async function (err, res) {
-                            // done = true;
+
                             /*      Ask next player for the bet     */
                             await getNextBet(msg, local_data, bot);
                         });
@@ -163,22 +157,22 @@ const startT = (bot, local_data) => {
 
             /*          Wait or no wait               */
             if (msg.data.type === 'win') {
-
+                let backupLobby = local_data.thisLobby;
                 //set is_playing to false.
                 local_data.thisLobby.is_playing = false;
                 local_data.thisLobby = await updateLobby(local_data.thisLobby);
+
+                /*      Case when all players have left and lobby no longer exists on DB, hence null       */
+                if (!local_data.thisLobby) { local_data.thisLobby = backupLobby };
 
                 //End game player list : group everything in one array that has { playerId , chips}
                 let playerList = calculateWinnings(msg.data.playersEndGame, msg.data.winners);
 
                 //Update everyone's wallet with playerList
-                await updatePlayerWallet(playerList, local_data.thisLobby.team_id, true);
+                await updatePlayerWallet(playerList, local_data.players_in_lobby[0].team_id, true);
 
                 /*--------------- Construction site ---------------------*/
                 /*      Send checkout button        */
-
-                /*      Start a continue game        */
-                //joinedAndStartGame(local_data.lobby_id, local_data.players_in_lobby);
 
                 crow.emit("End of Tournament", local_data);
 
@@ -204,6 +198,14 @@ const startT = (bot, local_data) => {
 
     /*        Start the game           */
     thread.send({ topic: "start-game" });
+}
+
+function updateAllPlayerChips(local_data, msg) {
+    let n = local_data.num_players;
+    for (let i = 0; i < n; i++) {
+        local_data.players_in_lobby[i].state = msg.data.allPlayersStatus[i].state;
+        local_data.players_in_lobby[i].remaining_chips = msg.data.allPlayersStatus[i].chips;
+    }
 }
 
 async function updatePlayerCardsImages(msg, players_in_lobby) {
@@ -250,42 +252,6 @@ const game_setup = async (data) => {
         tournament_configuration = dummyData;
         READY_TO_START = true;
     } else {
-
-        //                                                              //  Note:   Possible error is when two users got here at the same time, and thought themselves to be 2nd player joinng the lobby
-        /*       REAL PLAYERS               */                          //          Suppose if and only if the player joining is the 2nd one, then a new tournament would start (a new thread would be created).
-        /*      Retrieve Lobby data         */                          //          For now, the expected recovery is the users to either ignore the 2nd thread(game) or start a new one if glitched terribly.
-
-        // thisLobby = await getOneLobby(data.lobby_id);                   //--------------------------------------- Between these two lines is where possible duplication game error may occur
-        // if (!thisLobby) {
-        //     console.log("\nERROR! start-tournament.js -> Real Players mode -> could not get the lobby");
-        // }
-        /*      Game Start Validation      */
-        // if (thisLobby.is_playing === false) {
-        //     console.log("\n./poker-game/start-tournament.js -> This lobby is not playing at the moment-------");
-        //     /*      Check for lobby status first to block off risk of duplicate-game error         */
-        //     thisLobby.is_playing = true;
-
-        //     /*      Update ASAP incase another player is joining simutaneously      */
-        //     updateLobby(thisLobby);                                     //--------------------------------------- Between these two lines is where possible duplication game error may occur
-        //     READY_TO_START = true;
-
-        /*      Retrieve players data       */
-        // players_in_lobby = await getAllPlayerInLobby(data.lobby_id);
-
-        // if (players_in_lobby.length < 2) {
-        //     console.log("\n./poker-game/start-tournament.js -> This lobby will not start because there is only 1 player in lobby-------");
-        //     /*      Reset to false      */
-        //     thisLobby.is_playing = false;
-        //     updateLobby(thisLobby);
-        //     READY_TO_START = false;
-        // } else {
-        //     console.log("\n./poker-game/start-tournament.js -> This lobby is not playing and is ready to start!-------");
-        // }
-        // }
-        // else {
-        //     console.log("\nDebug: This lobby is playing at the moment.");
-        // }
-
 
         let t_pList = [];
         /*      Build player List       */
@@ -339,8 +305,6 @@ const game_setup = async (data) => {
 }
 
 const resetCurrBet = async (local_data, msg) => {
-    // #debug -----------
-    console.log("\n---- resetCurrBet() ---- ");
     let n = local_data.num_players;
     for (let i = 0; i < n; i++) {
         local_data.players_in_lobby[i].curr_bet = 0;
@@ -398,6 +362,7 @@ const eventHandler = async (local_data, msg) => {
 
         }
         else if (msg.data.type === "state" || msg.data.type === "bet") {
+            console.log(chalk.bgRed("------------ bet phase ------------ check last player remaining chips update"));
             /*          Report the last player's bet        */
             local_data.last_player_idx = local_data.players_in_lobby.findIndex(P => P.slack_id === msg.data.playerId);
 
@@ -477,12 +442,6 @@ const eventHandler = async (local_data, msg) => {
 const playerStatusHandler = async (local_data, msg) => {
 
     if (local_data.next_player_status.state === "active" && local_data.next_player_status.already_bet === false && local_data.next_player_status.chips > 0) {
-        // let P_list = local_data.P;
-        let n = local_data.num_players;
-        for (let i = 0; i < n; i++) {
-            local_data.players_in_lobby[i].state = msg.data.allPlayersStatus[i].state;
-            local_data.players_in_lobby[i].remaining_chips = msg.data.allPlayersStatus[i].chips;
-        }
         local_data.this_block_message = makeStatus(local_data);
     }
     return local_data;
@@ -497,11 +456,11 @@ const getNextBet = async (msg, local_data, bot) => {
         console.log(local_data.next_player_status);
         if (local_data.skipped) {
             if (local_data.skipped > 0) {
-                console.log(chalk.red("! SKIPPED" + local_data.skipped + " folded player(s) !"));
+                // console.log(chalk.red("! SKIPPED" + local_data.skipped + " folded player(s) !"));
             }
         }
         if (local_data.next_player_status.chips === 0) {
-            console.log(chalk.blue("\n- makeBet() skipped > this player has all-in'd -\n"));
+            // console.log(chalk.blue("\n- makeBet() skipped > this player has all-in'd -\n"));
 
             /*      shortcut timeout        */
             shortCutCountDown();
@@ -509,16 +468,13 @@ const getNextBet = async (msg, local_data, bot) => {
         else {
             /*          Unset if player already bet         */
             if (local_data.next_player_status.already_bet === true) {
-                console.log("\n");
-                console.log(chalk.bgCyan("This player already bet! Betting round done!"));
-                console.log(local_data.players_in_lobby[local_data.next_player_idx].name);
-                console.log(chalk.bgCyan("------------------------\n"));
+
                 /*      shortcut timeout        */
                 shortCutCountDown();
             }
             /*          Unset if player is not in active state (fold/all-in)         */
             else if (local_data.next_player_status.state !== "active") {
-                console.log(chalk.blue("\n- makeBet() skipped > this player has already bet -\n"));
+
                 /*      shortcut timeout        */
                 shortCutCountDown();
             }
@@ -539,19 +495,18 @@ const getNextBet = async (msg, local_data, bot) => {
                 betting_data.wallet = local_data.next_player_status.chips;
                 betting_data.call_amount = msg.data.callAmount;
                 betting_data.small_blind_position = msg.data.smallBlindPosition;
-                // betting_data.chips_already_bet = local_data.next_player_status.chipsBet;
                 betting_data.min_bet = msg.data.minBet;
                 betting_data.cards_array = local_data.next_player_status.cards;
                 betting_data.type = msg.data.type;
 
                 // #debug ------------------
-                console.log(chalk.green("\n----- [", next_player.name, "] is going to bet NOW!--------"));
+                // console.log(chalk.green("\n----- [", next_player.name, "] is going to bet NOW!--------"));
                 // console.log("\n--------- ./poker-game/start-tournament.js ------- next player to bet --------- ");
                 // console.log(next_player);
                 // console.log("-------------- msg.data : data supplied from tournament2.js ----------");
                 // console.log(msg.data);
-                console.log("-------------- betting_data: data to be passed into makeBet() ------------");
-                console.log(betting_data);
+                // console.log("-------------- betting_data: data to be passed into makeBet() ------------");
+                // console.log(betting_data);
                 //-------------------------
                 let private_message_block = await makeBet(betting_data);
 
@@ -576,10 +531,6 @@ const getNextBet = async (msg, local_data, bot) => {
                         }
                     ]
                 }
-                // #debug ------------------
-                console.log("\n------ bet_message_payload");
-                console.log(bet_message_payload);
-                //-------------------------
                 /*      Send to one player       */
                 bot.api.chat.postEphemeral(bet_message_payload);
                 LOCK = false;

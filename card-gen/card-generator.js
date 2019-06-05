@@ -71,9 +71,6 @@ function requestForCardImage(card_array, message, playersID) {
             request(options, function (error, response, body) {
                 if (error)
                     throw new Error(error);
-                //console.log(response);
-                console.log(chalk.magenta("BODY ! "));
-                console.log(body);
                 if (playersID) {
                     image_url_array.push({ index: idx, id: playersID[idx], url: body.url });
                 } else {

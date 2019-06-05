@@ -103,7 +103,7 @@ t.on("TOURNAMENT:updated", (data, done) => {
 
     dataRouter(data);
     pidgeon.once("Proceed Tournament", (msg) => {
-        console.log(warning("Tournament | Got the message!"));
+        // console.log(warning("Tournament | Got the message!"));
         //Done() kicks the tournament to the next step.
         done();
     })
@@ -116,35 +116,35 @@ const imageThread = childProcess.fork("card-generator.js");
 imageThread.on("message", (msg) => {
     switch (msg.topic) {
         case "pairs":
-            console.log(chalk.green("Image Thread : Got images back"));
-            console.log(chalk.bgCyan('-------IMAGES---PAIRS-----------'))
-            console.log(msg.data);
-            console.log(chalk.bgCyan('--------------xxxxxx------------'))
+            // console.log(chalk.green("Image Thread : Got images back"));
+            // console.log(chalk.bgCyan('-------IMAGES---PAIRS-----------'))
+            // console.log(msg.data);
+            // console.log(chalk.bgCyan('--------------xxxxxx------------'))
             //////////// PIDGEON
             pidgeon_image.emit("recieved images", msg.topic, msg.data);
             //////////// PIDGEON
             let firstThreeCards = commonCardsFromGameState.splice(0, 3);
-            console.log('First Three Cards to Child : ', JSON.stringify(firstThreeCards));
+            // console.log('First Three Cards to Child : ', JSON.stringify(firstThreeCards));
             imageThread.send({ topic: "common-cards", data: firstThreeCards });
 
             break;
         case "common":
-            console.log(chalk.green("Image Thread : Got images back"));
-            console.log(chalk.bgCyan('-------IMAGES--!COMMON!----------'))
-            console.log(msg.data);
-            console.log(chalk.bgCyan('--------------xxxxxx------------'))
+            // console.log(chalk.green("Image Thread : Got images back"));
+            // console.log(chalk.bgCyan('-------IMAGES--!COMMON!----------'))
+            // console.log(msg.data);
+            // console.log(chalk.bgCyan('--------------xxxxxx------------'));
             //////////// PIDGEON
             pidgeon_image.emit("recieved images", msg.topic, msg.data);
             //////////// PIDGEON
             if (commonCardsFromGameState.length > 0) {
-                console.log(chalk.cyan('Got common cards back, and common cards obj list has '));
-                console.log(commonCardsFromGameState)
+                // console.log(chalk.cyan('Got common cards back, and common cards obj list has '));
+                // console.log(commonCardsFromGameState)
                 imageThread.send({ topic: "common-cards", data: [commonCardsFromGameState.shift()] })
             } else {
-                console.log(chalk.cyan('commonCardsFromGameState.length is now ', commonCardsFromGameState.length));
-                console.log(chalk.cyan("Removing Image thread!"));
+                // console.log(chalk.cyan('commonCardsFromGameState.length is now ', commonCardsFromGameState.length));
+                // console.log(chalk.cyan("Removing Image thread!"));
                 imageThread.kill();
-                console.log(chalk.cyan("Child thread removed"));
+                // console.log(chalk.cyan("Child thread removed"));
             }
             break;
         default:
