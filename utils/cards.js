@@ -1,7 +1,8 @@
 
 const generateCardPayload = require('../card-gen/card-namer');
 const async = require("async");
-const chalk = require("chalk")
+const chalk = require("chalk");
+const axios = require("axios");
 /**
  * Back up method on generating cards in text base since multiple attempts of
  * getting the image version has failed.
@@ -70,7 +71,7 @@ const textBasedCards = (cardArray) => {
 const retryGetCommonCards = async (cards) => {
 
     //Generate file name
-    let imageURL = generateCardPayload(data.cards)
+    let imageURL = generateCardPayload(cards)
     let url = `https://imai-poker-utils.herokuapp.com/iu/${imageURL.cardName}`;
     try {
         let img = await axios.get(url);
@@ -103,7 +104,7 @@ const retryGetPairCards = async (data) => {
     console.log("cards---------------------");
     console.log(p);
     let cards = generateCardPayload(p);
-    let url = `https://imai-poker-utils.herokuapp.com/iu/${cards.cardName}`;
+    let url = `https://imai-poker-utils.herokuapp.com/iu/${data.cards.cardName}`;
 
     try {
         let img = await axios.get(url);

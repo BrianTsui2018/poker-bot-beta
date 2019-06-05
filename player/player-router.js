@@ -252,22 +252,19 @@ const calculateWinnings = (playersEndGame, winners) => {
 }
 
 /**
- * Updates player wallet. Needs playerId and chips from EACH player in playerList.
+ * Updates player wallet. Needs playerId and chips from EACH player in playerList. (Option) if CLEAR_CARDS is true, also clears cards url on DB.
  * @param {Object} playerList 
  * @param {String} team_id
+ * @param {Boolean} CLEAR_CARDS
  */
-const updatePlayerWallet = async (playerList, team_id) => {
-    // #debug -----------------------------------
-    console.log("\n --------------./player/player-router > updatePlayerWaller() > plist---------------");
-    console.log(playerList)
-    async.each(playerList, (player, callback) => {
+const updatePlayerWallet = async (playerList, team_id, CLEAR_CARDS) => {
 
-        // try {
-        // { playerId : x , chips : y}
+    async.each(playerList, (player, callback) => {
 
         getOnePlayer({ slack_id: player.playerId, team_id })
             .then(thisPlayer => {
                 thisPlayer.wallet = player.chips;
+                if (CLEAR_CARDS) { thisPlayer.cards = ""; }
                 thisPlayer.save();
             }).then(() => {
                 callback();
@@ -276,19 +273,6 @@ const updatePlayerWallet = async (playerList, team_id) => {
                 throw new Error("Could not save or get");
             })
 
-        // console.log("FOUND PLAYER ", thisPlayer);
-        // thisPlayer.wallet = player.chips;
-        //await thisPlayer.save();
-
-
-
-        // } catch (error) {
-        //     console.log(error);
-        //     throw new Error("Could not find player nor update!")
-
-        // }
-
-        //callback()
     }, (err, res) => {
         if (err) {
             console.log("Player-router.js | updatePlayerWallet ERROR | ")
@@ -301,6 +285,7 @@ const updatePlayerWallet = async (playerList, team_id) => {
 
     })
 }
+
 
 
 /**-------------------------------------------------------------------

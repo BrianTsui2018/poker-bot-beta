@@ -7,7 +7,8 @@ const {
     deleteLobby,
     deleteLobbyAll,
     getAllLobbiesInTeam,
-    getAllActiveLobbiesInTeam
+    getAllActiveLobbiesInTeam,
+    updateLobby
 } = require('../lobby/lobby-router');
 
 const {
@@ -421,6 +422,16 @@ const axiosPUT = async (betData) => {
     return body;
 }
 
+
+const restartLobbies = async () => {
+    let allLobbies = await getlobbies();
+    for (const lobby of allLobbies) {
+        lobby.is_playing = false;
+        updateLobby(lobby);
+    }
+
+}
+
 module.exports = {
     registerPlayer,
     registerLobby,
@@ -438,7 +449,8 @@ module.exports = {
     patchPlayerDP,
     updatePlayerWallet,
     axiosGet,            // input only needs {name, slack_id}, returns { slack_id, display_name, dp_url }
-    axiosPUT
+    axiosPUT,
+    restartLobbies
 };
 
 

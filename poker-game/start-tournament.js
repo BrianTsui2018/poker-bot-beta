@@ -1,5 +1,8 @@
 "use strict";
 
+const events = require('events');
+const crow = new events.EventEmitter();
+
 /*          Chalk           */
 const chalk = require('chalk');
 const error = chalk.bold.red;
@@ -47,6 +50,11 @@ const {
 } = require('../player/player-router');
 
 
+
+// const {
+//     joinedAndStartGame
+// } = require('../bot-skills/poker-commands.js');
+
 /*        Requirement         */
 const childProcess = require("child_process");
 
@@ -75,6 +83,8 @@ botEvent.on('SlackBot: Got User Action', (args) => {
     }
 })
 
+
+
 const shortCutCountDown = () => {
     botEvent.emit("SlackBot: Got User Action");
     console.log("Slackbot: BOT!")
@@ -101,6 +111,7 @@ const startT = (bot, local_data) => {
 
     /*      Start Thread       */
     thread = childProcess.fork("tournament2.js", configs);            //Immediately fork a child process to start to run tournament
+    crow.emit("Forked Tournament2.js", configs);
 
     /*      Event Listener (to child process tournament)      */
     thread.on("message", async (msg) => {                                   //Each time child process passes a msg back, this thread listener catches it.
@@ -161,7 +172,18 @@ const startT = (bot, local_data) => {
                 let playerList = calculateWinnings(msg.data.playersEndGame, msg.data.winners);
 
                 //Update everyone's wallet with playerList
-                await updatePlayerWallet(playerList, local_data.thisLobby.team_id);
+                await updatePlayerWallet(playerList, local_data.thisLobby.team_id, true);
+
+                /*--------------- Construction site ---------------------*/
+                /*      Send checkout button        */
+
+                /*      Start a continue game        */
+                //joinedAndStartGame(local_data.lobby_id, local_data.players_in_lobby);
+
+                crow.emit("End of Tournament", local_data);
+
+                /*--------------------------------------*/
+
 
                 /*      One game ended, kill thread       */
                 thread.send({ topic: "quit-game" });
@@ -185,15 +207,21 @@ const startT = (bot, local_data) => {
 }
 
 async function updatePlayerCardsImages(msg, players_in_lobby) {
+
     let imgArr = msg.data.cardImages;
-
-
-    for (let i = 0; i < players_in_lobby.length; i++) {
-        let x = players_in_lobby.findIndex(P => P.slack_id === imgArr[i].id);
-        players_in_lobby[x].cards = imgArr[i].url;
-        players_in_lobby[x] = await updatePlayer(players_in_lobby[x]);
-        players_in_lobby[x].idx = imgArr[i].index;
-
+    if (imgArr) {
+        for (let i = 0; i < players_in_lobby.length; i++) {
+            if (imgArr[i]) {
+                let x = players_in_lobby.findIndex(P => P.slack_id === imgArr[i].id);
+                players_in_lobby[x].cards = imgArr[i].url;
+                players_in_lobby[x] = await updatePlayer(players_in_lobby[x]);
+                players_in_lobby[x].idx = imgArr[i].index;
+            } else {
+                console.log(chalk.red("\n\n./poker-game/start-tournament.js -> updatePlayerCardImages() : Player did not get image from Imgur!\n\n"));
+            }
+        }
+    } else {
+        console.log(chalk.red("\n\n./poker-game/start-tournament.js -> updatePlayerCardImages() : Util / Imgur was late!\n\n"));
     }
 }
 
@@ -325,15 +353,15 @@ const resetCurrBet = async (local_data, msg) => {
 
 const updateCurrBet = async (local_data, new_chipsBet) => {
     // #debug -----------
-    console.log("\n---- updateCurrBet ----");
+    // console.log("\n---- updateCurrBet ----");
     let P = local_data.players_in_lobby[local_data.last_player_idx];
-    console.log("new_chipsBet > " + new_chipsBet);
-    console.log("P.chips_already_bet > " + P.chips_already_bet);
+    // console.log("new_chipsBet > " + new_chipsBet);
+    // console.log("P.chips_already_bet > " + P.chips_already_bet);
     P.curr_bet += new_chipsBet - P.chips_already_bet;
-    console.log("P.curr_bet > " + P.curr_bet);
+    // console.log("P.curr_bet > " + P.curr_bet);
     P.chips_already_bet = new_chipsBet;
     local_data.players_in_lobby[local_data.last_player_idx] = P;
-    console.log("new chips_already_bet from local_data = " + local_data.players_in_lobby[local_data.last_player_idx].chips_already_bet)
+    // console.log("new chips_already_bet from local_data = " + local_data.players_in_lobby[local_data.last_player_idx].chips_already_bet)
     return P;
 }
 
@@ -576,5 +604,6 @@ const getNextBet = async (msg, local_data, bot) => {
 
 module.exports = {
     startTournament,
-    botEvent
+    botEvent,
+    crow
 };

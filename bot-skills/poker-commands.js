@@ -24,7 +24,8 @@ const {
     withdrawChip,
     patchPlayerDP,
     updatePlayerWallet,
-    axiosPUT
+    axiosPUT,
+    restartLobbies
 } = require('./manager.js');
 
 
@@ -33,10 +34,21 @@ const {
 } = require('../lobby/lobby-router')
 
 const {
+    crow,
     startTournament
 } = require('../poker-game/start-tournament')
 
+crow.on("Forked Tournament2.js", (args) => {
+    console.log("\n<<<<<<< Crow >>>>>>>>>>>\nForked Tournament2.js--------");
+    console.log(args);
 
+})
+
+crow.on("End of Tournament", (local_data) => {
+    console.log("\n<<<<<<< Crow >>>>>>>>>>>\nEnd of Tournament--------");
+    console.log(local_data);
+    joinedAndStartGame(local_data.thisLobby._id, local_data.players_in_lobby, local_data.ts);
+})
 
 
 /**
@@ -556,9 +568,12 @@ const giveDailyBonus = async (data) => {
 }
 
 
-const joinedAndStartGame = async (lobby_id) => {
+const joinedAndStartGame = async (lobby_id, prevPlayers, prevTS) => {
+    // const joinedAndStartGame = async (lobby_id) => {
     /*      Get the lobby           */
     let thisLobby = await getLobbyByID(lobby_id);
+    let RESTART = false;
+    if (prevPlayers) { RESTART = true; }
 
     /*      Block duplicate procedure       */
     if (thisLobby.is_playing === false) {
@@ -569,11 +584,17 @@ const joinedAndStartGame = async (lobby_id) => {
         let L = await getLobbyPlayers(lobby_id);
         let players = L.playerList;
 
-        if (players.length <= thisLobby.maxPlayers && players.length >= 2) {    // This is 2nd time validating player number. It was first checked when player joins lobby.
+        /*      RESTART mode        */
+        if (RESTART) { players = restartHandler(prevPlayers, players); }
+
+        /*          Exclude extra players if there is       */
+        players = players.slice(0, thisLobby.maxPlayers);
+
+        if (players.length >= 2) {    // This is 2nd time validating player number. It was first checked when player joins lobby.
             /*      Construct names string        */
-            let names_str = '<@' + L.playerList[0].slack_id + '>';
-            for (let i = 1; i < L.num_players; i++) {
-                names_str = names_str.concat(', <@', L.playerList[i].slack_id, '>');
+            let names_str = '<@' + players[0].slack_id + '>';
+            for (let i = 1; i < players.length; i++) {
+                names_str = names_str.concat(', <@', players[i].slack_id, '>');
             }
 
             /*      Get the channel         */
@@ -587,7 +608,8 @@ const joinedAndStartGame = async (lobby_id) => {
                 "text": ":spades: :hearts: *Starting Texas Holdem' Poker!*:clubs::diamonds:\nPlayers in *" + thisLobby.name + "* :\n:small_orange_diamond:" + names_str + ", please enter this game thread:small_orange_diamond:\n(Click below)"
             }
             bot.api.chat.postMessage(head_payload, function (err, response) {
-                thisTS = response.message.ts;
+
+                thisTS = RESTART ? prevTS : response.message.ts;
 
                 /*      Post message to ts          */
                 let thread_payload = {
@@ -597,10 +619,10 @@ const joinedAndStartGame = async (lobby_id) => {
                     "text": "Welcome! The game will be starting soon, please stand by...:hourglass_flowing_sand:"
                 }
                 bot.api.chat.postMessage(thread_payload, function (err, response) {
-
                     /*      Start Tournmanet at ts      */
                     startTournament(bot, { "channel": thisChannel, "ts": thisTS, "lobby_id": lobby_id, "use_demo": false, "players_in_lobby": players, "lobby": thisLobby });
                 });
+
             });
         } else {
             /*      Case: lobby is full or empty        */
@@ -613,6 +635,39 @@ const joinedAndStartGame = async (lobby_id) => {
 
 }
 
+const serverReset = () => {
+    restartLobbies();
+}
+
+
+
+function restartHandler(prevPlayers, players) {
+    let newList = [];
+    /*      Remove left players     */
+    for (let i = 0; i < prevPlayers.length; i++) {
+        let thisP = players.find(P => P.slack_id === prevPlayers[i].slack_id);
+        if (thisP) {
+            newList.push(thisP);
+        }
+    }
+    /*      Push new players        */
+    for (let i = 0; i < players.length; i++) {
+        let thisP = newList.find(P => P.slack_id === players[i].slack_id);
+        if (!thisP) {
+            newList.push(players[i]);
+        }
+    }
+    // #debug -----------------------------
+    console.log("\n------------ RESTART procedure --------------");
+    console.log("-------[ newList 1 ]---------");
+    console.log(newList);
+    /*      Shift left          */
+    let firstP = newList.shift();
+    newList.push(firstP);
+    console.log("\n-------[ newList 2 ]---------");
+    console.log(newList);
+    return newList;
+}
 
 module.exports = {
     createPoker,
@@ -625,5 +680,6 @@ module.exports = {
     placeBet,
     getPlayerBankBalance,
     giveDailyBonus,
-    joinedAndStartGame
+    joinedAndStartGame,
+    serverReset
 }

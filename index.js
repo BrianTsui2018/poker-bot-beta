@@ -1,7 +1,7 @@
 //----------------------------------------
 /*              Import                  */
 const Botkit = require('botkit');
-const { botEvent } = require('./poker-game/start-tournament');
+
 const {
     handleSlash
 } = require('./slash-commands');
@@ -17,10 +17,12 @@ const {
     placeBet,
     getPlayerBankBalance,
     giveDailyBonus,
-    joinedAndStartGame
+    joinedAndStartGame,
+    serverReset,
 } = require('./bot-skills/poker-commands');
 
 const {
+    botEvent,
     startTournament
 } = require('./poker-game/start-tournament');
 
@@ -454,3 +456,5 @@ controller.on('slash_command', async (bot, message) => {
 })
 
 //----------------------------------------
+
+serverReset();

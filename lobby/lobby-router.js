@@ -239,6 +239,7 @@ const getAllActiveLobbiesInTeam = async (lobbyIdList) => {
 	}
 }
 
+
 module.exports = {
 	getlobbies,
 	getOneLobby,
@@ -248,5 +249,6 @@ module.exports = {
 	deleteLobbyAll,
 	getLobbyIdByName,
 	getAllLobbiesInTeam,
-	getAllActiveLobbiesInTeam
+	getAllActiveLobbiesInTeam,
+
 };
