@@ -427,8 +427,9 @@ const update_showdown = (msg, url) => {
 const update_win = (msg) => {
 
     let str = `:trophy:*Winner*: :trophy:`;
-    for (let i = 0; i < msg.data.winners.length; i++) {
-        str = str.concat(`\n<@${msg.data.winners[i].playerId}> has won *${msg.data.winners[i].amount}* from the pot!`)
+    for (let i = 0; i < msg.data.playersEndGame.length; i++) {
+        if (msg.data.playersEndGame[i].chips > 0)
+            str = str.concat(`\n<@${msg.data.playersEndGame[i].playerId}> has won *${msg.data.playersEndGame[i].chips}* from the pot!`)
     }
     let message_block = [
         {
@@ -1105,46 +1106,87 @@ const TURN = (data) => {
 }
 
 const get_show_down_template = (url) => {
-    return [
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": ":loudspeaker: *SHOW DOWN* :bangbang: \n Cards are ranked from highest to lowest!"
-            }
-        },
-        {
-            "type": "image",
-            "title": {
-                "type": "plain_text",
-                "text": "Example Image",
-                "emoji": true
+    if (url) {
+        return [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": ":loudspeaker: *SHOW DOWN* :bangbang: \n Cards are ranked from highest to lowest!"
+                }
             },
-            "image_url": url,
-            "alt_text": "Example Image"
-        },
-        {
-            "type": "divider"
-        }
-    ];
+            {
+                "type": "image",
+                "title": {
+                    "type": "plain_text",
+                    "text": "Example Image",
+                    "emoji": true
+                },
+                "image_url": url,
+                "alt_text": "Example Image"
+            },
+            {
+                "type": "divider"
+            }
+        ];
+    }
+    else {
+        console.log("\nNote: ./message-blocks/poker-messages.js > get_show_down_template() does not have url.");
+        return [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": ":loudspeaker: *SHOW DOWN* :bangbang: \n Cards are ranked from highest to lowest!"
+                }
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "(Missing Card images from Imgur API)"
+                }
+            },
+            {
+                "type": "divider"
+            }
+        ];
+    }
 }
 
 
 const get_show_down_user = (playerId, bestCardsInfo) => {
-    return {
-        "type": "section",
-        "text":
-        {
-            "type": "mrkdwn",
-            "text": `*<@${playerId}>*\n:black_small_square: Best Cards: *${bestCardsInfo.name}* !` //replace with :black_medium_square:*[User 1]* \n :black_small_square:Best Cards : [bestCards] \n :black_small_square:Info : [bestCardsInfo Obj]
-        },
-        "accessory":
-        {
-            "type": "image",
-            "image_url": `${bestCardsInfo.url}`, //Fill with image url
-            "alt_text": "Card pairs"
-        }
-    };
+    let thisBlock;
+
+    if (bestCardsInfo.url)
+        thisBlock = {
+            "type": "section",
+            "text":
+            {
+                "type": "mrkdwn",
+                "text": `*<@${playerId}>*\n:black_small_square: Best Cards: *${bestCardsInfo.name}* !` //replace with :black_medium_square:*[User 1]* \n :black_small_square:Best Cards : [bestCards] \n :black_small_square:Info : [bestCardsInfo Obj]
+            },
+            "accessory":
+            {
+                "type": "image",
+                "image_url": `${bestCardsInfo.url}`, //Fill with image url
+                "alt_text": "Card pairs"
+            }
+        };
+    else {
+        thisBlock = {
+            "type": "section",
+            "text":
+            {
+                "type": "mrkdwn",
+                "text": `*<@${playerId}>*\n:black_small_square: Best Cards: *${bestCardsInfo.name}* !` //replace with :black_medium_square:*[User 1]* \n :black_small_square:Best Cards : [bestCards] \n :black_small_square:Info : [bestCardsInfo Obj]
+            }
+        };
+        console.log("\nNote: ./message-blocks/poker-messages.js > get_show_down_user() does not have bestCardsInfo.url.\nHere's all the info:");
+        console.log(bestCardsInfo);
+    }
+
+    return thisBlock;
 }
 
 
@@ -1152,7 +1194,9 @@ const SHOWDOWN = (data, url) => {
     let showdown_array = get_show_down_template(url);
     /*      Loop through each "showdown" player        */
     for (let idx = 0; idx < data.ranks.length; idx++) {
-        let show_down_user = get_show_down_user(data.ranks[idx].playerId, data.ranks[idx].bestCardsInfo)
+        let show_down_user = get_show_down_user(data.ranks[idx].playerId, data.ranks[idx].bestCardsInfo);
+
+
         showdown_array.push(show_down_user);
         // showdown_array[showdown_array.length - 1].text.text = `*<@${ data.ranks[idx].playerId }>*\n: black_small_square: Best Cards: ${ data.ranks[idx].bestCardsInfo.name } .`;
         // showdown_array[showdown_array.length - 1].accessory.image_url = data.ranks[idx].bestCardsInfo.url;
@@ -1174,13 +1218,6 @@ const makeStatus = (local_data) => {
         let state = local_data.players_in_lobby[p].state;
         let curr_bet = local_data.players_in_lobby[p].curr_bet;
 
-        // console.log("\nmakeStatus() -> Report:");
-        // console.log("dn = " + dn);
-        // console.log("dp = " + dp);
-        // console.log("remaining_chips = " + remaining_chips);
-        // console.log("state = " + state);
-        // console.log("curr_bet = " + curr_bet);
-
         if (state === "active") {
             if (local_data.next_player_idx === p) { state = "*Betting*"; }
             else if (remaining_chips > 0) { state = "Waiting"; }
@@ -1200,7 +1237,6 @@ const makeStatus = (local_data) => {
                 "alt_text": dn
             }
         );
-
 
         if (local_data.next_player_idx === p) {
             text_str = text_str + ":speech_balloon:";

@@ -651,13 +651,13 @@ const joinedAndStartGame = async (lobby_id, prevPlayers, prevTS) => {
     }
     else {
         /*      Case: lobby is empty        */
-        let payload = {
-            "token": process.env.BOT_TOKEN,
-            "channel": thisChannel,
-            "thread_ts": prevTS,
-            "text": "*\*Shuffles\**This lobby is closed. For a new game, please *Create* or *Join* another lobby.\nIf you're leaving for now, direct message me to say \"*Leave*\" or \"*Checkout*\":door:"
-        };
-        bot.api.chat.postMessage(payload, function (err, response) { });
+        // let payload = {
+        //     "token": process.env.BOT_TOKEN,
+        //     "channel": thisChannel,              // if lobby doesn't exist, this channel cannot be found
+        //     "thread_ts": prevTS,
+        //     "text": "*\*Shuffles\**This lobby is closed. For a new game, please *Create* or *Join* another lobby.\nIf you're leaving for now, direct message me to say \"*Leave*\" or \"*Checkout*\":door:"
+        // };
+        // bot.api.chat.postMessage(payload, function (err, response) { });
     }
 
 
@@ -770,24 +770,26 @@ const notifyPlayer = (thisChannel, thisTs, p_list) => {
 function restartHandler(prevPlayers, players) {
     let newList = [];
     let quitList = [];
-    // console.log(chalk.bgRed("\n----------------- restartHandler ---------------- Check player that remains"))
+    console.log(chalk.bgRed("\n----------------- restartHandler ---------------- Check player that remains"))
     /*      Remove left players and broke players    */
     for (let i = 0; i < prevPlayers.length; i++) {
         let thisP = players.find(P => P.slack_id === prevPlayers[i].slack_id);
         if (!thisP) {
-            // console.log(chalk.green("\n--------------- remove gone player -----------"));
+            console.log(chalk.green("\n--------------- remove gone player -----------"));
             quitList.push(prevPlayers[i]);
+            console.log(prevPlayers[i]);
         }
         else if (prevPlayers[i].remaining_chips < 2000) {
-            // console.log(chalk.green("\n--------------- kick broke player, force checkout -----------"));
+            console.log(chalk.green("\n--------------- kick broke player, force checkout -----------"));
             prevPlayers[i].isInLobby = false;
             crow.emit("IDLE_KICK", { "slack_id": prevPlayers[i].slack_id, "team_id": prevPlayers[i].team_id });
             quitList.push(prevPlayers[i]);
+            console.log(prevPlayers[i]);
         }
         else if (thisP && prevPlayers[i].remaining_chips > 0) {
             newList.push(prevPlayers[i]);
-            // console.log(chalk.green("\n--------------- keep player -----------"));
-            // console.log(prevPlayers[i]);
+            console.log(chalk.green("\n--------------- keep player -----------"));
+            console.log(prevPlayers[i]);
         }
         else {
             quitList.push(prevPlayers[i]);
@@ -795,13 +797,19 @@ function restartHandler(prevPlayers, players) {
         }
     }
 
+    for (let j = 0; j < players.length; j++) {
+        let found = quitList.find(P => P.slack_id = players[j].slack_id);
+        if (found) {
+            players[j].isInLobby = false;
+        }
+    }
 
     /*      Push new players        */
     for (let i = 0; i < players.length; i++) {
         let thisP = newList.find(P => P.slack_id === players[i].slack_id);
         if (!thisP && players[i].isInLobby) {
-            // console.log(chalk.green("\n--------------- now push new players -----------"));
-            // console.log(players[i]);
+            console.log(chalk.green("\n--------------- now push new players -----------"));
+            console.log(players[i]);
             newList.push(players[i]);
         }
     }

@@ -284,9 +284,9 @@ const updatePlayerWallet = async (playerList, players_in_lobby, CLEAR_CARDS) => 
                 console.log(players_in_lobby[currP_idx]);
                 console.log("---- what is player in msg.playerList:");
                 console.log(player);
-                thisPlayer.wallet = player.chips;
-                players_in_lobby[currP_idx].remaining_chips = player.chips;
-                players_in_lobby[currP_idx].wallet = player.chips;
+                players_in_lobby[currP_idx].remaining_chips += player.chips;
+                players_in_lobby[currP_idx].wallet = players_in_lobby[currP_idx].remaining_chips;
+                thisPlayer.wallet = players_in_lobby[currP_idx].wallet;
                 if (CLEAR_CARDS) { players_in_lobby[currP_idx].cards = ""; };
                 // console.log("\n---- thisPlayer before saving:");
                 // console.log(thisPlayer);

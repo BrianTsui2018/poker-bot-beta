@@ -57,23 +57,24 @@ const lobbyRemovePlayer = async (player_data) => {
     let thisPlayer = await getPlayerByID(player_data);
     // console.log("\n---------- ./bot-skills/manager.js -------- lobbyRemovePlayer------- before checkout")
     // console.log(thisPlayer);
-    /*      Wallet        */
-    let wallet = thisPlayer.wallet;
 
-    /*      Check-out Player    */
-    if (thisPlayer) {
-        thisPlayer = await checkOut(thisPlayer);
+    if (thisPlayer.isInLobby) {
+
+        /*      Check-out Player    */
+        if (thisPlayer) {
+            thisPlayer = await checkOut(thisPlayer);
+        }
+        else {
+            // #debug ------------------------------------
+            console.log(`\nmanager.js -> lobbyRemovePlayer() : getOnePlayer did not find user\n` + player_data.slack_id);
+        }
+
+        // console.log("\n---------- ./bot-skills/manager.js -------- lobbyRemovePlayer------- after checkout, before cleanup")
+        // console.log(thisPlayer);
+        cleanupLobbyForPlayer(thisPlayer);
+
     }
-    else {
-        // #debug ------------------------------------
-        console.log(`\nmanager.js -> lobbyRemovePlayer() : getOnePlayer did not find user\n` + player_data.slack_id);
-    }
-
-    // console.log("\n---------- ./bot-skills/manager.js -------- lobbyRemovePlayer------- after checkout, before cleanup")
-    // console.log(thisPlayer);
-    cleanupLobbyForPlayer(thisPlayer);
-
-    return { "player": thisPlayer, "wallet": wallet };                 // Returns updated player object OR null
+    return { "player": thisPlayer, "wallet": thisPlayer.wallet };                 // Returns updated player object OR null
 }
 
 const cleanupLobbyForPlayer = async (thisPlayer) => {

@@ -302,12 +302,37 @@ const dataRouter = (data) => {
         let playerAndChips = [];
         let pIdx = 0;
         for (let player of t.gamestate.players) {
-            let thisPlayer = { playerId: configs.playerList[pIdx].id, chips: player.chips, chipsBet: player.chipsBet }
+            let thisPlayer = { "playerId": configs.playerList[pIdx].id, "chips": 0, "chipsBet": player.chipsBet }
             pIdx++;
             playerAndChips.push(thisPlayer);
         }
         data.playersEndGame = [...playerAndChips];
 
+        /*          Calculating the Pot         */
+        data.pot = 0;
+        let m = t.gamestate.players.length;
+        for (let i = 0; i < m; i++) {
+            data.pot += t.gamestate.players[i].chipsBet;
+        }
+
+        /*          Distribute the Pot             */
+        let n = t.gamestate.winners.length;
+        let peg = 0
+        for (let j = 0; j < n; j++) {
+            peg = data.playersEndGame.findIndex(P => P.playerId === t.gamestate.winners[j].playerId);
+            if (data.pot > 0) {
+                let val = Math.min(data.pot, data.playersEndGame[peg].chipsBet * m);
+                data.playersEndGame[peg].chips = val;
+                t.gamestate.winners[j].amount = val;
+                data.pot -= val;
+            }
+        }
+        console.log("\n================= PLAYERENDGAME in tournament 2 ================");
+        console.log(data.playersEndGame);
+
+        if (data.pot !== 0) {
+            console.log(chalk.red("\nPot distribution error at tournament2.js!"));
+        }
 
         // #debug ----------------------------
         // console.log("\n-------------- tournament2.js -> dataRouter(data) case = win  ------------------");
