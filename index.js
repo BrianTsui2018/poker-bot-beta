@@ -224,15 +224,16 @@ controller.hears(['bank', 'balance', 'money', 'How much money is in my bank'], '
             convo.say('');
             convo.next();
             let bankMsg = await getPlayerBankBalance({ slack_id: message.user, team_id: message.team });
-            if (!bankMsg) throw new Error("index.js | controller.hears poker-balance | Could not get user balance")
-            bot.sendWebhook({
-                blocks: bankMsg,
-                channel: message.channel_id,
-            }, function (err, res) {
-                if (err) {
-                    console.log(err);
+            if (!bankMsg) { throw new Error("index.js | controller.hears poker-balance | Could not get user balance") }
+            else {
+                let payload = {
+                    "token": process.env.BOT_TOKEN,
+                    "channel": message.channel,
+                    "blocks": bankMsg
                 }
-            });
+                bot.api.chat.postMessage(payload);
+            }
+
         });
     } catch (error) {
         console.log(error)
@@ -381,7 +382,8 @@ controller.on('block_actions', async function (bot, message) {
             "lobby_id": response.lobby_id,
             "user_name": message.raw_message.user.username,
             "channel_id": message.channel,
-            "lobby_channel": response.lobby_channel
+            "lobby_channel": response.lobby_channel,
+            "lobby_name": response.lobbyName
         }
 
         /*          Put player in lobby           */
@@ -389,6 +391,7 @@ controller.on('block_actions', async function (bot, message) {
         /*          Refresh the list menu          */
         if (response.topic === "JOIN_LOBBY_DIRECT") {
             await refreshLobbySection(bot, message, data.lobby_id);
+
         }
         else {
             await refreshLobbyList(bot, message);
@@ -408,9 +411,13 @@ controller.on('block_actions', async function (bot, message) {
             bot.reply(message, `<@${message.user}>, the lobby is already full, please try again.:clubs:`);
         } else {
             console.log("\nindex.js : case JOINED\n");
-            bot.reply(message, `<@${message.user}>, you have joined the lobby *${result.name}*.\nPlease go to <#${data.lobby_channel}> to meet other players in the game thread.:clubs:`), function (err, response) { };
+            console.log("\n--------------- data");
+            console.log(data);
+            console.log("\n----------------result");
+            console.log(result);
+            bot.reply(message, `<@${message.user}>, you have joined the lobby *${data.lobby_name}*.\nPlease go to <#${data.lobby_channel}> to meet other players in the game thread.:clubs:`), function (err, response) { };
             // bot.reply(message, `<@${message.user}>, you have joined the lobby *${result.name}*.\n<${data.lobby_thread}|Click *Here*> to meet other players in the game thread.:clubs:`), function (err, response) { };
-            joinedAndStartGame(response.lobby_id)
+            joinedAndStartGame(response.lobby_id);
         }
     }
     else if (response.topic === "CREATE_LOBBY") {

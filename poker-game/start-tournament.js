@@ -50,6 +50,10 @@ const {
     updatePlayer
 } = require('../player/player-router');
 
+const {
+    wakeup
+} = require('../utils/wakeup');
+
 /*        Requirement         */
 const childProcess = require("child_process");
 
@@ -78,14 +82,14 @@ botEvent.on('SlackBot: Got User Action', (args) => {
     }
 })
 
-
-
 const shortCutCountDown = () => {
     botEvent.emit("SlackBot: Got User Action");
 }
 
 const startTournament = async (bot, data) => {
     /*      Ready message to establish the thread       */
+    wakeup();
+
     /*        Prepare start game data       */
     let local_data = await game_setup(data);
 
@@ -204,6 +208,13 @@ const startT = (bot, local_data) => {
                     crow.emit("IDLE_KICK", { "slack_id": local_data.players_in_lobby[local_data.next_player_idx].slack_id, "team_id": local_data.this_team_id });
                     thread.send({ topic: "acknowledgement" });
                 }, waitTime);
+
+                // let checkTime = 30000;
+                // setTimeout(() => {
+                //     bot.api.chat.postMessage(timeCheck(local_data));
+                // }, checkTime);
+
+
             }
         }
     })
@@ -245,6 +256,15 @@ const getUpdatePayload = (local_data) => {
     return {
         "token": process.env.BOT_TOKEN,
         "blocks": local_data.this_block_message,
+        "channel": local_data.channel,
+        "thread_ts": local_data.ts
+    }
+}
+
+const timeCheck = (local_data) => {
+    return {
+        "token": process.env.BOT_TOKEN,
+        "text": "*15 seconds remaining*:stopwatch:",
         "channel": local_data.channel,
         "thread_ts": local_data.ts
     }

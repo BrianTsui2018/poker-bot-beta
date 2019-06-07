@@ -593,6 +593,7 @@ const current_lobbies_info = async (data) => {
             "topic": "JOIN_LOBBY",
             "lobby_id": data[i].lobby._id,
             "lobby_channel": lobby_channel,
+            "lobbyName": lobbyName
         }
         message_block.push({
             "type": "section",
@@ -707,10 +708,14 @@ const one_lobby_info = async (data) => {
     let maxP = data.lobby.maxPlayers;
     let buyin = data.lobby.buyin;
     let minBet = data.lobby.minBet;
+    let lobby_channel = data.lobby.channel;
 
     let value = {
         "topic": "JOIN_LOBBY_DIRECT",
-        "lobby_id": lobby_id
+        "lobby_id": lobby_id,
+        "lobby_channel": lobby_channel,
+        "lobbyName": lobbyName
+
     }
     message_block.push({
         "type": "section",
