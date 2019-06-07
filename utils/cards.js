@@ -38,12 +38,12 @@ const getCardType = (type) => {
  * @returns {String}        A string that represents the text base version of the cards.
  */
 const textBasedCards = (cardArray) => {
-    console.log("textbcard | ")
-    console.log(cardArray)
+    // console.log("textbcard | ")
+    // console.log(cardArray)
     let card_set = ["", "", "", ""];
     //length of card array determines the number of cards
     for (card of cardArray) { //type, rank in each.
-        console.log('This card --->', card);
+        // console.log('This card --->', card);
         let thisCard = getCardType(card.type);
         card_set[0] += " _____ ";
         card_set[2] += thisCard;

@@ -55,8 +55,8 @@ const getPlayerByID = async (player_data) => {
 const lobbyRemovePlayer = async (player_data) => {
     /*      Get player      */
     let thisPlayer = await getPlayerByID(player_data);
-    console.log("\n---------- ./bot-skills/manager.js -------- lobbyRevmoePlayer------- before checkout")
-    console.log(thisPlayer);
+    // console.log("\n---------- ./bot-skills/manager.js -------- lobbyRemovePlayer------- before checkout")
+    // console.log(thisPlayer);
     /*      Wallet        */
     let wallet = thisPlayer.wallet;
 
@@ -69,8 +69,8 @@ const lobbyRemovePlayer = async (player_data) => {
         console.log(`\nmanager.js -> lobbyRemovePlayer() : getOnePlayer did not find user\n` + player_data.slack_id);
     }
 
-    console.log("\n---------- ./bot-skills/manager.js -------- lobbyRevmoePlayer------- after checkout, before cleanup")
-    console.log(thisPlayer);
+    // console.log("\n---------- ./bot-skills/manager.js -------- lobbyRemovePlayer------- after checkout, before cleanup")
+    // console.log(thisPlayer);
     cleanupLobbyForPlayer(thisPlayer);
 
     return { "player": thisPlayer, "wallet": wallet };                 // Returns updated player object OR null
@@ -299,7 +299,7 @@ const getOneLobbyData = async (thisLobby) => {
 
 /**
  * Seeks for a player base on slack id and team id. Updates the wallet and saves.
- * @param {object} data     Object contains a user_slack_id and team_id
+ * @param {object} data     Object contains a user_slack_id, team_id, spent (or - for gain)
  */
 const updatePlayerWallet = async (data) => {
 

@@ -152,6 +152,14 @@ process.on("message", async (msg) => {
     switch (msg.topic) {
         case "start-game":
             console.log(chalk.green("tournament | Msg = start-game | Starting !"));
+            console.log(chalk.bgGreen("----------msg"));
+            console.log(msg);
+            for (let i = 0; i < msg.players_in_lobby.length; i++) {
+                t.gamestate.players[i].chips = msg.players_in_lobby[i].wallet;
+            }
+
+            console.log(t.gamestate);
+
             await t.start();
             break;
         case "pause-game":
@@ -289,6 +297,8 @@ const dataRouter = (data) => {
 
     } else if (data.type === 'win') {
         //Grab everyone's chips and shove to data.
+        console.log("\n=================GAMESTATE================");
+        console.log(t.gamestate);
         let playerAndChips = [];
         let pIdx = 0;
         for (let player of t.gamestate.players) {
@@ -297,6 +307,7 @@ const dataRouter = (data) => {
             playerAndChips.push(thisPlayer);
         }
         data.playersEndGame = [...playerAndChips];
+
 
         // #debug ----------------------------
         // console.log("\n-------------- tournament2.js -> dataRouter(data) case = win  ------------------");

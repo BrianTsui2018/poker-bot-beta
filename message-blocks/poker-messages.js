@@ -395,25 +395,25 @@ const update_cards = async (msg) => {
     //Run a check to see if images are set into the data message
 
     if (!this_block_message[1].image_url) {
-        try {
-            let results = await retryGetCommonCards(msg.data.cards);
-            if (!results) throw new Error();
-            this_block_message[1].text.image_url = results;
-            return this_block_message;
-        } catch (error) {
-            console.log("poker-message.js | update_cards | Cannot find cards")
-            let noCard = {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": ""
-                }
-            };
-            noCard.text.text = textBasedCards(msg.data.cards);
-            this_block_message[1] = noCard;
+        // try {
+        //     let results = await retryGetCommonCards(msg.data.cards);         //TODO: this seems to be not working due to only produces 1 card in the url for the get request
+        //     if (!results) throw new Error();
+        //     this_block_message[1].text.image_url = results;
+        //     return this_block_message;
+        // } catch (error) {
+        console.log("poker-message.js | update_cards | Cannot find cards")
+        let noCard = {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": ""
+            }
+        };
+        noCard.text.text = textBasedCards(msg.data.cards);
+        this_block_message[1] = noCard;
 
-            return this_block_message;
-        }
+        return this_block_message;
+        // }
     }
     return this_block_message;
 }

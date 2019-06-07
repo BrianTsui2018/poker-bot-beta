@@ -230,6 +230,12 @@ const deposit = async (data, chips) => {
  */
 const calculateWinnings = (playersEndGame, winners) => {
 
+    console.log("\n================= ./player/player-router.js -> calculateWinnings() ================")
+    console.log("\n----- playerEndGame");
+    console.log(playersEndGame);
+    console.log("\n----- winners");
+    console.log(winners);
+
     let playerWallets = []; // { playerId : x , chips : y}
     for (let w of winners) {
         let thisWinner = { playerId: w.playerId, chips: w.amount };
@@ -237,14 +243,15 @@ const calculateWinnings = (playersEndGame, winners) => {
     }
 
     for (let player of playersEndGame) {
-        let exist = playerWallets.findIndex(p => p.playerId === player.playerId);
-        if (exist === -1) {
+        let idx = playerWallets.findIndex(p => p.playerId === player.playerId);
+        if (idx === -1) {
             //not in list yet
             let thisPlayer = { playerId: player.playerId, chips: player.chips };
             playerWallets.push(thisPlayer);
-        } else {
+        }
+        else {
             //already in list, add their remainder back.
-            playerWallets[exist].chips += player.chips;
+            playerWallets[idx].chips = player.chips;
         }
 
     }
@@ -254,22 +261,35 @@ const calculateWinnings = (playersEndGame, winners) => {
 /**
  * Updates player wallet. Needs playerId and chips from EACH player in playerList. (Option) if CLEAR_CARDS is true, also clears cards url on DB.
  * @param {Object} playerList 
- * @param {String} team_id
+ * @param {String} players_in_lobby local data 
  * @param {Boolean} CLEAR_CARDS
  */
-const updatePlayerWallet = async (playerList, team_id, CLEAR_CARDS) => {
-
+const updatePlayerWallet = async (playerList, players_in_lobby, CLEAR_CARDS) => {
+    let team_id = players_in_lobby[0].team_id;
     async.each(playerList, (player, callback) => {
+        // const getCurrPlayerState = () => {
+        let currP_idx = players_in_lobby.findIndex(P => P.slack_id === player.playerId);
+        if (currP_idx === -1) { console.log("\n!!! currP could not be found ! in updatePlayerWallet()"); }
+        //     return currP;
+        // }
 
+        // getCurrPlayerState()
+        //     .then(currP => {
         getOnePlayer({ slack_id: player.playerId, team_id: team_id })
             .then(thisPlayer => {
                 console.log("\n============ updatePlayerWallet ===============");
                 console.log("Player = ", thisPlayer.name);
                 console.log("Wallet from DB = ", thisPlayer.wallet);
-                console.log("---- what is player :");
+                console.log("local_data copy of player = ");
+                console.log(players_in_lobby[currP_idx]);
+                console.log("---- what is player in msg.playerList:");
                 console.log(player);
                 thisPlayer.wallet = player.chips;
-                if (CLEAR_CARDS) { thisPlayer.cards = ""; }
+                players_in_lobby[currP_idx].remaining_chips = player.chips;
+                players_in_lobby[currP_idx].wallet = player.chips;
+                if (CLEAR_CARDS) { players_in_lobby[currP_idx].cards = ""; };
+                // console.log("\n---- thisPlayer before saving:");
+                // console.log(thisPlayer);
                 thisPlayer.save();
             }).then(() => {
                 callback();
@@ -277,7 +297,7 @@ const updatePlayerWallet = async (playerList, team_id, CLEAR_CARDS) => {
                 console.log(err);
                 throw new Error("Could not save or get");
             })
-
+        // })
     }, (err, res) => {
         if (err) {
             console.log("Player-router.js | updatePlayerWallet ERROR | ")
@@ -291,6 +311,22 @@ const updatePlayerWallet = async (playerList, team_id, CLEAR_CARDS) => {
     })
 }
 
+
+/**
+ * Updates player wallet. Needs playerId and chips from EACH player in playerList. (Option) if CLEAR_CARDS is true, also clears cards url on DB.
+ * @param {Object} playerList data from local_data
+ * @param {Object} allPlayerStatus data from PHE
+ */
+const updateSetupPlayerWallet = async (players_in_lobby, allPlayersStatus) => {
+
+    for (let i = 0; i < players_in_lobby.length; i++) {
+        players_in_lobby[i].remaining_chips = allPlayersStatus[i].chips;
+        players_in_lobby[i].wallet = players_in_lobby[i].remaining_chips;
+        let thisPlayer = await getOnePlayer({ slack_id: players_in_lobby[i].slack_id, team_id: players_in_lobby[i].team_id });
+        thisPlayer.wallet = players_in_lobby[i].wallet;
+        thisPlayer.save();
+    }
+}
 
 
 /**-------------------------------------------------------------------
@@ -380,6 +416,7 @@ module.exports = {
     getOnePlayer,
     calculateWinnings,
     updatePlayerWallet,
+    updateSetupPlayerWallet,
     getAllPlayerInLobby,
     deletePlayerAll,
     getAllCurrentPlayersInTeam,

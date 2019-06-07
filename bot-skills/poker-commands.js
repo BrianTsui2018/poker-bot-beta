@@ -48,6 +48,11 @@ crow.on("Forked Tournament2.js", (args) => {
 
 })
 
+crow.on("IDLE_KICK", (data) => {
+    let user = { "slack_id": data.slack_id, "team_id": data.team_id };
+    playerLeave(user);
+})
+
 crow.on("End of Tournament", (local_data) => {
     // console.log("\n<<<<<<< Crow >>>>>>>>>>>\nEnd of Tournament--------");
     // console.log(local_data);
@@ -485,9 +490,9 @@ const placeBet = async (data) => {
         }
         try {
             let body = await axiosPUT(betData);
-            data.spent = body.action;
+            data.spent = betData.action;
+            await updatePlayerWallet(data);
             return body.data;
-            //await updatePlayerWallet(data); - temp remove, gamestate seems to track player wallet!
         } catch (error) {
             console.log("poker-command.js | Place bet error. | Returning ing 0")
             console.log(error);
@@ -588,49 +593,73 @@ const joinedAndStartGame = async (lobby_id, prevPlayers, prevTS) => {
 
     /*      Get the lobby           */
     let thisLobby = await getLobbyByID(lobby_id);
-    let RESTART = false;
-    if (prevPlayers) { RESTART = true; }
 
-    /*      Block duplicate procedure       */
-    if (thisLobby.is_playing === false) {
-        thisLobby.is_playing = true;
-        updateLobby(thisLobby);
+    /*      Only if Lobby still exist (deleted if all prev players left)        */
+    if (thisLobby) {
+        let RESTART = false;
+        if (prevPlayers) { RESTART = true; }
 
-        /*      Get all players         */
-        let L = await getLobbyPlayers(lobby_id);
-        let players = L.playerList;
+        /*      Block duplicate procedure       */
+        if (thisLobby.is_playing === false) {
+            /*      Set this lobby's play mode to true     */
+            thisLobby.is_playing = true;
+            updateLobby(thisLobby);
 
-        /*      RESTART mode        */
-        if (RESTART) { players = restartHandler(prevPlayers, players); }
+            /*      Get all players who are in lobby according to DB        */
+            let L = await getLobbyPlayers(lobby_id);
+            let players = L.playerList;
 
-        /*          Exclude extra players if there is       */
-        players = players.slice(0, thisLobby.maxPlayers);
+            /*      RESTART mode        */
+            if (RESTART) { players = restartHandler(prevPlayers, players); }
 
-        /*      Get the channel         */
-        let thisChannel = thisLobby.channel;
-        if (players.length >= 2) {    // This is 2nd time validating player number. It was first checked when player joins lobby.
+            /*          Exclude extra players if there is       */
+            players = players.slice(0, thisLobby.maxPlayers);
 
-            if (RESTART) {
-                /*      Redirect to Game Thread             */
-                restartPrevGame(thisChannel, prevTS, thisLobby, players);
+            /*      Get the channel         */
+            let thisChannel = thisLobby.channel;
+            if (players.length >= 2) {    // This is 2nd time validating player number. It was first checked when player joins lobby.
+
+                if (RESTART) {
+                    /*      Redirect to Game Thread             */
+                    restartPrevGame(thisChannel, prevTS, thisLobby, players);
+                } else {
+                    /*      Post message and Start Game        */
+                    startNewGame(thisChannel, thisLobby, players);
+                }
+
             } else {
-                /*      Post message and Start Game        */
-                startNewGame(thisChannel, thisLobby, players);
-            }
+                /*      Set this to false so that next player join would be allowed to start game again         */
+                thisLobby.is_playing = false;
+                updateLobby(thisLobby);
 
+                /*      Case: lobby is empty        */
+                let payload = {
+                    "token": process.env.BOT_TOKEN,
+                    "channel": thisChannel,
+                    "thread_ts": prevTS,
+                    "text": "*\*Shuffles\**There aren't enough players. Game resumes when another player joins.\n(Perhaps join another lobby?)"
+                };
+                bot.api.chat.postMessage(payload, function (err, response) { });
+
+            }
         } else {
-            /*      Case: lobby is empty        */
-            let payload = {
-                "token": process.env.BOT_TOKEN,
-                "channel": thisChannel,
-                "text": "*\*Shuffles\**There aren't enough players. Game resumes when another player joins.\n(Perhaps join another lobby?)"
-            };
-            bot.api.chat.postMessage(payload, function (err, response) { });
+            /*      Case: lobby is already playing      */
+
         }
-    } else {
-        /*      Case: lobby is already playing      */
+
 
     }
+    else {
+        /*      Case: lobby is empty        */
+        let payload = {
+            "token": process.env.BOT_TOKEN,
+            "channel": thisChannel,
+            "thread_ts": prevTS,
+            "text": "*\*Shuffles\**This lobby is closed. For a new game, please *Create* or *Join* another lobby.\nIf you're leaving for now, direct message me to say \"*Leave*\" or \"*Checkout*\":door:"
+        };
+        bot.api.chat.postMessage(payload, function (err, response) { });
+    }
+
 
 }
 
@@ -740,18 +769,39 @@ const notifyPlayer = (thisChannel, thisTs, p_list) => {
 
 function restartHandler(prevPlayers, players) {
     let newList = [];
-    /*      Remove left players     */
+    let quitList = [];
+    // console.log(chalk.bgRed("\n----------------- restartHandler ---------------- Check player that remains"))
+    /*      Remove left players and broke players    */
     for (let i = 0; i < prevPlayers.length; i++) {
         let thisP = players.find(P => P.slack_id === prevPlayers[i].slack_id);
-        if (thisP) {
-            newList.push(thisP);
+        if (!thisP) {
+            // console.log(chalk.green("\n--------------- remove gone player -----------"));
+            quitList.push(prevPlayers[i]);
+        }
+        else if (prevPlayers[i].remaining_chips < 2000) {
+            // console.log(chalk.green("\n--------------- kick broke player, force checkout -----------"));
+            prevPlayers[i].isInLobby = false;
+            crow.emit("IDLE_KICK", { "slack_id": prevPlayers[i].slack_id, "team_id": prevPlayers[i].team_id });
+            quitList.push(prevPlayers[i]);
+        }
+        else if (thisP && prevPlayers[i].remaining_chips > 0) {
+            newList.push(prevPlayers[i]);
+            // console.log(chalk.green("\n--------------- keep player -----------"));
+            // console.log(prevPlayers[i]);
+        }
+        else {
+            quitList.push(prevPlayers[i]);
+
         }
     }
+
 
     /*      Push new players        */
     for (let i = 0; i < players.length; i++) {
         let thisP = newList.find(P => P.slack_id === players[i].slack_id);
-        if (!thisP) {
+        if (!thisP && players[i].isInLobby) {
+            // console.log(chalk.green("\n--------------- now push new players -----------"));
+            // console.log(players[i]);
             newList.push(players[i]);
         }
     }

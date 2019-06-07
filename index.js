@@ -340,8 +340,8 @@ controller.hears(['demo', 'demonstrate'], 'direct_message,direct_mention, mentio
 controller.on('block_actions', async function (bot, message) {
     // #debug
     console.log('\nindex.js : Event -> Block action caught!==========================\n');
-    // console.log('--------------- message ------------------');
-    // console.log(message);
+    console.log('--------------- message ------------------');
+    console.log(message);
 
     let response = JSON.parse(message.text);
 

@@ -44,6 +44,7 @@ const {
     getOnePlayer,
     calculateWinnings,
     updatePlayerWallet,
+    updateSetupPlayerWallet,
     getAllPlayerInLobby,
     deletePlayerAll,
     updatePlayer
@@ -88,11 +89,11 @@ const startTournament = async (bot, data) => {
     /*        Prepare start game data       */
     let local_data = await game_setup(data);
 
-    /*     Start Tounarment      */
+    /*          Start Tounarment            */
     if (local_data.READY_TO_START === true) {
         startT(bot, local_data);
     } else {
-        // console.log("\nstart-tournament.js > startTournament() : READY_TO_START is false.")
+        console.log("\nstart-tournament.js > startTournament() : READY_TO_START is false.")
     }
 
 }
@@ -122,6 +123,10 @@ const startT = (bot, local_data) => {
             // console.log(local_data.channel);
             // console.log("\nlocal_data.ts ---------");
             // console.log(local_data.ts);
+
+            if (msg.data.type === "setup") {
+                updateSetupPlayerWallet(local_data.players_in_lobby, msg.data.allPlayersStatus);
+            }
 
             /*      Send update message block       */
             bot.api.chat.postMessage(getUpdatePayload(local_data), async function (err, res) {
@@ -166,10 +171,17 @@ const startT = (bot, local_data) => {
                 if (!local_data.thisLobby) { local_data.thisLobby = backupLobby };
 
                 //End game player list : group everything in one array that has { playerId , chips}
-                let playerList = calculateWinnings(msg.data.playersEndGame, msg.data.winners);
+                // let playerList = calculateWinnings(msg.data.playersEndGame, msg.data.winners);
+                let playerList = msg.data.playersEndGame;
+                console.log(chalk.bgRed("\n~~~~~~~~~~~~~~~~~~~~~"));
+                console.log("\n-------------- playerEndGame");
+                console.log(msg.data.playersEndGame);
+                console.log("\n-------------- winners");
+                console.log(msg.data.winners);
+                console.log("\n");
 
                 //Update everyone's wallet with playerList
-                await updatePlayerWallet(playerList, local_data.players_in_lobby[0].team_id, true);
+                await updatePlayerWallet(playerList, local_data.players_in_lobby, true);
 
                 /*--------------- Construction site ---------------------*/
                 /*      Send checkout button        */
@@ -188,16 +200,16 @@ const startT = (bot, local_data) => {
             else {
                 let waitTime = 45000;
                 tournament_stopwatch = setTimeout(() => {
-                    console.log(chalk.magenta("ENDING TIMEOUT"))
+                    console.log(chalk.magenta("ENDING TIMEOUT"));
+                    crow.emit("IDLE_KICK", { "slack_id": local_data.players_in_lobby[local_data.next_player_idx].slack_id, "team_id": local_data.this_team_id });
                     thread.send({ topic: "acknowledgement" });
                 }, waitTime);
             }
         }
-
     })
 
     /*        Start the game           */
-    thread.send({ topic: "start-game" });
+    thread.send({ topic: "start-game", players_in_lobby: local_data.players_in_lobby });
 }
 
 function updateAllPlayerChips(local_data, msg) {
@@ -205,6 +217,7 @@ function updateAllPlayerChips(local_data, msg) {
     for (let i = 0; i < n; i++) {
         local_data.players_in_lobby[i].state = msg.data.allPlayersStatus[i].state;
         local_data.players_in_lobby[i].remaining_chips = msg.data.allPlayersStatus[i].chips;
+        // local_data.players_in_lobby[i].wallet = local_data.players_in_lobby[i].remaining_chips;
     }
 }
 
@@ -252,7 +265,6 @@ const game_setup = async (data) => {
         tournament_configuration = dummyData;
         READY_TO_START = true;
     } else {
-
         let t_pList = [];
         /*      Build player List       */
         for (let i = 0; i < players_in_lobby.length; i++) {
@@ -396,11 +408,11 @@ const eventHandler = async (local_data, msg) => {
             /*      Reset all player's curr_session_bet to      */
             resetCurrBet(local_data, msg);
 
-            console.log(chalk.bgRed("\n----- CARDS session ----"));
-            console.log("\n--- [local_data] ---");
-            console.log(local_data);
-            console.log("--- [msg] ---");
-            console.log(msg);
+            // console.log(chalk.bgRed("\n----- CARDS session ----"));
+            // console.log("\n--- [local_data] ---");
+            // console.log(local_data);
+            // console.log("--- [msg] ---");
+            // console.log(msg);
 
             /*          Generate block message              */
             local_data.this_block_message = await update_cards(msg);
@@ -452,8 +464,8 @@ const getNextBet = async (msg, local_data, bot) => {
     /*          Gather data and send message to the player            */
     if (msg.data.type === "setup" || msg.data.type === "bet" || msg.data.type === "cards" || msg.data.type === "state") {
 
-        console.log("\ngetNextBet() > Check next_player_status--------");
-        console.log(local_data.next_player_status);
+        // console.log("\ngetNextBet() > Check next_player_status--------");
+        // console.log(local_data.next_player_status);
         if (local_data.skipped) {
             if (local_data.skipped > 0) {
                 // console.log(chalk.red("! SKIPPED" + local_data.skipped + " folded player(s) !"));
