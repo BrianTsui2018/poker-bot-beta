@@ -1,5 +1,5 @@
 const { nameGen } = require('../lobby/lobby-name-gen')
-const { retryGetCommonCards } = require('../utils/cards.js')
+const { retryGetCommonCards, cardCombo } = require('../utils/cards.js')
 
 const genLobbyNames = (n) => {
     if (!n) {
@@ -395,25 +395,28 @@ const update_cards = async (msg) => {
     //Run a check to see if images are set into the data message
 
     if (!this_block_message[1].image_url) {
-        // try {
-        //     let results = await retryGetCommonCards(msg.data.cards);         //TODO: this seems to be not working due to only produces 1 card in the url for the get request
-        //     if (!results) throw new Error();
-        //     this_block_message[1].text.image_url = results;
-        //     return this_block_message;
-        // } catch (error) {
-        console.log("poker-message.js | update_cards | Cannot find cards")
-        let noCard = {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": ""
-            }
-        };
-        noCard.text.text = textBasedCards(msg.data.cards);
-        this_block_message[1] = noCard;
+        try {
+            let results = await retryGetCommonCards(msg.data);         //TODO: this seems to be not working due to only produces 1 card in the url for the get request
+            if (!results) throw new Error();
+            this_block_message[1].text.image_url = results;
+            return this_block_message;
+        } catch (error) {
+            console.log("poker-message.js | update_cards | Cannot find cards")
+            let noCard = {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": ""
+                }
+            };
+            console.log("--------------msg.data-------------------------")
+            console.log(msg.data)
+            let cards = cardCombo(msg.data.textCards, msg.data.session)
+            noCard.text.text = textBasedCards(cards);
+            this_block_message[1] = noCard;
 
-        return this_block_message;
-        // }
+            return this_block_message;
+        }
     }
     return this_block_message;
 }
@@ -1110,7 +1113,7 @@ const TURN = (data) => {
     return turn_block;
 }
 
-const get_show_down_template = (url) => {
+const get_show_down_template = (url, data) => {
     if (url) {
         return [
             {
@@ -1137,6 +1140,7 @@ const get_show_down_template = (url) => {
     }
     else {
         console.log("\nNote: ./message-blocks/poker-messages.js > get_show_down_template() does not have url.");
+        let textCard = textBasedCards(data.textCards)
         return [
             {
                 "type": "section",
@@ -1149,7 +1153,7 @@ const get_show_down_template = (url) => {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "(Missing Card images from Imgur API)"
+                    "text": "```" + textCard + "```"
                 }
             },
             {
@@ -1160,52 +1164,65 @@ const get_show_down_template = (url) => {
 }
 
 
-const get_show_down_user = (playerId, bestCardsInfo) => {
+const get_show_down_user = (data, idx) => {
+    //data, idx
+    //get_show_down_user(data.ranks[idx].playerId, data.ranks[idx].bestCardsInfo)
     let thisBlock;
 
-    if (bestCardsInfo.url)
+    if (data.ranks[idx].bestCardsInfo.url) {
         thisBlock = {
             "type": "section",
             "text":
             {
                 "type": "mrkdwn",
-                "text": `*<@${playerId}>*\n:black_small_square: Best Cards: *${bestCardsInfo.name}* !` //replace with :black_medium_square:*[User 1]* \n :black_small_square:Best Cards : [bestCards] \n :black_small_square:Info : [bestCardsInfo Obj]
+                "text": `*<@${data.ranks[idx].playerId}>*\n:black_small_square: Best Cards: *${data.ranks[idx].bestCardsInfo}* !` //replace with :black_medium_square:*[User 1]* \n :black_small_square:Best Cards : [bestCards] \n :black_small_square:Info : [bestCardsInfo Obj]
             },
             "accessory":
             {
                 "type": "image",
-                "image_url": `${bestCardsInfo.url}`, //Fill with image url
+                "image_url": `${data.ranks[idx].bestCardsInfo.url}`, //Fill with image url
                 "alt_text": "Card pairs"
             }
         };
+    }
     else {
+        console.log("============showdown user==============")
+        textCard = textBasedCards(data.allPlayersStatus[idx].cards)
+        console.log(textCard)
         thisBlock = {
             "type": "section",
             "text":
-            {
-                "type": "mrkdwn",
-                "text": `*<@${playerId}>*\n:black_small_square: Best Cards: *${bestCardsInfo.name}* !` //replace with :black_medium_square:*[User 1]* \n :black_small_square:Best Cards : [bestCards] \n :black_small_square:Info : [bestCardsInfo Obj]
-            }
+                {
+                    "type": "mrkdwn",
+                    "text": "*<@" + data.ranks[idx].playerId
+                } > + "*\n:black_small_square: Best Cards: *" + data.ranks[idx].bestCardsInfo.name + " * ! \n ```" + textCard + "```" //replace with :black_medium_square:*[User 1]* \n :black_small_square:Best Cards : [bestCards] \n :black_small_square:Info : [bestCardsInfo Obj]
         };
-        console.log("\nNote: ./message-blocks/poker-messages.js > get_show_down_user() does not have bestCardsInfo.url.\nHere's all the info:");
-        console.log(bestCardsInfo);
     }
-
+    // console.log("\nNote: ./message-blocks/poker-messages.js > get_show_down_user() does not have bestCardsInfo.url.\nHere's all the info:");
+    // console.log(bestCardsInfo);
     return thisBlock;
 }
 
 
+
 const SHOWDOWN = (data, url) => {
-    let showdown_array = get_show_down_template(url);
+
+    let showdown_array = get_show_down_template(url, data);
+    console.log("===============pre build block===============")
+    console.log(data);
     /*      Loop through each "showdown" player        */
     for (let idx = 0; idx < data.ranks.length; idx++) {
-        let show_down_user = get_show_down_user(data.ranks[idx].playerId, data.ranks[idx].bestCardsInfo);
+        console.log("This user: ");
+        console.log(JSON.stringify(data.ranks[idx].bestCardsInfo));
+        let show_down_user = get_show_down_user(data, idx);
 
 
         showdown_array.push(show_down_user);
         // showdown_array[showdown_array.length - 1].text.text = `*<@${ data.ranks[idx].playerId }>*\n: black_small_square: Best Cards: ${ data.ranks[idx].bestCardsInfo.name } .`;
         // showdown_array[showdown_array.length - 1].accessory.image_url = data.ranks[idx].bestCardsInfo.url;
     }
+
+
     showdown_array.push({ "type": "divider" })
 
     return showdown_array;
@@ -1288,6 +1305,4 @@ module.exports = {
     makeBet,
     update_showdown,
     makeStatus
-
 }
-

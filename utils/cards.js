@@ -125,6 +125,29 @@ const retryGetPairCards = async (data) => {
 }
 
 
+const cardCombo = (textCards, session) => {
+    console.log(chalk.red("---------------textCards----------------------"))
+    console.log(textCards);
+    cardArr = [];
+    if (session === "FLOP") {
+        //3
+        cardArr = textCards.slice(0, 3);
+    }
+    else if (session === "TURN") {
+        //4
+        cardArr = textCards.slice(0, 4);
+    }
+    else if (session === "RIVER") {
+        //5
+        cardArr = [...textCards];
+    }
+    else {
+        return null;
+    }
+
+    return cardArr
+}
+
 // console.log(textBasedCards([
 //     { rank: 'A', type: 'D' },
 //     { rank: '10', type: 'D' },
@@ -134,5 +157,6 @@ const retryGetPairCards = async (data) => {
 module.exports = {
     textBasedCards,
     retryGetCommonCards,
-    retryGetPairCards
+    retryGetPairCards,
+    cardCombo
 }
