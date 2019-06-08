@@ -1113,6 +1113,12 @@ const TURN = (data) => {
     return turn_block;
 }
 
+/**
+ * Retrieves the showdown template. Slightly alters it if no URL is available.
+ * @param {String} url  URL for image
+ * @param {Object} data Gamestate data emitted from Tournament
+ * @returns An array for Block Kit Builder
+ */
 const get_show_down_template = (url, data) => {
     if (url) {
         return [
@@ -1162,7 +1168,11 @@ const get_show_down_template = (url, data) => {
     }
 }
 
-
+/**
+ * Builds display information for each player.
+ * @param {Object} data     Gamestate data from Tournament
+ * @param {Number} idx      Number indicating which player
+ */
 const get_show_down_user = (data, idx) => {
     let thisBlock;
 
@@ -1198,7 +1208,11 @@ const get_show_down_user = (data, idx) => {
 }
 
 
-
+/**
+ * Returns an array of objects for Block Kit builder to display SHOWDOWN state
+ * @param {Object} data     Gamestate data from Tournament
+ * @param {String} url      Common cards URL
+ */
 const SHOWDOWN = (data, url) => {
 
     let showdown_array = get_show_down_template(url, data);

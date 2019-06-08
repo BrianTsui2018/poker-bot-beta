@@ -124,21 +124,23 @@ const retryGetPairCards = async (data) => {
     }
 }
 
-
+/**
+ * Slices cards from the textcard array depending on current session
+ * @param {Array} textCards Array of the 5 cards for this round
+ * @param {String} session  FLOP/TURN/RIVER
+ * @returns Array of cards 
+ */
 const cardCombo = (textCards, session) => {
     console.log(chalk.red("---------------textCards----------------------"))
     console.log(textCards);
     cardArr = [];
     if (session === "FLOP") {
-        //3
         cardArr = textCards.slice(0, 3);
     }
     else if (session === "TURN") {
-        //4
         cardArr = textCards.slice(0, 4);
     }
     else if (session === "RIVER") {
-        //5
         cardArr = [...textCards];
     }
     else {
