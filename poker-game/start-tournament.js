@@ -401,9 +401,6 @@ const eventHandler = async (local_data, msg) => {
             /*          Update last player's curr_Bet       */
             let new_chipsBet = msg.data.allPlayersStatus[local_data.last_player_idx].chipsBet;
             let last_player = await updateCurrBet(local_data, new_chipsBet);
-            // console.log("\n------- last_player after updateCurrBet -------- ");
-            // console.log(last_player);
-            // console.log("------------------------------");
 
             /*          Generate block message              */
             msg.data.player = last_player;

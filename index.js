@@ -120,10 +120,15 @@ controller.hears('hi', 'direct_message, direct_mention, mention', (bot, message)
 //----------------------------------------
 /*   Bot listens to keyword in Slack    */
 controller.hears(['poker', 'join', 'create', 'game', 'play', 'start', 'lobby'], 'direct_message, direct_mention, mention', (bot, message) => {
-
+    bot.replyAcknowledge();
     bot.startConversation(message, async function (err, convo) {
         if (err) { console.log(err); }
-
+        convo.say('');
+        convo.next();
+        convo.say('');
+        convo.next();
+        convo.say('');
+        convo.next();
         convo.say(`Hello <@${message.user}>! Let's play *Texas Holdem' Poker* :spades:.`);
         await convo.ask({
             attachments: create_or_join

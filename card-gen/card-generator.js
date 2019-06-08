@@ -4,7 +4,7 @@ const chalk = require('chalk');
 const async = require("async");
 
 
-let HAVE_CARDS = true;
+let HAVE_CARDS;
 
 let allCommonCards = [];
 

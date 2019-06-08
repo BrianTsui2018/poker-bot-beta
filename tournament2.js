@@ -17,7 +17,7 @@ const warning = chalk.keyword('orange');
 
 
 // DEBUG : IF IMGUR IS DOWN SWITCH THIS TO FALSE.
-const HAVE_CARDS = false;
+const HAVE_CARDS = true;
 
 //One additional listener to track acknowledgement from parent
 const events = require('events');

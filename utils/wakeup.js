@@ -2,7 +2,7 @@ const axios = require("axios");
 
 
 const wakeup = () => {
-    let url = `https://imai-poker-utils.herokuapp.com/ua/wakeup`;
+    let url = `https://imai-poker-utils.herokuapp.com/wakeup`;
     try {
         axios.get(url);
 
