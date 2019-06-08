@@ -1182,7 +1182,7 @@ const get_show_down_user = (data, idx) => {
             "text":
             {
                 "type": "mrkdwn",
-                "text": `*<@${data.ranks[idx].playerId}>*\n:black_small_square: Best Cards: *${data.ranks[idx].bestCardsInfo}* !` //replace with :black_medium_square:*[User 1]* \n :black_small_square:Best Cards : [bestCards] \n :black_small_square:Info : [bestCardsInfo Obj]
+                "text": `*<@${data.ranks[idx].playerId}>*\n:black_small_square: Best Cards: *${data.ranks[idx].bestCardsInfo.name}* !` //replace with :black_medium_square:*[User 1]* \n :black_small_square:Best Cards : [bestCards] \n :black_small_square:Info : [bestCardsInfo Obj]
             },
             "accessory":
             {
