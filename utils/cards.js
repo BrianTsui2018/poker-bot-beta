@@ -1,6 +1,5 @@
 
 const generateCardPayload = require('../card-gen/card-namer');
-const async = require("async");
 const chalk = require("chalk");
 const axios = require("axios");
 /**
@@ -38,12 +37,10 @@ const getCardType = (type) => {
  * @returns {String}        A string that represents the text base version of the cards.
  */
 const textBasedCards = (cardArray) => {
-    // console.log("textbcard | ")
-    // console.log(cardArray)
+
     let card_set = ["", "", "", ""];
     //length of card array determines the number of cards
     for (card of cardArray) { //type, rank in each.
-        // console.log('This card --->', card);
         let thisCard = getCardType(card.type);
         card_set[0] += " _____ ";
         card_set[2] += thisCard;
@@ -63,7 +60,7 @@ const textBasedCards = (cardArray) => {
 }
 
 /**
- * 
+ * Fall-back attempt to get common cards again. If fail, generates text base cards
  * @param {object}  data Contains card names. Using card names to generate file name and make another attempt to grab the image url.
  * @param {Array}   data.cards Array of cards
  * @returns {object} returns the data object with either a url or a text base card.
@@ -87,9 +84,6 @@ const retryGetCommonCards = async (cards) => {
         console.log("Error logged, could not get img..");
         console.log(error);
         return null;
-        //let text = data.this_block_message[3].text.text.slice();
-        //Generate text base card name.
-        //data.this_block_message[3].text.text = "```" + `${textBasedCards(data.cards)}` + "``` \n" + text;
     }
 }
 
@@ -100,7 +94,6 @@ const retryGetCommonCards = async (cards) => {
  *  @returns {String|null}               URL or null
  */
 const retryGetPairCards = async (data) => {
-    //async.eachOf(data.cards, async (p, idx, callback1) => {
     console.log("cards---------------------");
     console.log(p);
     let cards = generateCardPayload(p);
@@ -111,8 +104,6 @@ const retryGetPairCards = async (data) => {
         console.log("Got img back!");
         console.log(img);
 
-        // data.this_block_message[1].image_url = img.url;
-        // return data.this_block_message;
         if (img.warning) {
             console.log(chalk.red("Cards.js | WARNING : Imgur says ", img.warning))
         }
@@ -150,12 +141,6 @@ const cardCombo = (textCards, session) => {
     return cardArr
 }
 
-// console.log(textBasedCards([
-//     { rank: 'A', type: 'D' },
-//     { rank: '10', type: 'D' },
-//     { rank: 'A', type: 'D' },
-//     { rank: '10', type: 'D' }]
-// ));
 module.exports = {
     textBasedCards,
     retryGetCommonCards,
