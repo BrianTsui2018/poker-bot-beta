@@ -1139,7 +1139,6 @@ const get_show_down_template = (url, data) => {
         ];
     }
     else {
-        console.log("\nNote: ./message-blocks/poker-messages.js > get_show_down_template() does not have url.");
         let textCard = textBasedCards(data.textCards)
         return [
             {
@@ -1153,7 +1152,7 @@ const get_show_down_template = (url, data) => {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "```" + textCard + "```"
+                    "text": textCard
                 }
             },
             {
@@ -1165,8 +1164,6 @@ const get_show_down_template = (url, data) => {
 
 
 const get_show_down_user = (data, idx) => {
-    //data, idx
-    //get_show_down_user(data.ranks[idx].playerId, data.ranks[idx].bestCardsInfo)
     let thisBlock;
 
     if (data.ranks[idx].bestCardsInfo.url) {
@@ -1186,20 +1183,17 @@ const get_show_down_user = (data, idx) => {
         };
     }
     else {
-        console.log("============showdown user==============")
+
         textCard = textBasedCards(data.allPlayersStatus[idx].cards)
-        console.log(textCard)
         thisBlock = {
             "type": "section",
             "text":
-                {
-                    "type": "mrkdwn",
-                    "text": "*<@" + data.ranks[idx].playerId
-                } > + "*\n:black_small_square: Best Cards: *" + data.ranks[idx].bestCardsInfo.name + " * ! \n ```" + textCard + "```" //replace with :black_medium_square:*[User 1]* \n :black_small_square:Best Cards : [bestCards] \n :black_small_square:Info : [bestCardsInfo Obj]
+            {
+                "type": "mrkdwn",
+                "text": "*<@" + data.ranks[idx].playerId + ">*\n:black_small_square: Best Cards: *" + data.ranks[idx].bestCardsInfo.name + " * ! \n " + textCard //replace with :black_medium_square:*[User 1]* \n :black_small_square:Best Cards : [bestCards] \n :black_small_square:Info : [bestCardsInfo Obj]
+            }
         };
     }
-    // console.log("\nNote: ./message-blocks/poker-messages.js > get_show_down_user() does not have bestCardsInfo.url.\nHere's all the info:");
-    // console.log(bestCardsInfo);
     return thisBlock;
 }
 
@@ -1208,23 +1202,13 @@ const get_show_down_user = (data, idx) => {
 const SHOWDOWN = (data, url) => {
 
     let showdown_array = get_show_down_template(url, data);
-    console.log("===============pre build block===============")
-    console.log(data);
     /*      Loop through each "showdown" player        */
     for (let idx = 0; idx < data.ranks.length; idx++) {
-        console.log("This user: ");
-        console.log(JSON.stringify(data.ranks[idx].bestCardsInfo));
         let show_down_user = get_show_down_user(data, idx);
-
-
         showdown_array.push(show_down_user);
-        // showdown_array[showdown_array.length - 1].text.text = `*<@${ data.ranks[idx].playerId }>*\n: black_small_square: Best Cards: ${ data.ranks[idx].bestCardsInfo.name } .`;
-        // showdown_array[showdown_array.length - 1].accessory.image_url = data.ranks[idx].bestCardsInfo.url;
     }
 
-
     showdown_array.push({ "type": "divider" })
-
     return showdown_array;
 }
 
