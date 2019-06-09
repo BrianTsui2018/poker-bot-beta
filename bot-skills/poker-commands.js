@@ -37,12 +37,16 @@ const {
 
 const {
     updateLobby
-} = require('../lobby/lobby-router')
+} = require('../lobby/lobby-router');
+
+// const {
+//     startTournament
+// } = require('../poker-game/tournament-parent');
 
 const {
-    crow,
-    startTournament
-} = require('../poker-game/start-tournament')
+    startTournament,
+    crow
+} = require('../poker-game/start-tournament');
 
 crow.on("Forked Tournament2.js", (args) => {
 

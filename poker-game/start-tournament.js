@@ -50,40 +50,44 @@ const {
     updatePlayer
 } = require('../player/player-router');
 
-const {
-    wakeup
-} = require('../utils/wakeup');
+const { wakeup } = require('../utils/wakeup');
 
 /*        Requirement         */
 const childProcess = require("child_process");
 
-let tournament_stopwatch;
-let EventEmitter = require('events').EventEmitter
+/*        Parent payload        */
+
+// let parent_bot = JSON.parse(process.argv[2]);
+// let parent_local_data = JSON.parse(process.argv[3]);
+
+
+/*        local variables       */
+let EventEmitter = require('events').EventEmitter;
 let botEvent = new EventEmitter();
-let thread;
-let curr_player_slack_id;
-let LOCK = true;
+let thread_arr = [];
 
 botEvent.on('SlackBot: Got User Action', (args) => {
     // console.log(chalk.magenta("START-TOUR | GOT BOT EVENT"));
-    if (args) {
-        let data = args[0];
-        // console.log(data);
-        if (data.user_slack_id === curr_player_slack_id && LOCK === false) {
-            LOCK = true;
-            clearTimeout(tournament_stopwatch);
-            thread.send({ topic: "acknowledgement" })
+    let data = args[0];
+    let idx = thread_arr.findIndex(T => T.lobby_id.toString() === data.lobby_id.toString());
+
+    if (data.user_slack_id) {
+
+        if (data.user_slack_id.toString() === thread_arr[idx].curr_player_slack_id.toString() && thread_arr[idx].LOCK === false) {
+            thread_arr[idx].LOCK = true;
+            clearTimeout(thread_arr[idx].tournament_stopwatch);
+            thread_arr[idx].thread.send({ topic: "acknowledgement" })
         } else {
             // console.log(chalk.red("Wrong player spamming button!"));
         }
     } else {
-        clearTimeout(tournament_stopwatch);
-        thread.send({ topic: "acknowledgement" })
+        clearTimeout(thread_arr[idx].tournament_stopwatch);
+        thread_arr[idx].thread.send({ topic: "acknowledgement" })
     }
 })
 
-const shortCutCountDown = () => {
-    botEvent.emit("SlackBot: Got User Action");
+const shortCutCountDown = (data) => {
+    botEvent.emit("SlackBot: Got User Action", [data]);
 }
 
 const startTournament = async (bot, data) => {
@@ -108,7 +112,8 @@ const startT = (bot, local_data) => {
     local_data.bot_token = bot.config.token;
 
     /*      Start Thread       */
-    thread = childProcess.fork("tournament2.js", configs);            //Immediately fork a child process to start to run tournament
+    let thread = childProcess.fork("tournament2.js", configs);            //Immediately fork a child process to start to run tournament
+    thread_arr.push({ "lobby_id": local_data.thisLobby._id, "thread": thread });
     crow.emit("Forked Tournament2.js", configs);
     console.log(chalk.bgGreen("\n============== ./poker-game/start-tournament.js -> startT() -> thread ============"));
     console.log(thread);
@@ -189,6 +194,8 @@ const startT = (bot, local_data) => {
                 //Update everyone's wallet with playerList
                 await updatePlayerWallet(playerList, local_data.players_in_lobby, true);
 
+                let idx = thread_arr.findIndex(T => T.lobby_id.toString() === local_data.thisLobby._id.toString());
+                thread_arr.splice(idx, 1);
                 /*--------------- Construction site ---------------------*/
                 /*      Send checkout button        */
 
@@ -205,7 +212,9 @@ const startT = (bot, local_data) => {
             }
             else {
                 let waitTime = 45000;
-                tournament_stopwatch = setTimeout(() => {
+                let idx = thread_arr.findIndex(T => T.lobby_id.toString() === local_data.thisLobby._id.toString());
+
+                thread_arr[idx].tournament_stopwatch = setTimeout(() => {
                     console.log(chalk.magenta("ENDING TIMEOUT"));
                     crow.emit("IDLE_KICK", { "slack_id": local_data.players_in_lobby[local_data.next_player_idx].slack_id, "team_id": local_data.this_team_id });
                     thread.send({ topic: "acknowledgement" });
@@ -337,6 +346,7 @@ const game_setup = async (data) => {
     }
     return return_data;
 }
+
 
 const resetCurrBet = async (local_data, msg) => {
     let n = local_data.num_players;
@@ -494,20 +504,20 @@ const getNextBet = async (msg, local_data, bot) => {
             // console.log(chalk.blue("\n- makeBet() skipped > this player has all-in'd -\n"));
 
             /*      shortcut timeout        */
-            shortCutCountDown();
+            shortCutCountDown({ "lobby_id": local_data.thisLobby._id });
         }
         else {
             /*          Unset if player already bet         */
             if (local_data.next_player_status.already_bet === true) {
 
                 /*      shortcut timeout        */
-                shortCutCountDown();
+                shortCutCountDown({ "lobby_id": local_data.thisLobby._id });
             }
             /*          Unset if player is not in active state (fold/all-in)         */
             else if (local_data.next_player_status.state !== "active") {
 
                 /*      shortcut timeout        */
-                shortCutCountDown();
+                shortCutCountDown({ "lobby_id": local_data.thisLobby._id });
             }
             else {
 
@@ -515,7 +525,8 @@ const getNextBet = async (msg, local_data, bot) => {
                 let betting_data = {};
                 if (local_data.next_player_idx === local_data.num_players) { local_data.next_player_idx = 0; }
                 let next_player = local_data.players_in_lobby.find(P => P.idx === local_data.next_player_idx);
-                curr_player_slack_id = next_player.slack_id;
+                let idx = thread_arr.findIndex(T => T.lobby_id.toString() === local_data.thisLobby._id.toString());
+                thread_arr[idx].curr_player_slack_id = next_player.slack_id;
                 betting_data.P = next_player;
 
                 /*      The lobby       */
@@ -564,7 +575,7 @@ const getNextBet = async (msg, local_data, bot) => {
                 }
                 /*      Send to one player       */
                 bot.api.chat.postEphemeral(bet_message_payload);
-                LOCK = false;
+                thread_arr[idx].LOCK = false;
 
             }
         }
@@ -574,7 +585,7 @@ const getNextBet = async (msg, local_data, bot) => {
 
         /*      shortcut timeout        */
         if (msg.data.type !== 'win') {
-            shortCutCountDown();
+            shortCutCountDown({ "lobby_id": local_data.thisLobby._id });
         }
         // Don't make bet messages in these updates
         //console.log(chalk.blue("\n- makeBet() skipped > This is not an update:state that should be betting -\n"));
@@ -582,10 +593,11 @@ const getNextBet = async (msg, local_data, bot) => {
 
 }
 
-
+// startT(parent_bot, parent_local_data);
 
 module.exports = {
     startTournament,
     botEvent,
-    crow
+    crow,
+    shortCutCountDown
 };

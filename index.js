@@ -22,9 +22,13 @@ const {
 } = require('./bot-skills/poker-commands');
 
 const {
-    botEvent,
-    startTournament
+    startTournament,
+    shortCutCountDown,
 } = require('./poker-game/start-tournament');
+
+// const {
+//     startTournament
+// } = require('./poker-game/tournament-parent');
 
 const {
     create_or_join
@@ -391,7 +395,7 @@ controller.on('block_actions', async function (bot, message) {
             console.log(body);
             console.log(" --------------------------------------------- ")
 
-            botEvent.emit("SlackBot: Got User Action", [data]);
+            shortCutCountDown(data);
 
         })
 
