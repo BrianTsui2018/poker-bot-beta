@@ -55,11 +55,11 @@ const getPlayerByID = async (player_data) => {
 const lobbyRemovePlayer = async (player_data) => {
     /*      Get player      */
     let thisPlayer = await getPlayerByID(player_data);
-    // console.log("\n---------- ./bot-skills/manager.js -------- lobbyRemovePlayer------- before checkout")
-    // console.log(thisPlayer);
-
+    console.log("\n---------- ./bot-skills/manager.js -------- lobbyRemovePlayer------- before checkout")
+    console.log(thisPlayer);
+    let deposit_amount = 0;
     if (thisPlayer.isInLobby) {
-
+        deposit_amount = thisPlayer.wallet;
         /*      Check-out Player    */
         if (thisPlayer) {
             thisPlayer = await checkOut(thisPlayer);
@@ -74,7 +74,7 @@ const lobbyRemovePlayer = async (player_data) => {
         cleanupLobbyForPlayer(thisPlayer);
 
     }
-    return { "player": thisPlayer, "wallet": thisPlayer.wallet };                 // Returns updated player object OR null
+    return { "player": thisPlayer, "deposit_amount": deposit_amount };                 // Returns updated player object OR null
 }
 
 const cleanupLobbyForPlayer = async (thisPlayer) => {
@@ -120,8 +120,8 @@ const getPlayerBank = async (player_data) => {
     return chips;
 }
 
-const patchPlayerDP = async (newPlayer) => {
-    let extra_data = await axiosGet({ "slack_id": newPlayer.slack_id, "name": newPlayer.name });            // input only needs {name, slack_id}, returns { slack_id, display_name, dp_url }
+const patchPlayerDP = async (newPlayer, bot_token) => {
+    let extra_data = await axiosGet({ "slack_id": newPlayer.slack_id, "name": newPlayer.name }, bot_token);            // input only needs {name, slack_id}, returns { slack_id, display_name, dp_url }
     newPlayer.dp = extra_data.dp_url;
     newPlayer.display_name = extra_data.display_name;
     newPlayer = updatePlayer(newPlayer);
@@ -155,7 +155,7 @@ const getLobbyPlayers = async (lobby_id) => {
  * @param {String} lobby_id     Lobby id
  * @returns {lobby|null}        returns lobby or null if something wrong.
  */
-const playerJoinLobby = async (user_data, lobby_id) => {
+const playerJoinLobby = async (user_data, lobby_id, bot_token) => {
     const thisPlayer = await getPlayerByID(user_data);
     let thisLobby = await getLobbyByID(lobby_id);
     let valid = true;
@@ -225,7 +225,7 @@ const playerJoinLobby = async (user_data, lobby_id) => {
  * @param {Object} thisPlayer 
  * @returns Array of { {lobby object}, currentPlayers [id, id, ...]}
  */
-const getCurrLobbyData = async (thisPlayer) => {
+const getCurrLobbyData = async (thisPlayer, bot_token) => {
 
     // #debug -------------
     // console.log('\n:---------- botskills/manager.js -> getAllLobby ---------');
@@ -272,7 +272,7 @@ const getCurrLobbyData = async (thisPlayer) => {
     //--------------------
 
     /*      Construct data          */
-    let data = await constructAllCurrLobbyData(allLobbiesInTeam, allPlayersInTeam);
+    let data = await constructAllCurrLobbyData(allLobbiesInTeam, allPlayersInTeam, bot_token);
     return data;
 }
 
@@ -281,7 +281,7 @@ const getCurrLobbyData = async (thisPlayer) => {
  * @param {Object} thisLobby 
  * @param {String} thisLobby._id    lobby ID used to locate the lobby from datapase.
  */
-const getOneLobbyData = async (thisLobby) => {
+const getOneLobbyData = async (thisLobby, bot_token) => {
     let data = [];
     /*      Get all the active players in lobby     */
     let players = await getAllPlayerInLobby(thisLobby._id);
@@ -292,7 +292,7 @@ const getOneLobbyData = async (thisLobby) => {
 
     /*      Construct data          */
     for (let j = 0; j < players.length; j++) {
-        player_data = await axiosGet(players[j]);
+        player_data = await axiosGet(players[j], bot_token);
         data.push(player_data);
     }
     return data;
@@ -352,7 +352,7 @@ const withdrawChip = async (user_id, amount) => {
  * @param {Object []}   allPlayersInTeam
  * @param {Number}      allPlayersInTeam.length
  */
-async function constructAllCurrLobbyData(allLobbiesInTeam, allPlayersInTeam) {
+async function constructAllCurrLobbyData(allLobbiesInTeam, allPlayersInTeam, bot_token) {
     let data = [];
     let N = allLobbiesInTeam.length;
     let M = allPlayersInTeam.length;
@@ -364,7 +364,7 @@ async function constructAllCurrLobbyData(allLobbiesInTeam, allPlayersInTeam) {
             let currPlayer = allPlayersInTeam[j];
             if (currPlayer.lastLobby == thisLobby._id) {
                 // await requestForDataObj(dataObj, currPlayer);
-                player_data = await axiosGet(currPlayer);
+                player_data = await axiosGet(currPlayer, bot_token);
                 dataObj.currPlayers.push(player_data);
 
             }
@@ -385,11 +385,11 @@ async function constructAllCurrLobbyData(allLobbiesInTeam, allPlayersInTeam) {
  * @param {Object} currPlayer           contains slack ID
  * @param {String} currPlayer.slack_id
  */
-const axiosGet = async (currPlayer) => {
+const axiosGet = async (currPlayer, bot_token) => {
     const config = {
         params: {
             user: currPlayer.slack_id,
-            token: process.env.BOT_TOKEN
+            token: bot_token
         }
     }
     const url = "https://slack.com/api/users.info";

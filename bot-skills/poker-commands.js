@@ -65,7 +65,7 @@ crow.on("End of Tournament", (local_data) => {
  * @param {Object}  user_data 
  * @returns         updated user data
  */
-const createNewUser = async (user_data) => {
+const createNewUser = async (user_data, bot_token) => {
     try {
         if (!user_data) {
             console.log("---- ERROR! -----\n./bot-skills/poker-commands.js > createNewUser > failed to register player!");
@@ -83,7 +83,8 @@ const createNewUser = async (user_data) => {
         user = await assignChip(user_data, new_player_chips);
         console.log("\nAssigned chips!");
         /*           Get display pic                */
-        user = await patchPlayerDP(user);
+
+        user = await patchPlayerDP(user, bot_token);
         console.log("\nPatched DP!");
 
         return user;
@@ -115,10 +116,12 @@ const setupLobby = async (convo, user) => {
         convo.next();
 
         /*      Add this player to the new lobby        */
-        const updated_lobby = await playerJoinLobby({ slack_id: user.slack_id, team_id: user.team_id }, created_lobby._id);
+        const updated_lobby = await playerJoinLobby({ slack_id: user.slack_id, team_id: user.team_id }, created_lobby._id, bot.config.token);
         convo.say('<@' + user.slack_id + '> is waiting in the lobby.\nGame starts as soon as another player joins.:spades:');
         let curr_bank = user.bank - convo.vars.lobby_buyin;
-        bot.api.chat.postMessage({ "token": process.env.BOT_TOKEN, "channel": user.slack_id, "as_user": true, "text": `You withdrew \$${convo.vars.lobby_buyin} from your bank\nYour bank balance: \$${curr_bank}` });
+
+        // let team = await convo.task.bot.botkit.storage.teams.get(user.team_id);
+        bot.api.chat.postMessage({ "token": bot.config.token, "channel": user.slack_id, "as_user": true, "text": `You withdrew \$${convo.vars.lobby_buyin} from your bank\nYour bank balance: \$${curr_bank}` });
         convo.next();
 
         /*      Check if the last procedure was successful      */
@@ -251,7 +254,7 @@ const create_lobby_callback = async (convo, message) => {
         /*           Greet returning users                   */
         if (!user) {
             /*           Create a user                */
-            user = await createNewUser(user_data);
+            user = await createNewUser(user_data, convo.task.bot.config.token);
             convo.say("");
             convo.next();
             convo.next();
@@ -329,7 +332,7 @@ const createPoker = (convo, reply) => {
 const lobbyMenu = async (bot, channel_id) => {
     // console.log('\n---------------- poker-commands.js -> lobbyMenu() -----------------------------');
     let lobbyList = [];
-    lobbyList = await getCurrLobbyData({ "team_id": bot.team_info.id });
+    lobbyList = await getCurrLobbyData({ "team_id": bot.team_info.id }, bot.config.token);
     let message_block = await current_lobbies_info(lobbyList);
     bot.api.chat.postMessage(
         {
@@ -346,7 +349,7 @@ const oneLobbyMenu = async (bot, channel_id, lobby_id) => {
     let thisLobby = await getLobbyByID(lobby_id);
     let thisData = {};
     thisData.lobby = thisLobby;
-    let thisLobbyPlayerList = await getOneLobbyData(thisLobby);
+    let thisLobbyPlayerList = await getOneLobbyData(thisLobby, bot.config.token);
     thisData.currPlayers = thisLobbyPlayerList;
     let message_block = await one_lobby_info(thisData);
     bot.api.chat.postMessage(
@@ -364,12 +367,15 @@ const playerJoin = async (bot, data) => {
     await newPlayerChips(bot, data);
 
     /*       Add this player to the new lobby        */
-    let updatedLobby = await playerJoinLobby({ slack_id: data.user_slack_id, team_id: data.team_id }, data.lobby_id);
+    let updatedLobby = await playerJoinLobby({ slack_id: data.user_slack_id, team_id: data.team_id }, data.lobby_id, bot.config.token);
 
 
     let player = await getPlayerByID({ "slack_id": data.user_slack_id, "team_id": data.team_id });
+
+    // let team = await convo.task.bot.botkit.storage.teams.get(data.team_id);
+
     /*      DM user about balance       */
-    bot.api.chat.postMessage({ "token": process.env.BOT_TOKEN, "channel": player.slack_id, "as_user": true, "text": `You withdrew \$${player.wallet} from your bank\nYour bank balance: \$${player.bank}` });
+    bot.api.chat.postMessage({ "token": bot.config.token, "channel": player.slack_id, "as_user": true, "text": `You withdrew \$${player.wallet} from your bank\nYour bank balance: \$${player.bank}` });
 
 
     return player;
@@ -383,7 +389,7 @@ const refreshLobbyList = async (bot, message) => {
     }
 
     /*      Get the list of lobby in this team       */
-    let lobbyList = await getCurrLobbyData(data);
+    let lobbyList = await getCurrLobbyData(data, bot.config.token);
     /*      Construct the message block         */
     let message_block = await current_lobbies_info(lobbyList);
     /*      Send out        */
@@ -411,7 +417,7 @@ const refreshLobbySection = async (bot, message, lobby_id) => {
     let thisLobby = await getLobbyByID(lobby_id);
     let thisData = {};
     thisData.lobby = thisLobby;
-    let thisLobbyPlayerList = await getOneLobbyData(thisLobby);
+    let thisLobbyPlayerList = await getOneLobbyData(thisLobby, bot.config.token);
     thisData.currPlayers = thisLobbyPlayerList;
     let message_block = await one_lobby_info(thisData);
 
@@ -432,8 +438,9 @@ const refreshLobbySection = async (bot, message, lobby_id) => {
 
 const playerLeave = async (user) => {
     let data = await lobbyRemovePlayer(user);
+    // let team = await convo.task.bot.botkit.storage.teams.get(user.team_id);
 
-    bot.api.chat.postMessage({ "token": process.env.BOT_TOKEN, "channel": user.slack_id, "as_user": true, "text": `You have deposited \$${data.wallet} into your bank\nYour bank balance: \$${data.player.bank}` })
+    bot.api.chat.postMessage({ "token": bot.config.token, "channel": user.slack_id, "as_user": true, "text": `You have deposited \$${data.deposit_amount} into your bank\nYour bank balance: \$${data.player.bank}` })
     return data.player;
 }
 
@@ -457,11 +464,11 @@ const newPlayerChips = async (bot, data) => {
             slack_id: data.user_slack_id,
             name: data.user_name,
             team_id: data.team_id,
-            team_name: data.team_domain
+            team_name: data.team_domain,
         };
 
         /*           Create a user                */
-        thisPlayer = await createNewUser(new_user);
+        thisPlayer = await createNewUser(new_user, bot.config.token);
 
         bot.api.chat.postMessage(
             {
@@ -632,9 +639,11 @@ const joinedAndStartGame = async (lobby_id, prevPlayers, prevTS) => {
                 thisLobby.is_playing = false;
                 updateLobby(thisLobby);
 
+                // let team = await convo.task.bot.botkit.storage.teams.get(thisLobby.team_id);
+
                 /*      Case: lobby is empty        */
                 let payload = {
-                    "token": process.env.BOT_TOKEN,
+                    "token": bot.config.token,
                     "channel": thisChannel,
                     "thread_ts": prevTS,
                     "text": "*\*Shuffles\**There aren't enough players. Game resumes when another player joins.\n(Perhaps join another lobby?)"
@@ -668,7 +677,7 @@ const serverReset = () => {
 }
 
 
-function restartPrevGame(thisChannel, prevTS, thisLobby, players) {
+async function restartPrevGame(thisChannel, prevTS, thisLobby, players) {
 
     /*      DM all players      */
     notifyPlayer(thisChannel, prevTS, players);
@@ -679,8 +688,10 @@ function restartPrevGame(thisChannel, prevTS, thisLobby, players) {
         names_str = names_str.concat(', <@', players[i].slack_id, '>');
     }
 
+    // let team = await convo.task.bot.botkit.storage.teams.get(thisLobby.team_id);
+
     let head_payload = {
-        "token": process.env.BOT_TOKEN,
+        "token": bot.config.token,
         "channel": thisChannel,
         "ts": prevTS,
         "text": ":spades: :hearts: *Starting Texas Holdem' Poker!*:clubs::diamonds:\nPlayers in *" + thisLobby.name + "* :\n:small_orange_diamond:" + names_str + ", please enter this game thread:small_orange_diamond:\n:small_red_triangle_down:Click below:small_red_triangle_down:"
@@ -690,7 +701,7 @@ function restartPrevGame(thisChannel, prevTS, thisLobby, players) {
             let thisTS = prevTS;
             /*      Post message to ts          */
             let thread_payload = {
-                "token": process.env.BOT_TOKEN,
+                "token": bot.config.token,
                 "channel": thisChannel,
                 "thread_ts": thisTS,
                 "text": "*Shuffling*...:hourglass_flowing_sand:"
@@ -705,7 +716,7 @@ function restartPrevGame(thisChannel, prevTS, thisLobby, players) {
     });
 }
 
-function startNewGame(thisChannel, thisLobby, players) {
+async function startNewGame(thisChannel, thisLobby, players) {
 
     /*      Construct names string        */
     let names_str = '<@' + players[0].slack_id + '>';
@@ -713,8 +724,10 @@ function startNewGame(thisChannel, thisLobby, players) {
         names_str = names_str.concat(', <@', players[i].slack_id, '>');
     }
 
+    // let team = await convo.task.bot.botkit.storage.teams.get(thisLobby.team_id);
+
     let head_payload = {
-        "token": process.env.BOT_TOKEN,
+        "token": bot.config.token,
         "channel": thisChannel,
         "text": ":spades: :hearts: *Starting Texas Holdem' Poker!*:clubs::diamonds:\nPlayers in *" + thisLobby.name + "* :\n:small_orange_diamond:" + names_str + ", please enter this game thread:small_orange_diamond:\n:small_red_triangle_down:Click below:small_red_triangle_down:"
     };
@@ -725,7 +738,7 @@ function startNewGame(thisChannel, thisLobby, players) {
         notifyPlayer(thisChannel, thisTS, players);
         /*      Post message to ts          */
         let thread_payload = {
-            "token": process.env.BOT_TOKEN,
+            "token": bot.config.token,
             "channel": thisChannel,
             "thread_ts": thisTS,
             "text": "Welcome! The game will be starting soon, please stand by...:hourglass_flowing_sand:"
@@ -737,12 +750,15 @@ function startNewGame(thisChannel, thisLobby, players) {
     });
 }
 
-const notifyPlayer = (thisChannel, thisTs, p_list) => {
+const notifyPlayer = async (thisChannel, thisTs, p_list) => {
     // console.log(chalk.bgRed("\n---------------- ./bot-skills/poker-commands.js > notifyPlayer() ---------"))
     /*          Get Permalink           */
     let permalink;
+    let team_id = p_list[0].team_id;
+    // let team = await convo.task.bot.botkit.storage.teams.get(team_id);
+
     let payload = {
-        "token": process.env.BOT_TOKEN,
+        "token": bot.config.token,
         "channel": thisChannel,
         "message_ts": thisTs,
     }
@@ -755,7 +771,7 @@ const notifyPlayer = (thisChannel, thisTs, p_list) => {
         for (let i = 0; i < n; i++) {
             let P = p_list[i];
             payload = {
-                "token": process.env.BOT_TOKEN,
+                "token": bot.config.token,
                 "channel": P.slack_id,
                 "text": `*The lobby you have joined is starting the game soon!*\n:small_orange_diamond:<${permalink}|Click Here> to game thread.:small_orange_diamond:\n*Remember to leave game* when you're done, just message me here, say "*checkout*" or "*leave*":door:.`,
                 "as_user": true

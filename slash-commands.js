@@ -280,7 +280,7 @@ const handleSlash = async (bot, message) => {
                             {
                                 "channel": data.lobby_channel,
                                 "thread_ts": data.thread_ts,
-                                "token": process.env.BOT_TOKEN,
+                                "token": bot.config.token,
                                 "user": data.players[i].slack_id,
                                 //"text": "does this work?"
                                 "attachments": [

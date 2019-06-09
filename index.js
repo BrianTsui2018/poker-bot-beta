@@ -233,12 +233,19 @@ controller.hears(['bank', 'balance', 'money', 'How much money is in my bank'], '
             let bankMsg = await getPlayerBankBalance({ slack_id: message.user, team_id: message.team });
             console.log("\nDEBUG=============== test postMessage ============= [bankMsg]");
             console.log(bankMsg);
-            console.log("\nDEBUG=============== test postMessage ============= [convo]");
-            console.log(convo);
+            console.log("\nDEBUG=============== test postMessage ============= [convo.task.bot.botkit]");
+            console.log(convo.task.bot.botkit);
+            console.log("\nDEBUG=============== test postMessage ============= [convo.task.bot.config]");
+            console.log(convo.task.bot.config);
+            console.log("\nDEBUG=============== test postMessage ============= [convo.task.bot.botkit.storage.teams.get()]");
+            let team = await convo.task.bot.botkit.storage.teams.get(message.team);
+            console.log(team);
+
+
             if (!bankMsg) { throw new Error("index.js | controller.hears poker-balance | Could not get user balance") }
             else {
                 let payload = {
-                    "token": process.env.BOT_TOKEN,
+                    "token": team.token,
                     "channel": message.channel,
                     "blocks": bankMsg,
                     "as_user": true
@@ -317,10 +324,11 @@ controller.hears(['demo', 'demonstrate'], 'direct_message,direct_mention, mentio
                 {
                     pattern: "yes",
                     callback: function (reply, convo) {
-                        bot.reply(convo.source_message, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:\n(Click on this thread to enter game :diamonds:)", function (err, response) {
+                        bot.reply(convo.source_message, ":black_joker: I'm starting a *Texas Poker Holdem Game!* :black_joker:\n(Click on this thread to enter game :diamonds:)", async function (err, response) {
+                            let team = await convo.task.bot.botkit.storage.teams.get(message.team);
 
                             let payload = {
-                                "token": process.env.BOT_TOKEN,
+                                "token": team.token,
                                 "channel": response.channel,
                                 "ts": response.message.ts,
                                 "text": ":spades: :hearts: *Starting Poker Holdem Engine!*:clubs::diamonds:"

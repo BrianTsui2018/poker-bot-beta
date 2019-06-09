@@ -106,6 +106,7 @@ const startT = (bot, local_data) => {
     /*       Variables         */
     let configs = [JSON.stringify(local_data.tournament_configuration)];
     local_data.next_player_idx = -1;
+    local_data.bot_token = bot.config.token;
 
     /*      Start Thread       */
     thread = childProcess.fork("tournament2.js", configs);            //Immediately fork a child process to start to run tournament
@@ -254,7 +255,7 @@ async function updatePlayerCardsImages(msg, players_in_lobby) {
 /*     Prepare update message payload     */
 const getUpdatePayload = (local_data) => {
     return {
-        "token": process.env.BOT_TOKEN,
+        "token": local_data.bot_token,
         "blocks": local_data.this_block_message,
         "channel": local_data.channel,
         "thread_ts": local_data.ts
@@ -263,7 +264,7 @@ const getUpdatePayload = (local_data) => {
 
 const timeCheck = (local_data) => {
     return {
-        "token": process.env.BOT_TOKEN,
+        "token": local_data.bot.config.token,
         "text": "*15 seconds remaining*:stopwatch:",
         "channel": local_data.channel,
         "thread_ts": local_data.ts
@@ -552,7 +553,7 @@ const getNextBet = async (msg, local_data, bot) => {
                 let bet_message_payload = {
                     "channel": local_data.channel,
                     "thread_ts": local_data.ts,
-                    "token": process.env.BOT_TOKEN,
+                    "token": bot.config.token,
                     "user": next_player.slack_id,
                     "attachments": [
                         {
