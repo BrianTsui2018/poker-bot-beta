@@ -99,7 +99,6 @@ const startTournament = async (bot, data) => {
     } else {
         console.log("\nstart-tournament.js > startTournament() : READY_TO_START is false.")
     }
-
 }
 
 const startT = (bot, local_data) => {
@@ -111,6 +110,8 @@ const startT = (bot, local_data) => {
     /*      Start Thread       */
     thread = childProcess.fork("tournament2.js", configs);            //Immediately fork a child process to start to run tournament
     crow.emit("Forked Tournament2.js", configs);
+    console.log(chalk.bgGreen("\n============== ./poker-game/start-tournament.js -> startT() -> thread ============"));
+    console.log(thread);
 
     /*      Event Listener (to child process tournament)      */
     thread.on("message", async (msg) => {                                   //Each time child process passes a msg back, this thread listener catches it.
@@ -178,12 +179,12 @@ const startT = (bot, local_data) => {
                 //End game player list : group everything in one array that has { playerId , chips}
                 // let playerList = calculateWinnings(msg.data.playersEndGame, msg.data.winners);
                 let playerList = msg.data.playersEndGame;
-                console.log(chalk.bgRed("\n~~~~~~~~~~~~~~~~~~~~~"));
-                console.log("\n-------------- playerEndGame");
-                console.log(msg.data.playersEndGame);
-                console.log("\n-------------- winners");
-                console.log(msg.data.winners);
-                console.log("\n");
+                // console.log(chalk.bgRed("\n~~~~~~~~~~~~~~~~~~~~~"));
+                // console.log("\n-------------- playerEndGame");
+                // console.log(msg.data.playersEndGame);
+                // console.log("\n-------------- winners");
+                // console.log(msg.data.winners);
+                // console.log("\n");
 
                 //Update everyone's wallet with playerList
                 await updatePlayerWallet(playerList, local_data.players_in_lobby, true);
@@ -369,8 +370,8 @@ const eventHandler = async (local_data, msg) => {
         console.log(chalk.bgMagenta('------------Tournament UPDATES [' + msg.data.type + ' ]------------'));
         console.log(msg);
         console.log(chalk.bgMagenta('------------------------------------------'));
-        console.log("\t--- [ local_data.players_in_lobby ] ---");
-        console.log(local_data.players_in_lobby);
+        // console.log("\t--- [ local_data.players_in_lobby ] ---");
+        // console.log(local_data.players_in_lobby);
 
         local_data.this_block_message = [];
         if (msg.data.type === "setup") {

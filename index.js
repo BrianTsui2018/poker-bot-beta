@@ -365,8 +365,8 @@ controller.hears(['demo', 'demonstrate'], 'direct_message,direct_mention, mentio
 controller.on('block_actions', async function (bot, message) {
     // #debug
     console.log('\nindex.js : Event -> Block action caught!==========================\n');
-    console.log('--------------- message ------------------');
-    console.log(message);
+    // console.log('--------------- message ------------------');
+    // console.log(message);
 
     let response = JSON.parse(message.text);
 
@@ -435,10 +435,10 @@ controller.on('block_actions', async function (bot, message) {
             bot.reply(message, `<@${message.user}>, the lobby is already full, please try again.:clubs:`);
         } else {
             console.log("\nindex.js : case JOINED\n");
-            console.log("\n--------------- data");
-            console.log(data);
-            console.log("\n----------------result");
-            console.log(result);
+            // console.log("\n--------------- data");
+            // console.log(data);
+            // console.log("\n----------------result");
+            // console.log(result);
             bot.reply(message, `<@${message.user}>, you have joined the lobby *${data.lobby_name}*.\nPlease go to <#${data.lobby_channel}> to meet other players in the game thread.:clubs:`), function (err, response) { };
             // bot.reply(message, `<@${message.user}>, you have joined the lobby *${result.name}*.\n<${data.lobby_thread}|Click *Here*> to meet other players in the game thread.:clubs:`), function (err, response) { };
             joinedAndStartGame(response.lobby_id);

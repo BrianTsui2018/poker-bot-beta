@@ -55,8 +55,8 @@ const getPlayerByID = async (player_data) => {
 const lobbyRemovePlayer = async (player_data) => {
     /*      Get player      */
     let thisPlayer = await getPlayerByID(player_data);
-    console.log("\n---------- ./bot-skills/manager.js -------- lobbyRemovePlayer------- before checkout")
-    console.log(thisPlayer);
+    // console.log("\n---------- ./bot-skills/manager.js -------- lobbyRemovePlayer------- before checkout")
+    // console.log(thisPlayer);
     let deposit_amount = 0;
     if (thisPlayer.isInLobby) {
         deposit_amount = thisPlayer.wallet;
@@ -308,11 +308,11 @@ const updatePlayerWallet = async (data) => {
     try {
         let player = await getOnePlayer(playerinfo);
 
-        console.log("Manager API | Wallet update !---------------");
-        console.log("Was : ", player.wallet)
+        // console.log("Manager API | Wallet update !---------------");
+        // console.log("Was : ", player.wallet)
         player.wallet -= data.spent;
         await player.save();
-        console.log("Now : ", player.wallet)
+        // console.log("Now : ", player.wallet)
 
     } catch (error) {
         console.log("Manager API | Wallet update ERROR!---------------");

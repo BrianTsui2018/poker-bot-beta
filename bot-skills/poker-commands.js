@@ -804,7 +804,7 @@ function restartHandler(prevPlayers, players) {
         }
         else if (thisP && prevPlayers[i].remaining_chips > 0) {
             newList.push(prevPlayers[i]);
-            console.log(chalk.green("\n--------------- keep player -----------"));
+            // console.log(chalk.green("\n--------------- keep player -----------"));
             console.log(prevPlayers[i]);
         }
         else {

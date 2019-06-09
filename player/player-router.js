@@ -277,13 +277,13 @@ const updatePlayerWallet = async (playerList, players_in_lobby, CLEAR_CARDS) => 
         //     .then(currP => {
         getOnePlayer({ slack_id: player.playerId, team_id: team_id })
             .then(thisPlayer => {
-                console.log("\n============ updatePlayerWallet ===============");
-                console.log("Player = ", thisPlayer.name);
-                console.log("Wallet from DB = ", thisPlayer.wallet);
-                console.log("local_data copy of player = ");
-                console.log(players_in_lobby[currP_idx]);
-                console.log("---- what is player in msg.playerList:");
-                console.log(player);
+                // console.log("\n============ updatePlayerWallet ===============");
+                // console.log("Player = ", thisPlayer.name);
+                // console.log("Wallet from DB = ", thisPlayer.wallet);
+                // console.log("local_data copy of player = ");
+                // console.log(players_in_lobby[currP_idx]);
+                // console.log("---- what is player in msg.playerList:");
+                // console.log(player);
                 players_in_lobby[currP_idx].remaining_chips += player.chips;
                 players_in_lobby[currP_idx].wallet = players_in_lobby[currP_idx].remaining_chips;
                 thisPlayer.wallet = players_in_lobby[currP_idx].wallet;

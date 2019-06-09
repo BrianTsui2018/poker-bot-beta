@@ -409,8 +409,8 @@ const update_cards = async (msg) => {
                     "text": ""
                 }
             };
-            console.log("--------------msg.data-------------------------")
-            console.log(msg.data)
+            // console.log("--------------msg.data-------------------------")
+            // console.log(msg.data)
             let cards = cardCombo(msg.data.textCards, msg.data.session)
             noCard.text.text = textBasedCards(cards);
             this_block_message[1] = noCard;
