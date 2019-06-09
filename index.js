@@ -241,6 +241,9 @@ controller.hears(['bank', 'balance', 'money', 'How much money is in my bank'], '
                     "blocks": bankMsg
                 }
                 bot.api.chat.postMessage(payload);
+
+                console.log("\nDEBUG=============== test postMessage ============= [payload]");
+                console.log(payload);
             }
 
         });
