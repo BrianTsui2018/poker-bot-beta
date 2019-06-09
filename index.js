@@ -238,7 +238,8 @@ controller.hears(['bank', 'balance', 'money', 'How much money is in my bank'], '
                 let payload = {
                     "token": process.env.BOT_TOKEN,
                     "channel": message.channel,
-                    "blocks": bankMsg
+                    "blocks": bankMsg,
+                    "as_user": true
                 }
                 bot.api.chat.postMessage(payload);
 
