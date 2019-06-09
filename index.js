@@ -228,6 +228,8 @@ controller.hears(['bank', 'balance', 'money', 'How much money is in my bank'], '
             convo.next();
             convo.say('');
             convo.next();
+            console.log("\nDEBUG=============== test postMessage ============= [message]");
+            console.log(message);
             let bankMsg = await getPlayerBankBalance({ slack_id: message.user, team_id: message.team });
             if (!bankMsg) { throw new Error("index.js | controller.hears poker-balance | Could not get user balance") }
             else {
