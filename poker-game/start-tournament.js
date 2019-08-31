@@ -246,13 +246,22 @@ function updateAllPlayerChips(local_data, msg) {
 async function updatePlayerCardsImages(msg, players_in_lobby) {
 
     let imgArr = msg.data.cardImages;
+
+    //#Debug--------------------------
+    console.log(chalk.red("\n\n#Debug ./poker-game/start-tournament.js -> imgArr :"))
+    console.log(imgArr);
+    console.log(chalk.red('\n\n#Dubug: msg.data.cardImages :'));
+    console.log(msg.data.cardImages);
+
+    //---------------------------------    
     if (imgArr) {
         for (let i = 0; i < players_in_lobby.length; i++) {
             if (imgArr[i]) {
                 let x = players_in_lobby.findIndex(P => P.slack_id === imgArr[i].id);
                 players_in_lobby[x].cards = imgArr[i].url;
                 players_in_lobby[x] = await updatePlayer(players_in_lobby[x]);
-                players_in_lobby[x].idx = imgArr[i].index;
+                // players_in_lobby[x].idx = imgArr[i].index;
+                players_in_lobby[x].imgArrCardsIndex = imgArr[i].index;
             } else {
                 console.log(chalk.red("\n\n./poker-game/start-tournament.js -> updatePlayerCardImages() : Player did not get image from Imgur!\n\n"));
             }
@@ -420,7 +429,8 @@ const eventHandler = async (local_data, msg) => {
 
             /*      Get the next player by PHE index        */
             // potential next player is the next one after this last player
-            let x = local_data.players_in_lobby[local_data.last_player_idx].idx + 1;
+            // let x = local_data.players_in_lobby[local_data.last_player_idx].idx + 1;
+            let x = local_data.last_player_idx + 1;
             if (x === local_data.num_players) { x = 0; }
             let n = 0;
             while (msg.data.allPlayersStatus[x].state === 'fold' && n < 10) {
@@ -523,8 +533,16 @@ const getNextBet = async (msg, local_data, bot) => {
 
                 /*      The player      */
                 let betting_data = {};
+
+                //#Debug------------------
+                console.log('\n\n====== #Debug | ./poker-game/start-tournament.js/ getNextBet() ---- Local Data ==============');
+                console.log(local_data);
+                console.log('\n');
+                //-----------------------
+
                 if (local_data.next_player_idx === local_data.num_players) { local_data.next_player_idx = 0; }
-                let next_player = local_data.players_in_lobby.find(P => P.idx === local_data.next_player_idx);
+                // let next_player = local_data.players_in_lobby.find(P => P.idx === local_data.next_player_idx);
+                let next_player = local_data.players_in_lobby[local_data.next_player_idx];
                 let idx = thread_arr.findIndex(T => T.lobby_id.toString() === local_data.thisLobby._id.toString());
                 thread_arr[idx].curr_player_slack_id = next_player.slack_id;
                 betting_data.P = next_player;

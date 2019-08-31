@@ -86,7 +86,7 @@ let bot = controller.spawn({
         url: process.env.SLACK_WEBHOOK
     }
 })
-bot.startRTM(function (err) {
+bot.startRTM(function (err) {                   // Brian's note: if this throw auth invalid error, it is likely the slack bot token got changed
     if (err) {
         throw new Error(err)
     }

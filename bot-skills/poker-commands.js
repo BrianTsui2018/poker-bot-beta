@@ -630,6 +630,21 @@ const joinedAndStartGame = async (lobby_id, prevPlayers, prevTS) => {
             let thisChannel = thisLobby.channel;
             if (players.length >= 2) {    // This is 2nd time validating player number. It was first checked when player joins lobby.
 
+                /*      Before starting, patch in the idx attribute, representing the seat of each player       */
+                
+                for (p in players) {
+                    console.log(p);
+                    players[p].idx = p;
+                }
+
+                //#Debug -------------------
+                    console.log('\n#Debug ./bot-skills/poker-commands.js -> joinedAndStartGame() -> players : ---')
+                    console.log(players[0].idx);
+                    console.log(players[1].idx);
+                    console.log('\n');
+
+                //---------------------------
+                console.log(players);
                 if (RESTART) {
                     /*      Redirect to Game Thread             */
                     restartPrevGame(thisChannel, prevTS, thisLobby, players);

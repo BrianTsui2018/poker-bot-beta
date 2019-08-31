@@ -1088,7 +1088,7 @@ const FLOP = (data) => {
     flop_block[0].text.text = ":diamonds: Session : *FLOP*\n:moneybag: Pot: $" + data.pot;
     flop_block[1].title.text = "Cards : ";
     flop_block[3].text.text = `First three cards: ${card_name_translator(data.cards)} ...\nWaiting for players to bet.:small_orange_diamond:`;
-    flop_block[1].image_url = data.cardImages[0] ? data.cardImages[0].url : null;
+    flop_block[1].image_url = data.cardImages ? data.cardImages[0] ? data.cardImages[0].url : null : null;
     flop_block[1].alt_text = "Common Cards";
     return flop_block;
 }
@@ -1098,7 +1098,7 @@ const RIVER = (data) => {
     river_block[0].text.text = ":clubs: Session : *RIVER*\n:moneybag: Pot: $" + data.pot;
     river_block[1].title.text = "Cards : ";
     river_block[3].text.text = `New card: ${card_name_translator(data.cards)} ... \nWaiting for players to bet.:small_orange_diamond:`;
-    river_block[1].image_url = data.cardImages[0] ? data.cardImages[0].url : null;
+    river_block[1].image_url = data.cardImages ? data.cardImages[0] ? data.cardImages[0].url : null : null;
     river_block[1].alt_text = "Four cards shown!";
     return river_block;
 }
@@ -1108,7 +1108,7 @@ const TURN = (data) => {
     turn_block[0].text.text = ":hearts: Session : *TURN*\n:moneybag: Pot: $" + data.pot;
     turn_block[1].title.text = "Cards : ";
     turn_block[3].text.text = `New card: ${card_name_translator(data.cards)} ... \nWaiting for players to bet.:small_orange_diamond:`;
-    turn_block[1].image_url = data.cardImages[0] ? data.cardImages[0].url : null;
+    turn_block[1].image_url = data.cardImages ? data.cardImages[0] ? data.cardImages[0].url : null : null;
     turn_block[1].alt_text = "Five cards shown!";
     return turn_block;
 }
